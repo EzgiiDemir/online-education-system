@@ -1,0 +1,6 @@
+@extends('lms.layout')
+@section('title','Öğrenim alanım · Campus LMS')
+@section('content')
+<div class="section-heading"><div><span class="eyebrow">ÖĞRENİM ALANIM</span><h1>Eğitimlerim</h1><p class="muted">Kayıt olduğunuz eğitimler ve yaklaşan canlı dersler.</p></div></div>
+<div class="course-grid">@forelse($enrollments as $enrollment)<article class="course-card surface"><div class="course-card-top"><span class="status">{{ $enrollment->course->delivery_type === 'online' ? 'CANLI SINIF' : 'İÇERİK TABANLI' }}</span><span class="muted">{{ $enrollment->status }}</span></div><h3>{{ $enrollment->course->title }}</h3><p class="muted">{{ $enrollment->course->description }}</p><div class="learning-sessions">@foreach($enrollment->course->sessions as $session)<div class="learning-session"><div><strong>{{ $session->title }}</strong><small>{{ $session->starts_at?->format('d.m.Y H:i') ?? 'Tarih bekleniyor' }}</small></div>@if($session->meeting_url)<a class="button" href="{{ $session->meeting_url }}">Derse katıl →</a>@endif</div>@endforeach</div></article>@empty<div class="empty-state surface">Henüz kayıt olduğunuz bir eğitim yok. <a href="{{ route('lms.home') }}">Kataloğu görüntüleyin →</a></div>@endforelse</div>
+@endsection
