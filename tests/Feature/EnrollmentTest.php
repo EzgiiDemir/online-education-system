@@ -70,7 +70,7 @@ class EnrollmentTest extends TestCase
 
         $response = $this->actingAs($learner)->post(route('materials.complete', $material), ['watched_seconds' => 120]);
 
-        $response->assertOk();
+        $response->assertRedirect();
         $enrollment->refresh();
         $this->assertSame('completed', $enrollment->status);
         $this->assertNotNull($enrollment->completed_at);
