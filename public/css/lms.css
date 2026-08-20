@@ -21,7 +21,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 /* Profile menu */
 .profile-menu{position:relative}
 .profile-trigger{display:flex;align-items:center;gap:9px;background:transparent;border:0;cursor:pointer;padding:4px 10px 4px 4px;border-radius:999px;color:#14161a;box-shadow:none;transition:background .15s var(--ease)}
-.profile-trigger:hover{background:var(--brand-soft);transform:none}
+.profile-trigger:hover{background:var(--brand-soft);color:#14161a}
 .profile-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(150deg,var(--brand),var(--secondary));color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;overflow:hidden;flex-shrink:0}
 .profile-avatar img{width:100%;height:100%;object-fit:cover}
 .profile-name{font-size:13px;font-weight:650;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -54,7 +54,6 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .surface{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);box-shadow:0 10px 34px #10182812;transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
 .card{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);box-shadow:0 10px 34px #10182812;padding:26px}
 .course-card{padding:24px}
-.course-card:hover{box-shadow:0 16px 44px #1018281c;transform:translateY(-2px)}
 .course-card-top,.course-meta{display:flex;align-items:center;gap:10px}
 .course-card h3{font-size:21px;margin:18px 0 10px}
 .course-meta{font-size:13px;color:var(--muted);margin:20px 0}
@@ -63,13 +62,10 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .empty-state{padding:40px;text-align:center}
 .status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.03em;background:var(--brand-soft);color:var(--brand-dark)}
 
-/* Buttons — refined, Apple-leaning: soft depth, no harsh flat fills */
-button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;transition:transform .15s var(--ease),box-shadow .15s var(--ease),filter .15s var(--ease);box-shadow:0 1px 2px #1018281a,0 6px 16px -6px #4d678766}
-button:hover,.button:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 2px 4px #1018281a,0 10px 22px -6px #4d678777;color:#fff}
-button:active,.button:active{transform:translateY(0);filter:brightness(.98)}
-button:disabled,.button:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none;box-shadow:none}
-.button-secondary,.button.secondary,.secondary{background:rgba(255,255,255,.6);backdrop-filter:blur(10px);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
-.button-secondary:hover,.button.secondary:hover,.secondary:hover{background:#fff;color:var(--brand-dark);box-shadow:0 4px 12px #1018281a}
+/* Buttons — flat, no hover animation by request */
+button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;box-shadow:0 1px 2px #1018281a}
+button:disabled,.button:disabled{opacity:.5;cursor:not-allowed}
+.button-secondary,.button.secondary,.secondary{background:rgba(255,255,255,.6);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
 
 .alert{padding:13px 18px;margin-bottom:20px;border-radius:var(--radius-sm);font-size:14px}
 .success{background:#eef1e9;color:var(--success-dark)}

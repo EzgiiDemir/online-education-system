@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', $material->title.' · Campus LMS')
+@section('title', $material->title.' · Arucad Campus LMS')
 @section('content')
 <div class="viewer-wrap">
 <a class="viewer-back" href="{{ route('learning.index') }}">← Öğrenim alanıma dön</a>

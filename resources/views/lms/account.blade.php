@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title','Hesap bilgileri · Campus LMS')
+@section('title','Hesap bilgileri · Arucad Campus LMS')
 @section('content')
 <div class="section-heading"><div><span class="eyebrow">HESABIM</span><h1>Hesap bilgileri</h1><p class="muted">Profil bilgileriniz ve eğitim geçmişiniz.</p></div></div>
 <div class="grid" style="display:grid;gap:20px;grid-template-columns:280px 1fr;align-items:start">

@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('Campus LMS Yönetim')
+            ->brandName('Arucad Campus LMS Yönetim')
             ->brandLogo(asset('images/sdg/arucad_home_logo.png'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/sdg/arucad_home_logo.png'))
