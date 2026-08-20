@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/activities/{activity}/heartbeat', [LmsController::class, 'activityHeartbeat'])->name('activities.heartbeat');
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/instructor/profile', [LmsController::class, 'instructorProfile'])->name('instructor.profile');

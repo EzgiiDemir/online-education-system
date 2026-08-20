@@ -28,10 +28,16 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Campus LMS Yönetim')
+            ->brandLogo(asset('images/sdg/arucad_home_logo.png'))
+            ->brandLogoHeight('2rem')
+            ->favicon(asset('images/sdg/arucad_home_logo.png'))
             ->spa()
             ->login()
             ->colors([
-                'primary' => Color::Indigo,
+                'primary' => Color::hex('#4D6787'),
+                'info' => Color::hex('#898AA6'),
+                'success' => Color::hex('#94A378'),
+                'warning' => Color::hex('#F2D388'),
             ])
             ->navigationGroups(['Katalog', 'Eğitim yönetimi', 'Canlı sınıflar', 'Katılımcılar', 'Sistem'])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

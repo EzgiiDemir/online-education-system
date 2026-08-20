@@ -440,14 +440,8 @@ class LmsController extends Controller
 
     private function checkAndCompleteEnrollment(Enrollment $enrollment): void
     {
-        $totalMaterials = Material::whereHas('session', fn ($q) => $q->where('course_id', $enrollment->course_id))->count();
-        $completedMaterials = $enrollment->progress()->where('completed', true)->count();
-        $totalActivities = Activity::whereHas('section', fn ($q) => $q->where('course_id', $enrollment->course_id))->where('is_required', true)->count();
-        $completedActivities = $enrollment->activityProgress()->whereHas('activity', fn ($q) => $q->where('is_required', true))->where('completed', true)->count();
-        $totalSessions = CourseSession::where('course_id', $enrollment->course_id)->count();
-        $completedSessions = $enrollment->sessionProgress()->whereNotNull('completed_at')->count();
-        $total = $totalMaterials + $totalActivities + $totalSessions;
-        if ($total && ($completedMaterials + $completedActivities + $completedSessions) >= $total) {
+        $stats = $enrollment->completionStats();
+        if ($stats['total'] && $stats['completed'] >= $stats['total']) {
             $enrollment->update(['status' => 'completed', 'completed_at' => now()]);
             Certificate::firstOrCreate(['enrollment_id' => $enrollment->id], ['certificate_number' => 'CERT-'.strtoupper(Str::random(10)), 'issued_at' => now()]);
         }

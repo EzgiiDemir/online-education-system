@@ -5,9 +5,41 @@
     <title>@yield('title', 'Campus LMS')</title><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
-<nav class="site-nav"><a class="brand" href="{{ route('lms.home') }}">Campus <span>LMS</span></a><div class="nav-actions">
-<a class="nav-link" href="{{ route('language.switch', 'tr') }}">TR</a><a class="nav-link" href="{{ route('language.switch', 'en') }}">EN</a>
-@auth @if(auth()->user()->role !== 'admin')<a class="nav-link" href="{{ route('learning.index') }}">Eğitimlerim</a>@endif <span class="nav-user">{{ auth()->user()->name }}</span><form method="post" action="{{ route('logout') }}" class="inline-form">@csrf<button class="nav-button" type="submit">{{ session('locale', 'tr') === 'en' ? 'Logout' : 'Çıkış' }}</button></form>@else <a class="nav-button" href="{{ route('login') }}">{{ session('locale', 'tr') === 'en' ? 'Login' : 'Giriş' }}</a>@endauth
-</div></nav>
+@php($en = session('locale', 'tr') === 'en')
+<nav class="site-nav">
+<a class="brand" href="{{ route('lms.home') }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Campus LMS">Campus <span>LMS</span></a>
+<div class="nav-tabs">
+@auth @if(auth()->user()->role !== 'admin')<a href="{{ route('learning.index') }}" class="{{ request()->routeIs('learning.index') ? 'is-active' : '' }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
+<a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a>
+</div>
+<div class="nav-actions">
+@auth
+<div class="profile-menu">
+<button class="profile-trigger" type="button" data-profile-toggle>
+<span class="profile-avatar">@if(auth()->user()->avatar_path)<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">@else{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}@endif</span>
+<span class="profile-name">{{ auth()->user()->name }}</span>
+</button>
+<div class="profile-dropdown" data-profile-dropdown>
+<div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
+@if(auth()->user()->role==='admin')<a href="/admin">⚙ {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a>@endif
+@if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}">▦ {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
+<a href="{{ route('account.show') }}">◎ {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
+<form method="post" action="{{ route('logout') }}">@csrf<button type="submit">↪ {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
+</div>
+</div>
+@else
+<a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
+@endauth
+</div>
+</nav>
 <main class="page-shell">@if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
+<script>
+document.addEventListener('click', function (e) {
+    var toggle = e.target.closest('[data-profile-toggle]');
+    var dropdown = document.querySelector('[data-profile-dropdown]');
+    if (!dropdown) return;
+    if (toggle) { dropdown.classList.toggle('is-open'); return; }
+    if (!e.target.closest('[data-profile-dropdown]')) dropdown.classList.remove('is-open');
+});
+</script>
 </body></html>
