@@ -6,6 +6,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class CourseSessionsTable
@@ -14,21 +15,23 @@ class CourseSessionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('course_id')
-                    ->numeric()
+                TextColumn::make('course.title')
+                    ->label('Eğitim')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('title')
+                    ->label('Seans')
                     ->searchable(),
+                TextColumn::make('meeting_status')->label('Durum')->badge()->placeholder('Yüz yüze'),
+                TextColumn::make('materials_count')->label('Materyal')->counts('materials')->badge(),
                 TextColumn::make('starts_at')
+                    ->label('Başlangıç')
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('ends_at')
+                    ->label('Bitiş')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('class_url')
-                    ->searchable(),
-                TextColumn::make('recording_url')
-                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -37,11 +40,9 @@ class CourseSessionsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('recording_path')
-                    ->searchable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
             ])
             ->recordActions([
                 EditAction::make(),

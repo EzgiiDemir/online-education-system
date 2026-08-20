@@ -5,6 +5,10 @@ namespace App\Filament\Resources\Courses;
 use App\Filament\Resources\Courses\Pages\CreateCourse;
 use App\Filament\Resources\Courses\Pages\EditCourse;
 use App\Filament\Resources\Courses\Pages\ListCourses;
+use App\Filament\Resources\Courses\RelationManagers\EnrollmentsRelationManager;
+use App\Filament\Resources\Courses\RelationManagers\RunsRelationManager;
+use App\Filament\Resources\Courses\RelationManagers\SectionsRelationManager;
+use App\Filament\Resources\Courses\RelationManagers\SessionsRelationManager;
 use App\Filament\Resources\Courses\Schemas\CourseForm;
 use App\Filament\Resources\Courses\Tables\CoursesTable;
 use App\Models\Course;
@@ -37,7 +41,10 @@ class CourseResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            SessionsRelationManager::class,
+            SectionsRelationManager::class,
+            RunsRelationManager::class,
+            EnrollmentsRelationManager::class,
         ];
     }
 

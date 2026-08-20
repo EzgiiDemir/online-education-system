@@ -6,6 +6,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class CourseRunsTable
@@ -14,40 +15,42 @@ class CourseRunsTable
     {
         return $table
             ->columns([
-                TextColumn::make('course_id')
-                    ->numeric()
+                TextColumn::make('course.title')
+                    ->label('Eğitim')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
+                    ->label('Dönem adı')
                     ->searchable(),
                 TextColumn::make('code')
+                    ->label('Kod')
                     ->searchable(),
-                TextColumn::make('language')
-                    ->searchable(),
-                TextColumn::make('enrollment_opens_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('enrollment_closes_at')
-                    ->dateTime()
-                    ->sortable(),
+                TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),
+                TextColumn::make('status')
+                    ->label('Durum')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => ['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'][$state] ?? $state)
+                    ->color(fn ($state) => match ($state) {
+                        'open', 'running' => 'success',
+                        'archived' => 'gray',
+                        default => 'warning',
+                    }),
                 TextColumn::make('starts_at')
+                    ->label('Başlangıç')
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('ends_at')
+                    ->label('Bitiş')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->searchable(),
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
+                SelectFilter::make('status')->label('Durum')->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi']),
             ])
             ->recordActions([
                 EditAction::make(),

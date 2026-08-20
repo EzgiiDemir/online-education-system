@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\PortalSettings;
 
-use App\Filament\Resources\PortalSettings\Pages\CreatePortalSetting;
 use App\Filament\Resources\PortalSettings\Pages\EditPortalSetting;
 use App\Filament\Resources\PortalSettings\Pages\ListPortalSettings;
 use App\Filament\Resources\PortalSettings\Schemas\PortalSettingForm;
@@ -45,7 +44,6 @@ class PortalSettingResource extends Resource
     {
         return [
             'index' => ListPortalSettings::route('/'),
-            'create' => CreatePortalSetting::route('/create'),
             'edit' => EditPortalSetting::route('/{record}/edit'),
         ];
     }

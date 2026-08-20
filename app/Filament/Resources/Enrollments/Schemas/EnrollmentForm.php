@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Enrollments\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class EnrollmentForm
@@ -12,16 +12,11 @@ class EnrollmentForm
     {
         return $schema
             ->components([
-                TextInput::make('user_id')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('course_id')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('status')
-                    ->required()
-                    ->default('enrolled'),
-                DateTimePicker::make('completed_at'),
+                Select::make('user_id')->label('Katılımcı')->relationship('user', 'name')->searchable()->preload()->required(),
+                Select::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload()->required()->live(),
+                Select::make('course_run_id')->label('Dönem (opsiyonel)')->relationship('run', 'name')->searchable()->preload(),
+                Select::make('status')->label('Durum')->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'])->default('enrolled')->required()->native(false),
+                DateTimePicker::make('completed_at')->label('Tamamlanma tarihi'),
             ]);
     }
 }
