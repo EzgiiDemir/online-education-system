@@ -2,9 +2,10 @@
 namespace App\Notifications;
 use App\Models\CourseSession;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-class LiveSessionScheduled extends Notification {
+class LiveSessionScheduled extends Notification implements ShouldQueue {
     use Queueable;
     public function __construct(public CourseSession $session) {}
     public function via($notifiable): array { return ['mail','database']; }

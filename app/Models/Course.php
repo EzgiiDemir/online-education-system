@@ -1,7 +1,9 @@
 <?php
 namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 class Course extends Model {
+    use HasFactory;
     protected $guarded = [];
     protected $casts = ['starts_at'=>'datetime','ends_at'=>'datetime','certificate_enabled'=>'boolean','sdg_goals'=>'array'];
     public function instructor(){return $this->belongsTo(User::class,'instructor_id');}
