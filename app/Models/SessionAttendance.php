@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SessionAttendance extends Model
 {
+    protected $table = 'session_attendance';
+
     protected $guarded = [];
 
     protected $casts = ['joined_at' => 'datetime', 'left_at' => 'datetime'];

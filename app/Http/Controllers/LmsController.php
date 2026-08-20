@@ -12,6 +12,7 @@ use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\MaterialProgress;
 use App\Models\PortalSetting;
+use App\Models\SessionAttendance;
 use App\Models\SessionProgress;
 use App\Models\User;
 use App\Notifications\CoursePublished;
@@ -87,7 +88,7 @@ class LmsController extends Controller
 
     public function myLearning()
     {
-        $enrollments = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'certificate'])->latest()->get();
+        $enrollments = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate'])->latest()->get();
 
         return view('lms.my-learning', compact('enrollments'));
     }
@@ -206,12 +207,42 @@ class LmsController extends Controller
         return back()->with('success', 'Seans başlangıcı kaydedildi.');
     }
 
+    /**
+     * Öğrenci kendi katılımını yalnızca online seanslarda, gerçek oda
+     * yoklaması (class_presence -> session_attendance) yeterli süreye
+     * ulaştığında tamamlayabilir. Yüz yüze (offline) seanslarda fiziksel
+     * katılım sistem tarafından doğrulanamaz; bu yüzden self-servis
+     * tamamlama tamamen kapalıdır -- yoklamayı yalnızca dersi bizzat
+     * yürüten eğitmen işaretleyebilir (bkz. markSessionAttendance).
+     */
     public function completeSession(CourseSession $session)
     {
+        abort_if($session->meeting_status === 'not_applicable', 422, 'Yüz yüze seanslarda katılım yalnızca eğitmen tarafından işaretlenebilir.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $session->course_id)->firstOrFail();
+        $attended = SessionAttendance::where('course_session_id', $session->id)->where('user_id', Auth::id())->value('duration_seconds') ?? 0;
+        $required = $this->requiredSessionSeconds($session);
+        abort_unless($attended >= $required, 422, 'Seansı tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now(), 'completed_at' => now()]);
+        $this->checkAndCompleteEnrollment($enrollment);
 
         return back()->with('success', 'Seans tamamlandı.');
+    }
+
+    /**
+     * Eğitmenin, dersi bizzat yürüten kişi olarak, bir katılımcının
+     * seansa katıldığını elle işaretlemesi. Yüz yüze seanslarda tek
+     * güvenilir kaynak budur; online seanslarda da bağlantı sorunu
+     * yaşayan bir katılımcı için telafi amacıyla kullanılabilir.
+     */
+    public function markSessionAttendance(Request $r, CourseSession $session)
+    {
+        $this->authorize('update', $session->course);
+        $data = $r->validate(['user_id' => 'required|exists:users,id']);
+        $enrollment = Enrollment::where('course_id', $session->course_id)->where('user_id', $data['user_id'])->firstOrFail();
+        SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now(), 'completed_at' => now()]);
+        $this->checkAndCompleteEnrollment($enrollment);
+
+        return back()->with('success', 'Katılım işaretlendi.');
     }
 
     public function classroom(CourseSession $session)
@@ -245,9 +276,20 @@ class LmsController extends Controller
     public function classPresence(CourseSession $session)
     {
         \DB::table('class_presence')->updateOrInsert(['course_session_id' => $session->id, 'user_id' => Auth::id()], ['last_seen_at' => now(), 'updated_at' => now(), 'created_at' => now()]);
+        if (Auth::user()->enrollments()->where('course_id', $session->course_id)->exists()) {
+            $this->accrueSessionAttendance($session);
+        }
         $users = \DB::table('class_presence')->join('users', 'users.id', '=', 'class_presence.user_id')->where('course_session_id', $session->id)->where('last_seen_at', '>', now()->subSeconds(30))->select('users.id', 'users.name', 'users.avatar_path')->get();
 
         return response()->json($users);
+    }
+
+    public function sessionAttendanceStatus(CourseSession $session)
+    {
+        $attended = SessionAttendance::where('course_session_id', $session->id)->where('user_id', Auth::id())->value('duration_seconds') ?? 0;
+        $required = $this->requiredSessionSeconds($session);
+
+        return response()->json(['attended_seconds' => $attended, 'required_seconds' => $required, 'eligible' => $attended >= $required]);
     }
 
     public function classSignals(Request $r, CourseSession $session)
@@ -368,14 +410,44 @@ class LmsController extends Controller
         return $durationSeconds ? max(10, (int) ceil($durationSeconds * 0.9)) : 20;
     }
 
+    /**
+     * class_presence her ping'te güncellenir (kamera/mikrofon açıp "Katıl"
+     * dedikten sonra 5sn'de bir); burada da materyal heartbeat'iyle aynı
+     * mantıkla, istemciden gelen hiçbir süreye güvenmeden, ardışık kabul
+     * edilen çağrılar arasında en az 4sn olacak şekilde sabit +5sn birikir.
+     */
+    private function accrueSessionAttendance(CourseSession $session): void
+    {
+        $attendance = SessionAttendance::firstOrCreate(
+            ['course_session_id' => $session->id, 'user_id' => Auth::id()],
+            ['joined_at' => now(), 'duration_seconds' => 0]
+        );
+        if ($attendance->left_at && $attendance->left_at->diffInSeconds(now()) < 4) {
+            return;
+        }
+        $attendance->increment('duration_seconds', 5);
+        $attendance->update(['left_at' => now()]);
+    }
+
+    private function requiredSessionSeconds(CourseSession $session): int
+    {
+        if ($session->starts_at && $session->ends_at) {
+            return max(60, (int) ceil($session->starts_at->diffInSeconds($session->ends_at) * 0.9));
+        }
+
+        return 300;
+    }
+
     private function checkAndCompleteEnrollment(Enrollment $enrollment): void
     {
         $totalMaterials = Material::whereHas('session', fn ($q) => $q->where('course_id', $enrollment->course_id))->count();
         $completedMaterials = $enrollment->progress()->where('completed', true)->count();
         $totalActivities = Activity::whereHas('section', fn ($q) => $q->where('course_id', $enrollment->course_id))->where('is_required', true)->count();
         $completedActivities = $enrollment->activityProgress()->whereHas('activity', fn ($q) => $q->where('is_required', true))->where('completed', true)->count();
-        $total = $totalMaterials + $totalActivities;
-        if ($total && ($completedMaterials + $completedActivities) >= $total) {
+        $totalSessions = CourseSession::where('course_id', $enrollment->course_id)->count();
+        $completedSessions = $enrollment->sessionProgress()->whereNotNull('completed_at')->count();
+        $total = $totalMaterials + $totalActivities + $totalSessions;
+        if ($total && ($completedMaterials + $completedActivities + $completedSessions) >= $total) {
             $enrollment->update(['status' => 'completed', 'completed_at' => now()]);
             Certificate::firstOrCreate(['enrollment_id' => $enrollment->id], ['certificate_number' => 'CERT-'.strtoupper(Str::random(10)), 'issued_at' => now()]);
         }

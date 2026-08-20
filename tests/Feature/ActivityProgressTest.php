@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\MaterialProgress;
+use App\Models\SessionProgress;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -43,6 +44,7 @@ class ActivityProgressTest extends TestCase
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
         MaterialProgress::create(['enrollment_id' => $enrollment->id, 'material_id' => $material->id, 'watched_seconds' => 20]);
         ActivityProgress::create(['enrollment_id' => $enrollment->id, 'activity_id' => $required->id, 'watched_seconds' => 20]);
+        SessionProgress::create(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id, 'completed_at' => now()]);
 
         $this->actingAs($learner)->post(route('materials.complete', $material));
         $enrollment->refresh();

@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/instructor/courses/{course}/sessions', [LmsController::class, 'addSession'])->name('instructor.sessions.store');
     Route::post('/sessions/{session}/start', [LmsController::class, 'startSession'])->name('sessions.start');
     Route::post('/sessions/{session}/complete', [LmsController::class, 'completeSession'])->name('sessions.complete');
+    Route::get('/sessions/{session}/attendance-status', [LmsController::class, 'sessionAttendanceStatus'])->name('sessions.attendance-status');
+    Route::post('/instructor/sessions/{session}/attendance', [LmsController::class, 'markSessionAttendance'])->name('instructor.sessions.attendance');
     Route::get('/sessions/{session}/classroom', [LmsController::class, 'classroom'])->name('sessions.classroom');
     Route::post('/sessions/{session}/messages', [LmsController::class, 'classMessage'])->name('sessions.messages');
     Route::match(['get', 'post'], '/sessions/{session}/presence', [LmsController::class, 'classPresence'])->name('sessions.presence');

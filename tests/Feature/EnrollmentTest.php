@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\MaterialProgress;
+use App\Models\SessionProgress;
 use App\Models\User;
 use App\Notifications\LiveSessionScheduled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -68,9 +69,11 @@ class EnrollmentTest extends TestCase
         ]);
         $learner = User::factory()->create(['role' => 'learner']);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
-        // Anti-cheat watch-time accrual is exercised separately in WatchTimeIntegrityTest;
-        // here we only care about the enrollment/certificate cascade once the threshold is met.
+        // Anti-cheat watch-time / attendance accrual is exercised separately in
+        // WatchTimeIntegrityTest and LiveSessionAttendanceTest; here we only care
+        // about the enrollment/certificate cascade once every requirement is met.
         MaterialProgress::create(['enrollment_id' => $enrollment->id, 'material_id' => $material->id, 'watched_seconds' => 20]);
+        SessionProgress::create(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id, 'completed_at' => now()]);
 
         $response = $this->actingAs($learner)->post(route('materials.complete', $material));
 
