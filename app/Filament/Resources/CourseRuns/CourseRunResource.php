@@ -19,7 +19,9 @@ class CourseRunResource extends Resource
     protected static ?string $model = CourseRun::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Katalog';
+
     protected static ?string $navigationLabel = 'Eğitim dönemleri';
 
     public static function form(Schema $schema): Schema

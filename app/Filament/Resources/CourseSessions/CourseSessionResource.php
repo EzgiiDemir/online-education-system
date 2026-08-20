@@ -19,7 +19,9 @@ class CourseSessionResource extends Resource
     protected static ?string $model = CourseSession::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Canlı sınıflar';
+
     protected static ?string $navigationLabel = 'Canlı oturumlar';
 
     public static function form(Schema $schema): Schema

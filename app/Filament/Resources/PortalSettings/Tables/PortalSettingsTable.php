@@ -12,7 +12,7 @@ class PortalSettingsTable
     {
         return $table
             ->columns([
-                TextColumn::make('portal_name')->label('Portal'), TextColumn::make('accepted_domains')->label('Domain politikası')->formatStateUsing(fn($state)=>is_array($state)?implode(', ',$state):$state), TextColumn::make('entra_enabled')->label('Entra')->badge(),
+                TextColumn::make('portal_name')->label('Portal'), TextColumn::make('accepted_domains')->label('Domain politikası')->formatStateUsing(fn ($state) => is_array($state) ? implode(', ', $state) : $state), TextColumn::make('entra_enabled')->label('Entra')->badge(),
             ])
             ->filters([
                 //

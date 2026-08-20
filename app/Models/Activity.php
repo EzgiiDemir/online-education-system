@@ -1,1 +1,17 @@
-<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class Activity extends Model { protected $guarded=[]; protected $casts=['is_required'=>'boolean']; public function section(){return $this->belongsTo(CourseSection::class,'course_section_id');} }
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Activity extends Model
+{
+    protected $guarded = [];
+
+    protected $casts = ['is_required' => 'boolean'];
+
+    public function section()
+    {
+        return $this->belongsTo(CourseSection::class, 'course_section_id');
+    }
+}

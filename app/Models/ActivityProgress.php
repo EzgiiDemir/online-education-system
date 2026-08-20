@@ -1,1 +1,22 @@
-<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class ActivityProgress extends Model { protected $guarded=[]; protected $casts=['completed'=>'boolean','completed_at'=>'datetime']; public function activity(){return $this->belongsTo(Activity::class);} public function enrollment(){return $this->belongsTo(Enrollment::class);} }
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ActivityProgress extends Model
+{
+    protected $guarded = [];
+
+    protected $casts = ['completed' => 'boolean', 'completed_at' => 'datetime'];
+
+    public function activity()
+    {
+        return $this->belongsTo(Activity::class);
+    }
+
+    public function enrollment()
+    {
+        return $this->belongsTo(Enrollment::class);
+    }
+}

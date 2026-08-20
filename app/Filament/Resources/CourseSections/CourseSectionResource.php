@@ -19,7 +19,9 @@ class CourseSectionResource extends Resource
     protected static ?string $model = CourseSection::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Eğitim yönetimi';
+
     protected static ?string $navigationLabel = 'Bölümler';
 
     public static function form(Schema $schema): Schema

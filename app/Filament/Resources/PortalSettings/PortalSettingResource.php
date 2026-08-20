@@ -19,7 +19,9 @@ class PortalSettingResource extends Resource
     protected static ?string $model = PortalSetting::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Sistem';
+
     protected static ?string $navigationLabel = 'Portal ayarları';
 
     public static function form(Schema $schema): Schema

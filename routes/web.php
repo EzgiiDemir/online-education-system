@@ -1,11 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LmsController;
 use App\Http\Controllers\EntraSsoController;
+use App\Http\Controllers\LmsController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
-Route::get('/language/{locale}', function (string $locale) { abort_unless(in_array($locale, ['tr', 'en'], true), 404); session(['locale' => $locale]); return back(); })->name('language.switch');
+Route::get('/language/{locale}', function (string $locale) {
+    abort_unless(in_array($locale, ['tr', 'en'], true), 404);
+    session(['locale' => $locale]);
+
+    return back();
+})->name('language.switch');
 Route::get('/login', [LmsController::class, 'loginForm'])->name('login');
 Route::post('/login', [LmsController::class, 'login']);
 Route::get('/register', [LmsController::class, 'registerForm'])->name('register');
@@ -15,5 +20,26 @@ Route::get('/auth/entra/callback', [EntraSsoController::class, 'callback'])->nam
 Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.join');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
-Route::middleware('auth')->group(function () { Route::post('/logout',[LmsController::class,'logout'])->name('logout'); Route::post('/courses/{course}/enroll',[LmsController::class,'enroll'])->name('courses.enroll'); Route::get('/instructor',[LmsController::class,'instructor'])->name('instructor.dashboard'); Route::post('/instructor/courses',[LmsController::class,'storeCourse'])->name('instructor.courses.store'); Route::get('/instructor/courses/{course}',[LmsController::class,'courseDetail'])->name('instructor.courses.show'); Route::post('/instructor/courses/{course}/sessions',[LmsController::class,'addSession'])->name('instructor.sessions.store'); Route::post('/sessions/{session}/start',[LmsController::class,'startSession'])->name('sessions.start'); Route::post('/sessions/{session}/complete',[LmsController::class,'completeSession'])->name('sessions.complete'); Route::get('/sessions/{session}/classroom',[LmsController::class,'classroom'])->name('sessions.classroom'); Route::post('/sessions/{session}/messages',[LmsController::class,'classMessage'])->name('sessions.messages'); Route::match(['get','post'],'/sessions/{session}/presence',[LmsController::class,'classPresence'])->name('sessions.presence'); Route::get('/sessions/{session}/signals',[LmsController::class,'classSignals'])->name('sessions.signals'); Route::post('/sessions/{session}/signals',[LmsController::class,'sendSignal'])->name('sessions.signals.send'); Route::post('/sessions/{session}/recording',[LmsController::class,'uploadRecording'])->name('sessions.recording'); Route::post('/materials/{material}/complete',[LmsController::class,'completeMaterial'])->name('materials.complete'); Route::post('/activities/{activity}/complete',[LmsController::class,'completeActivity'])->name('activities.complete'); Route::get('/certificates/{certificate}',[LmsController::class,'certificate'])->name('certificates.download'); });
-Route::middleware('auth')->group(function () { Route::get('/instructor/profile',[LmsController::class,'instructorProfile'])->name('instructor.profile'); Route::post('/instructor/profile',[LmsController::class,'updateInstructorProfile'])->name('instructor.profile.update'); });
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LmsController::class, 'logout'])->name('logout');
+    Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');
+    Route::get('/instructor', [LmsController::class, 'instructor'])->name('instructor.dashboard');
+    Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
+    Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
+    Route::post('/instructor/courses/{course}/sessions', [LmsController::class, 'addSession'])->name('instructor.sessions.store');
+    Route::post('/sessions/{session}/start', [LmsController::class, 'startSession'])->name('sessions.start');
+    Route::post('/sessions/{session}/complete', [LmsController::class, 'completeSession'])->name('sessions.complete');
+    Route::get('/sessions/{session}/classroom', [LmsController::class, 'classroom'])->name('sessions.classroom');
+    Route::post('/sessions/{session}/messages', [LmsController::class, 'classMessage'])->name('sessions.messages');
+    Route::match(['get', 'post'], '/sessions/{session}/presence', [LmsController::class, 'classPresence'])->name('sessions.presence');
+    Route::get('/sessions/{session}/signals', [LmsController::class, 'classSignals'])->name('sessions.signals');
+    Route::post('/sessions/{session}/signals', [LmsController::class, 'sendSignal'])->name('sessions.signals.send');
+    Route::post('/sessions/{session}/recording', [LmsController::class, 'uploadRecording'])->name('sessions.recording');
+    Route::post('/materials/{material}/complete', [LmsController::class, 'completeMaterial'])->name('materials.complete');
+    Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
+    Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
+});
+Route::middleware('auth')->group(function () {
+    Route::get('/instructor/profile', [LmsController::class, 'instructorProfile'])->name('instructor.profile');
+    Route::post('/instructor/profile', [LmsController::class, 'updateInstructorProfile'])->name('instructor.profile.update');
+});

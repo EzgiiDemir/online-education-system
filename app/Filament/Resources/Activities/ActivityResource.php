@@ -19,7 +19,9 @@ class ActivityResource extends Resource
     protected static ?string $model = Activity::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Eğitim yönetimi';
+
     protected static ?string $navigationLabel = 'Aktiviteler';
 
     public static function form(Schema $schema): Schema

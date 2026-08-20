@@ -1,1 +1,23 @@
-<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up():void{Schema::table('users',function(Blueprint $t){$t->string('department')->nullable();$t->string('job_title')->nullable();$t->string('avatar_path')->nullable();$t->text('bio')->nullable();});} public function down():void{Schema::table('users',fn(Blueprint $t)=>$t->dropColumn(['department','job_title','avatar_path','bio']));} };
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $t) {
+            $t->string('department')->nullable();
+            $t->string('job_title')->nullable();
+            $t->string('avatar_path')->nullable();
+            $t->text('bio')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', fn (Blueprint $t) => $t->dropColumn(['department', 'job_title', 'avatar_path', 'bio']));
+    }
+};

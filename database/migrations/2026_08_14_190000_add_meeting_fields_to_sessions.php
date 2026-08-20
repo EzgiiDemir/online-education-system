@@ -1,1 +1,22 @@
-<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up():void{Schema::table('course_sessions',function(Blueprint $t){$t->string('room_key')->nullable()->unique();$t->string('meeting_status')->default('scheduled');$t->timestamp('meeting_started_at')->nullable();});} public function down():void{Schema::table('course_sessions',fn(Blueprint $t)=>$t->dropColumn(['room_key','meeting_status','meeting_started_at']));} };
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('course_sessions', function (Blueprint $t) {
+            $t->string('room_key')->nullable()->unique();
+            $t->string('meeting_status')->default('scheduled');
+            $t->timestamp('meeting_started_at')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('course_sessions', fn (Blueprint $t) => $t->dropColumn(['room_key', 'meeting_status', 'meeting_started_at']));
+    }
+};

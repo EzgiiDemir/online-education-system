@@ -19,7 +19,7 @@ class CoursesTable
                     ->searchable(),
                 TextColumn::make('delivery_type')
                     ->searchable(),
-                TextColumn::make('language')->label('Dil')->badge()->formatStateUsing(fn($state)=>$state === 'en' ? 'English' : 'Türkçe'),
+                TextColumn::make('language')->label('Dil')->badge()->formatStateUsing(fn ($state) => $state === 'en' ? 'English' : 'Türkçe'),
                 TextColumn::make('status')
                     ->badge()->searchable(),
                 TextColumn::make('guest_instructor_name')->label('Misafir eğitimci')->placeholder('Yok')->toggleable(),

@@ -19,7 +19,9 @@ class EnrollmentResource extends Resource
     protected static ?string $model = Enrollment::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
     protected static string|\UnitEnum|null $navigationGroup = 'Katılımcılar';
+
     protected static ?string $navigationLabel = 'Kayıtlar';
 
     public static function form(Schema $schema): Schema
