@@ -8,7 +8,7 @@ class ActivityProgress extends Model
 {
     protected $guarded = [];
 
-    protected $casts = ['completed' => 'boolean', 'completed_at' => 'datetime'];
+    protected $casts = ['completed' => 'boolean', 'completed_at' => 'datetime', 'last_heartbeat_at' => 'datetime'];
 
     public function activity()
     {

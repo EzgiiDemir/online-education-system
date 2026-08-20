@@ -280,22 +280,92 @@ class LmsController extends Controller
         return response()->json(['ok' => true, 'path' => asset('storage/'.$path)]);
     }
 
-    public function completeMaterial(Request $r, Material $material)
+    public function materialView(Material $material)
     {
         $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
-        MaterialProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id], ['watched_seconds' => $r->integer('watched_seconds'), 'completed' => true, 'completed_at' => now()]);
+        $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
+        $required = $this->requiredWatchSeconds($material->duration_seconds);
+
+        return view('lms.material-view', ['material' => $material, 'progress' => $progress, 'required' => $required]);
+    }
+
+    public function materialHeartbeat(Material $material)
+    {
+        $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
+        $this->accrueHeartbeat($progress);
+        $required = $this->requiredWatchSeconds($material->duration_seconds);
+
+        return response()->json(['watched_seconds' => $progress->watched_seconds, 'required_seconds' => $required, 'eligible' => $progress->watched_seconds >= $required]);
+    }
+
+    public function completeMaterial(Material $material)
+    {
+        $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
+        $required = $this->requiredWatchSeconds($material->duration_seconds);
+        abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        $progress->update(['completed' => true, 'completed_at' => now()]);
         $this->checkAndCompleteEnrollment($enrollment);
 
         return back()->with('success', 'Materyal tamamlandı olarak işaretlendi.');
     }
 
-    public function completeActivity(Request $r, Activity $activity)
+    public function activityView(Activity $activity)
     {
+        abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
-        ActivityProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id], ['watched_seconds' => $r->integer('watched_seconds'), 'completed' => true, 'completed_at' => now()]);
+        $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
+        $required = $this->requiredWatchSeconds($activity->duration_seconds);
+
+        return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required]);
+    }
+
+    public function activityHeartbeat(Activity $activity)
+    {
+        abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
+        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
+        $this->accrueHeartbeat($progress);
+        $required = $this->requiredWatchSeconds($activity->duration_seconds);
+
+        return response()->json(['watched_seconds' => $progress->watched_seconds, 'required_seconds' => $required, 'eligible' => $progress->watched_seconds >= $required]);
+    }
+
+    public function completeActivity(Activity $activity)
+    {
+        abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
+        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
+        $required = $this->requiredWatchSeconds($activity->duration_seconds);
+        abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        $progress->update(['completed' => true, 'completed_at' => now()]);
         $this->checkAndCompleteEnrollment($enrollment);
 
         return back()->with('success', 'Aktivite tamamlandı olarak işaretlendi.');
+    }
+
+    /**
+     * İstemciden gelen süre beyanına asla güvenilmez: her kabul edilen heartbeat
+     * çağrısı sabit, küçük bir artış ekler ve art arda çağrılar en az 4 saniye
+     * aralıkla sınırlandırılır. Böylece "tamamlandı" durumu yalnızca sekme
+     * gerçekten açık/odaklıyken ge­çen gerçek zamanla kazanılabilir.
+     */
+    private function accrueHeartbeat(MaterialProgress|ActivityProgress $progress): void
+    {
+        if ($progress->completed) {
+            return;
+        }
+        if ($progress->last_heartbeat_at && $progress->last_heartbeat_at->diffInSeconds(now()) < 4) {
+            return;
+        }
+        $progress->increment('watched_seconds', 5);
+        $progress->update(['last_heartbeat_at' => now()]);
+    }
+
+    private function requiredWatchSeconds(?int $durationSeconds): int
+    {
+        return $durationSeconds ? max(10, (int) ceil($durationSeconds * 0.9)) : 20;
     }
 
     private function checkAndCompleteEnrollment(Enrollment $enrollment): void

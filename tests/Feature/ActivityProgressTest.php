@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityProgress;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
+use App\Models\MaterialProgress;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,9 +22,10 @@ class ActivityProgressTest extends TestCase
         $section = $course->sections()->create(['title' => 'Bölüm 1']);
         $activity = $section->activities()->create(['title' => 'Giriş videosu', 'type' => 'video', 'is_required' => true]);
         $learner = User::factory()->create(['role' => 'learner']);
-        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        ActivityProgress::create(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id, 'watched_seconds' => 20]);
 
-        $response = $this->actingAs($learner)->post(route('activities.complete', $activity), ['watched_seconds' => 60]);
+        $response = $this->actingAs($learner)->post(route('activities.complete', $activity));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('activity_progress', ['activity_id' => $activity->id, 'completed' => true]);
@@ -38,6 +41,8 @@ class ActivityProgressTest extends TestCase
         $optional = $section->activities()->create(['title' => 'Ek kaynak', 'type' => 'resource', 'is_required' => false]);
         $learner = User::factory()->create(['role' => 'learner']);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        MaterialProgress::create(['enrollment_id' => $enrollment->id, 'material_id' => $material->id, 'watched_seconds' => 20]);
+        ActivityProgress::create(['enrollment_id' => $enrollment->id, 'activity_id' => $required->id, 'watched_seconds' => 20]);
 
         $this->actingAs($learner)->post(route('materials.complete', $material));
         $enrollment->refresh();
@@ -58,9 +63,11 @@ class ActivityProgressTest extends TestCase
         $optional = $section->activities()->create(['title' => 'Ek kaynak', 'type' => 'resource', 'is_required' => false]);
         $learner = User::factory()->create(['role' => 'learner']);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        ActivityProgress::create(['enrollment_id' => $enrollment->id, 'activity_id' => $optional->id, 'watched_seconds' => 20]);
 
-        $this->actingAs($learner)->post(route('activities.complete', $optional));
+        $response = $this->actingAs($learner)->post(route('activities.complete', $optional));
 
+        $response->assertRedirect();
         $enrollment->refresh();
         $this->assertNotSame('completed', $enrollment->status);
     }
