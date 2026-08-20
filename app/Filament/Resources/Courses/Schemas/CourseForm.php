@@ -9,7 +9,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -29,12 +28,7 @@ class CourseForm
                     Select::make('status')->label('Yayın durumu')->options(['draft'=>'Taslak','published'=>'Yayınlandı','completed'=>'Tamamlandı'])->default('draft')->required(),
                     DateTimePicker::make('starts_at')->label('Başlangıç'), DateTimePicker::make('ends_at')->label('Bitiş'),
                 ])->columns(2),
-                Section::make('Misafir eğitimci')->description('Kurum dışından katkı sunan bir veya daha fazla eğitmen')->schema([
-                    Repeater::make('guest_instructors')->label('Misafir eğitimciler')->schema([
-                        TextInput::make('name')->label('Ad soyad')->required(),
-                        TextInput::make('email')->label('E-posta')->email(),
-                        Textarea::make('bio')->label('Kısa biyografi')->rows(2)->columnSpanFull(),
-                    ])->columns(2)->addActionLabel('Yeni misafir eğitimci ekle')->defaultItems(0)->reorderable()->collapsible()->columnSpanFull(),
+                Section::make('Misafir eğitimci')->description('Kurum dışından katkı sunan eğitmen')->schema([
                     TextInput::make('guest_instructor_name')->label('Ad soyad'), TextInput::make('guest_instructor_email')->label('E-posta')->email(), Textarea::make('guest_instructor_bio')->label('Kısa biyografi')->columnSpanFull(),
                 ])->columns(2),
                 Section::make('Sertifika ve SDG')->schema([
