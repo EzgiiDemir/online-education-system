@@ -11,12 +11,12 @@
 @if($user->department)<p style="margin:4px 0"><b>Departman:</b> {{ $user->department }}</p>@endif
 @if($user->job_title)<p style="margin:4px 0"><b>Unvan:</b> {{ $user->job_title }}</p>@endif
 <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
-<button type="button" class="button-secondary" style="width:100%;color:#b3402e;border-color:#f0d8d1" onclick="document.getElementById('deleteAccountDialog').style.display='block'">Hesabımı sil</button>
-<div id="deleteAccountDialog" style="display:none;margin-top:14px;padding:14px;border:1px solid #f0d8d1;border-radius:12px;background:#fbe9e4">
-<p style="margin:0 0 10px;font-size:13px;color:#8a3020">Bu işlem geri alınamaz. Tüm kayıtlarınız ve sertifikalarınız silinecektir. Onaylamak için şifrenizi girin.</p>
+<button type="button" class="button-secondary button-danger" style="width:100%" onclick="document.getElementById('deleteAccountDialog').style.display='block'">Hesabımı sil</button>
+<div id="deleteAccountDialog" class="danger-zone" style="display:none">
+<p>Bu işlem geri alınamaz. Tüm kayıtlarınız ve sertifikalarınız silinecektir. Onaylamak için şifrenizi girin.</p>
 <form method="post" action="{{ route('account.destroy') }}" onsubmit="return confirm('Hesabınızı kalıcı olarak silmek istediğinize emin misiniz?')">@csrf
-<input type="password" name="password" placeholder="Şifreniz" required style="width:100%;margin-bottom:10px;border:1px solid #d0d5dd;border-radius:8px;padding:9px 10px">
-<button type="submit" style="width:100%;background:#b3402e">Kalıcı olarak sil</button>
+<input type="password" name="password" placeholder="Şifreniz" required>
+<button type="submit" class="button-danger" style="width:100%;margin-top:10px">Kalıcı olarak sil</button>
 </form>
 </div>
 </div>
@@ -34,7 +34,7 @@
 @forelse($enrollments as $row)
 <div style="padding:14px 0;border-top:1px solid var(--line)">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>{{ $row['enrollment']->course->title }}</b><span class="status">{{ $row['stats']['percent'] }}%</span></div>
-<div style="height:6px;background:var(--line);border-radius:99px;margin:8px 0"><div style="height:100%;width:{{ $row['stats']['percent'] }}%;background:var(--success);border-radius:99px"></div></div>
+<div class="meter"><span style="width:{{ $row['stats']['percent'] }}%"></span></div>
 <small class="muted">{{ $row['stats']['completed'] }} / {{ $row['stats']['total'] }} tamamlandı · Durum: {{ $row['enrollment']->status }}</small>
 @if($row['enrollment']->certificate)<div style="margin-top:8px"><a class="button secondary" href="{{ route('certificates.download', $row['enrollment']->certificate) }}">Sertifikayı indir</a></div>@endif
 </div>

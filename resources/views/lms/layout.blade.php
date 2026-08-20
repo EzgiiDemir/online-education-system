@@ -7,12 +7,10 @@
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
 @php($en = session('locale', 'tr') === 'en')
 <nav class="site-nav">
-<a class="brand" href="{{ route('lms.home') }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Campus LMS">Campus <span>LMS</span></a>
-<div class="nav-tabs">
-@auth @if(auth()->user()->role !== 'admin')<a href="{{ route('learning.index') }}" class="{{ request()->routeIs('learning.index') ? 'is-active' : '' }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
-<a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a>
-</div>
+<a class="brand" href="{{ route('lms.home') }}">Campus <span>LMS</span></a>
 <div class="nav-actions">
+@auth @if(auth()->user()->role !== 'admin')<a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
+<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
 @auth
 <div class="profile-menu">
 <button class="profile-trigger" type="button" data-profile-toggle>

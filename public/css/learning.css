@@ -1,1 +1,27 @@
-.learning-sessions{display:grid;gap:10px;margin-top:20px}.learning-session{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);padding-top:12px}.learning-session strong,.learning-session small{display:block}.learning-session small{font-size:12px;color:var(--muted);margin-top:3px}.learning-session .button{width:auto;white-space:nowrap;padding:8px 11px;font-size:12px}
+.learning-sessions{display:grid;gap:8px;margin-top:18px}
+.learning-session{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);padding:12px 0}
+.learning-session strong,.learning-session small{display:block}
+.learning-session small{font-size:12px;color:var(--muted);margin-top:3px}
+.learning-session .button{width:auto;white-space:nowrap;padding:8px 14px;font-size:12px}
+
+/* Content viewer (materials/activities) */
+.viewer-wrap{max-width:760px;margin:0 auto}
+.viewer-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:18px}
+.viewer-back:hover{color:var(--brand)}
+.viewer-card{padding:32px}
+.viewer-card .eyebrow{display:block;margin-bottom:6px}
+.viewer-card h1{font-size:26px;margin-bottom:20px}
+.viewer-media{border-radius:var(--radius-sm);overflow:hidden;background:#10141c;box-shadow:0 8px 24px #10182816}
+.viewer-media video,.viewer-media iframe{display:block;width:100%;border:0}
+.viewer-media video{max-height:70vh}
+.viewer-media iframe{height:65vh}
+.viewer-empty{padding:40px 24px;text-align:center;background:var(--brand-soft);border-radius:var(--radius-sm)}
+.viewer-empty p{margin:0 0 14px}
+.viewer-progress{margin-top:24px;padding:18px 20px;background:var(--brand-soft);border-radius:var(--radius-sm)}
+.viewer-progress-label{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:650;color:#40434c;margin-bottom:2px}
+.viewer-progress-label span:last-child{color:var(--brand-dark)}
+.viewer-progress small{color:var(--muted);font-size:12px}
+.viewer-actions{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.viewer-actions .button{min-width:240px}
+.viewer-done{margin-top:22px;text-align:center}
+@media(max-width:700px){.viewer-card{padding:22px}.viewer-media iframe{height:52vh}}
