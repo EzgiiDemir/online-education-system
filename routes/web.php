@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LmsController;
+use App\Http\Controllers\EntraSsoController;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
 Route::get('/language/{locale}', function (string $locale) { abort_unless(in_array($locale, ['tr', 'en'], true), 404); session(['locale' => $locale]); return back(); })->name('language.switch');
@@ -9,6 +10,8 @@ Route::get('/login', [LmsController::class, 'loginForm'])->name('login');
 Route::post('/login', [LmsController::class, 'login']);
 Route::get('/register', [LmsController::class, 'registerForm'])->name('register');
 Route::post('/register', [LmsController::class, 'register']);
+Route::get('/auth/entra/redirect', [EntraSsoController::class, 'redirect'])->name('entra.redirect');
+Route::get('/auth/entra/callback', [EntraSsoController::class, 'callback'])->name('entra.callback');
 Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.join');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
