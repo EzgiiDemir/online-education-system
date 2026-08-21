@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
+use App\Http\Controllers\ManagerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
@@ -26,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LmsController::class, 'logout'])->name('logout');
     Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');
     Route::get('/instructor', [LmsController::class, 'instructor'])->name('instructor.dashboard');
+    Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
     Route::post('/instructor/courses/{course}/sessions', [LmsController::class, 'addSession'])->name('instructor.sessions.store');

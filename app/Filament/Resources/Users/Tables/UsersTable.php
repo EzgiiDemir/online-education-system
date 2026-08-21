@@ -27,13 +27,15 @@ class UsersTable
                 TextColumn::make('role')
                     ->label('Rol')
                     ->badge()
-                    ->formatStateUsing(fn (string $state) => ['admin' => 'Yönetici', 'instructor' => 'Eğitmen', 'learner' => 'Öğrenci'][$state] ?? $state)
+                    ->formatStateUsing(fn (string $state) => ['admin' => 'Sistem Yöneticisi', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'learner' => 'Öğrenci'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
                         'admin' => 'danger',
                         'instructor' => 'warning',
+                        'manager' => 'info',
                         default => 'success',
                     })
                     ->searchable(),
+                TextColumn::make('manager.name')->label('Yöneticisi')->placeholder('—')->toggleable(),
                 TextColumn::make('enrollments_count')->label('Kayıtlar')->counts('enrollments')->badge(),
                 TextColumn::make('courses_count')->label('Verdiği kurslar')->counts('courses')->badge()->toggleable(),
                 TextColumn::make('created_at')
@@ -42,7 +44,7 @@ class UsersTable
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('role')->label('Rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'admin' => 'Yönetici']),
+                SelectFilter::make('role')->label('Rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi']),
             ])
             ->recordActions([
                 EditAction::make(),

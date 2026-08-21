@@ -125,6 +125,9 @@ class LmsController extends Controller
         if (Auth::user()->role === 'admin') {
             return redirect('/admin');
         }
+        if (Auth::user()->role === 'manager') {
+            return redirect()->route('manager.dashboard');
+        }
 
         return redirect()->route(Auth::user()->isInstructor() ? 'instructor.dashboard' : 'lms.home');
     }

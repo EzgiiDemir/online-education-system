@@ -58,6 +58,9 @@ class EntraSsoController extends Controller
         if ($user->role === 'admin') {
             return redirect('/admin');
         }
+        if ($user->role === 'manager') {
+            return redirect()->route('manager.dashboard');
+        }
 
         return redirect()->route($user->isInstructor() ? 'instructor.dashboard' : 'lms.home');
     }

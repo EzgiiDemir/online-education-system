@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role'])]
+#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -24,6 +24,11 @@ class User extends Authenticatable implements FilamentUser
         return in_array($this->role, ['instructor', 'admin'], true);
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
     public function courses()
     {
         return $this->hasMany(Course::class, 'instructor_id');
@@ -32,6 +37,16 @@ class User extends Authenticatable implements FilamentUser
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function directReports()
+    {
+        return $this->hasMany(User::class, 'manager_id');
     }
 
     public function routeNotificationForMail()
