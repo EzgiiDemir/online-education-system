@@ -26,3 +26,7 @@
 .classroom-page .control:disabled{background:#f0eee9;color:#a8acbb;box-shadow:none}
 .classroom-page .control:hover:after{background:#23262b;color:#fff;border-radius:8px}
 .classroom-page .shared-file{color:#40434c;border-color:#e5e1da}
+.classroom-page .pre-join-toggles{display:flex;gap:18px;margin-top:6px}
+.classroom-page .pre-join-toggles label{display:flex;align-items:center;gap:6px;font-size:13px;color:#40434c;cursor:pointer}
+.classroom-page .pre-join-toggles input{width:auto;margin:0}
+.classroom-page .join-error{max-width:360px;text-align:center;color:#b3402e;background:#fbe9e4;border-radius:10px;padding:10px 14px;font-size:13px;margin-top:4px}

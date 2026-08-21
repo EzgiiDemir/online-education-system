@@ -18,7 +18,7 @@
 .viewer-empty{padding:40px 24px;text-align:center;background:var(--brand-soft);border-radius:var(--radius-sm)}
 .viewer-empty p{margin:0 0 14px}
 .viewer-progress{margin-top:24px;padding:18px 20px;background:var(--brand-soft);border-radius:var(--radius-sm)}
-.viewer-progress-label{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:650;color:#40434c;margin-bottom:2px}
+.viewer-progress-label{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:650;color:var(--text-secondary);margin-bottom:2px}
 .viewer-progress-label span:last-child{color:var(--brand-dark)}
 .viewer-progress small{color:var(--muted);font-size:12px}
 .viewer-actions{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}

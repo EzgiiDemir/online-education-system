@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\LmsStatsOverview;
+use App\Http\Middleware\SetLocale;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -11,6 +13,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -41,6 +44,18 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::hex('#F2D388'),
             ])
             ->navigationGroups(['Katalog', 'Eğitim yönetimi', 'Canlı sınıflar', 'Katılımcılar', 'Sistem'])
+            ->userMenuItems([
+                Action::make('locale_tr')
+                    ->label('Türkçe')
+                    ->icon(Heroicon::Language)
+                    ->url(fn () => route('language.switch', 'tr'))
+                    ->visible(fn () => session('locale', 'tr') !== 'tr'),
+                Action::make('locale_en')
+                    ->label('English')
+                    ->icon(Heroicon::Language)
+                    ->url(fn () => route('language.switch', 'en'))
+                    ->visible(fn () => session('locale', 'tr') === 'tr'),
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -62,6 +77,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                SetLocale::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

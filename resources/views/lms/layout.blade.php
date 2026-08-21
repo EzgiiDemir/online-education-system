@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Arucad Campus LMS')</title><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
+    <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
 @php($en = session('locale', 'tr') === 'en')
@@ -28,7 +29,8 @@
 @if(auth()->user()->role==='admin')<a href="/admin">⚙ {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a>@endif
 @if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}">▦ {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
 <a href="{{ route('account.show') }}">◎ {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
-<form method="post" action="{{ route('logout') }}">@csrf<button type="submit">↪ {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
+<button type="button" data-theme-toggle>◐ {{ $en ? 'Theme' : 'Tema' }}</button>
+<form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger">↪ {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
 </div>
 @else
@@ -41,9 +43,15 @@
 document.addEventListener('click', function (e) {
     var toggle = e.target.closest('[data-profile-toggle]');
     var dropdown = document.querySelector('[data-profile-dropdown]');
-    if (!dropdown) return;
-    if (toggle) { dropdown.classList.toggle('is-open'); return; }
-    if (!e.target.closest('[data-profile-dropdown]')) dropdown.classList.remove('is-open');
+    if (dropdown) {
+        if (toggle) { dropdown.classList.toggle('is-open'); return; }
+        if (!e.target.closest('[data-profile-dropdown]')) dropdown.classList.remove('is-open');
+    }
+    if (e.target.closest('[data-theme-toggle]')) {
+        var isDark = document.documentElement.dataset.theme === 'dark';
+        if (isDark) { delete document.documentElement.dataset.theme; } else { document.documentElement.dataset.theme = 'dark'; }
+        try { localStorage.setItem('theme', isDark ? 'light' : 'dark'); } catch (err) {}
+    }
 });
 </script>
 </body></html>

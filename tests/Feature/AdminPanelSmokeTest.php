@@ -104,6 +104,28 @@ class AdminPanelSmokeTest extends TestCase
         }
     }
 
+    /**
+     * Filament ships bundled Turkish translations for its own chrome, but the
+     * admin panel's middleware stack never called App::setLocale() -- so the
+     * session-based locale toggle that already worked for the public site had
+     * zero effect inside /admin. This verifies the fix (SetLocale registered
+     * on the panel) actually changes Filament's own rendered strings, not just
+     * that the session value changes.
+     */
+    public function test_admin_panel_locale_switch_changes_filaments_own_chrome(): void
+    {
+        // The app defaults to Turkish everywhere (SetLocale's own fallback),
+        // so the admin panel should render Turkish out of the box too, now
+        // that SetLocale actually runs on the panel's middleware stack.
+        $turkish = $this->get('/admin/login');
+        $turkish->assertOk();
+        $turkish->assertSee('Oturum Aç');
+
+        $english = $this->withSession(['locale' => 'en'])->get('/admin/login');
+        $english->assertOk();
+        $english->assertSee('Sign in');
+    }
+
     public function test_non_admin_cannot_access_the_admin_panel(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);

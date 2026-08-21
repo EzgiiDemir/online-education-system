@@ -13,8 +13,8 @@ class AccountController extends Controller
     public function show()
     {
         $user = Auth::user();
-        $enrollments = $user->enrollments()->with('course', 'certificate')->latest()->get()
-            ->map(fn ($enrollment) => ['enrollment' => $enrollment, 'stats' => $enrollment->completionStats()]);
+        $enrollments = $user->enrollments()->with('course', 'certificate')->latest()->paginate(10)
+            ->through(fn ($enrollment) => ['enrollment' => $enrollment, 'stats' => $enrollment->completionStats()]);
         $courses = $user->isInstructor() ? $user->courses()->withCount('enrollments')->latest()->get() : collect();
 
         return view('lms.account', compact('user', 'enrollments', 'courses'));

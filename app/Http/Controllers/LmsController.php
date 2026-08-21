@@ -34,9 +34,12 @@ class LmsController extends Controller
 
     public function home()
     {
-        $courses = Schema::hasTable('courses') ? Course::where('status', 'published')->with('instructor')->latest()->get() : collect();
+        $courses = Schema::hasTable('courses')
+            ? Course::where('status', 'published')->with('instructor', 'sessions')->latest()->paginate(12)
+            : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, 12);
+        $enrolledCourseIds = Auth::check() ? Auth::user()->enrollments()->pluck('course_id') : collect();
 
-        return view('lms.home', compact('courses'));
+        return view('lms.home', compact('courses', 'enrolledCourseIds'));
     }
 
     public function login(Request $r)
@@ -88,7 +91,7 @@ class LmsController extends Controller
 
     public function myLearning()
     {
-        $enrollments = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate'])->latest()->get();
+        $enrollments = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate'])->latest()->paginate(10);
 
         return view('lms.my-learning', compact('enrollments'));
     }
@@ -143,8 +146,14 @@ class LmsController extends Controller
         $this->authorize('view', $course);
         $course->load(['instructor', 'sessions.materials', 'enrollments.user', 'enrollments.sessionProgress.session', 'sections.activities', 'runs']);
         $stats = ['enrollments' => $course->enrollments->count(), 'completed' => $course->enrollments->where('status', 'completed')->count(), 'sessions' => $course->sessions->count(), 'attendance_minutes' => (int) DB::table('session_attendance')->whereIn('course_session_id', $course->sessions->pluck('id'))->sum('duration_seconds') / 60, 'recordings' => $course->sessions->whereNotNull('recording_path')->count()];
+        // Separate, dedicated paginated query for the participant list card only.
+        // $course->enrollments (the full eager-loaded collection above) must stay
+        // intact and unpaginated: the per-run participant counts and the
+        // per-session attendance-marking roll below both need every enrollment,
+        // not just one page of them.
+        $participants = $course->enrollments()->with(['user', 'sessionProgress.session'])->latest()->paginate(15, ['*'], 'participants_page');
 
-        return view('lms.course-detail', compact('course', 'stats'));
+        return view('lms.course-detail', compact('course', 'stats', 'participants'));
     }
 
     public function storeCourse(Request $r)

@@ -2,7 +2,7 @@
 @section('title','Hesap bilgileri · Arucad Campus LMS')
 @section('content')
 <div class="section-heading"><div><span class="eyebrow">HESABIM</span><h1>Hesap bilgileri</h1><p class="muted">Profil bilgileriniz ve eğitim geçmişiniz.</p></div></div>
-<div class="grid" style="display:grid;gap:20px;grid-template-columns:280px 1fr;align-items:start">
+<div class="account-grid">
 <div class="card surface" style="padding:24px">
 <div class="profile-avatar" style="width:64px;height:64px;font-size:22px;margin-bottom:14px">
 @if($user->avatar_path)
@@ -17,7 +17,7 @@
 @if($user->department)<p style="margin:4px 0"><b>Departman:</b> {{ $user->department }}</p>@endif
 @if($user->job_title)<p style="margin:4px 0"><b>Unvan:</b> {{ $user->job_title }}</p>@endif
 <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
-<button type="button" class="button-secondary button-danger" style="width:100%" onclick="document.getElementById('deleteAccountDialog').style.display='block'">Hesabımı sil</button>
+<button type="button" class="button-danger" style="width:100%" onclick="document.getElementById('deleteAccountDialog').style.display='block'">Hesabımı sil</button>
 <div id="deleteAccountDialog" class="danger-zone" style="display:none">
 <p>Bu işlem geri alınamaz. Tüm kayıtlarınız ve sertifikalarınız silinecektir. Onaylamak için şifrenizi girin.</p>
 <form method="post" action="{{ route('account.destroy') }}" onsubmit="return confirm('Hesabınızı kalıcı olarak silmek istediğinize emin misiniz?')">@csrf
@@ -47,6 +47,7 @@
 @empty
 <p class="muted">Henüz kayıt olduğunuz bir eğitim yok.</p>
 @endforelse
+{{ $enrollments->links('lms.partials.pagination') }}
 </div>
 </div>
 </div>
