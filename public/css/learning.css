@@ -27,3 +27,11 @@
 .viewer-actions .button{min-width:240px}
 .viewer-done{margin-top:22px;text-align:center}
 @media(max-width:700px){.viewer-card{padding:22px}.viewer-media iframe{height:52vh}}
+
+.quiz-meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:13px;margin:8px 0 20px}
+.quiz-attempt-history{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.quiz-form{margin-top:8px}
+.quiz-question{border:0;padding:0;margin:0 0 24px}
+.quiz-question legend{font-weight:700;font-size:15px;margin-bottom:12px;padding:0}
+.quiz-option{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:8px;font-size:14px;font-weight:500;cursor:pointer}
+.quiz-option input{width:auto;margin:0}

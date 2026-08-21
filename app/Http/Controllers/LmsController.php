@@ -13,6 +13,7 @@ use App\Models\LearningPath;
 use App\Models\Material;
 use App\Models\MaterialProgress;
 use App\Models\PortalSetting;
+use App\Models\QuizAttempt;
 use App\Models\SessionAttendance;
 use App\Models\SessionProgress;
 use App\Models\User;
@@ -560,6 +561,17 @@ class LmsController extends Controller
         abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
+
+        if ($activity->type === 'quiz') {
+            $activity->load('quizQuestions.options');
+            $attempts = QuizAttempt::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)->orderByDesc('submitted_at')->get();
+            $hasPassed = $attempts->contains('passed', true);
+            $attemptsRemaining = $activity->max_attempts ? max(0, $activity->max_attempts - $attempts->count()) : null;
+            $canAttempt = ! $hasPassed && ($attemptsRemaining === null || $attemptsRemaining > 0);
+
+            return view('lms.quiz-view', compact('activity', 'progress', 'attempts', 'hasPassed', 'attemptsRemaining', 'canAttempt'));
+        }
+
         $required = $this->requiredWatchSeconds($activity->duration_seconds);
 
         return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required]);
@@ -567,7 +579,7 @@ class LmsController extends Controller
 
     public function activityHeartbeat(Activity $activity)
     {
-        abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
+        abort_if(in_array($activity->type, ['live_session', 'quiz'], true), 422, 'Bu etkinlik türü izleme süresiyle takip edilmez.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         $this->accrueHeartbeat($progress);
@@ -578,7 +590,7 @@ class LmsController extends Controller
 
     public function completeActivity(Activity $activity)
     {
-        abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
+        abort_if(in_array($activity->type, ['live_session', 'quiz'], true), 422, 'Bu etkinlik türü bu şekilde tamamlanamaz.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         $required = $this->requiredWatchSeconds($activity->duration_seconds);
@@ -587,6 +599,61 @@ class LmsController extends Controller
         $this->checkAndCompleteEnrollment($enrollment);
 
         return back()->with('success', 'Aktivite tamamlandı olarak işaretlendi.');
+    }
+
+    /**
+     * Grades entirely server-side from the stored correct-option flags --
+     * the client only ever sends which option IDs it selected per question,
+     * never a score. This mirrors the watch-time rule elsewhere in this
+     * controller: nothing the client claims about its own success is trusted.
+     */
+    public function submitQuizAttempt(Request $r, Activity $activity)
+    {
+        abort_unless($activity->type === 'quiz', 404);
+        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+
+        $previousAttempts = QuizAttempt::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)->get();
+        abort_if($previousAttempts->contains('passed', true), 422, 'Bu sınavı zaten geçtiniz.');
+        if ($activity->max_attempts) {
+            abort_if($previousAttempts->count() >= $activity->max_attempts, 422, 'İzin verilen deneme hakkınız kalmadı.');
+        }
+
+        $questions = $activity->quizQuestions()->with('options')->get();
+        abort_if($questions->isEmpty(), 422, 'Bu sınavda henüz soru yok.');
+
+        $data = $r->validate(['answers' => 'required|array']);
+        $submittedAnswers = collect($data['answers'])->map(fn ($ids) => array_map('intval', (array) $ids));
+
+        $correctCount = 0;
+        foreach ($questions as $question) {
+            $correctOptionIds = $question->options->where('is_correct', true)->pluck('id')->sort()->values();
+            $selectedOptionIds = collect($submittedAnswers->get($question->id, []))->sort()->values();
+            if ($correctOptionIds->all() === $selectedOptionIds->all()) {
+                $correctCount++;
+            }
+        }
+
+        $score = (int) round($correctCount / $questions->count() * 100);
+        $passed = $score >= ($activity->pass_score ?? 0);
+
+        $attempt = QuizAttempt::create([
+            'activity_id' => $activity->id,
+            'enrollment_id' => $enrollment->id,
+            'score' => $score,
+            'passed' => $passed,
+            'answers' => $submittedAnswers->toArray(),
+            'submitted_at' => now(),
+        ]);
+
+        if ($passed) {
+            $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
+            $progress->update(['completed' => true, 'completed_at' => now()]);
+            $this->checkAndCompleteEnrollment($enrollment);
+        }
+
+        return redirect()->route('activities.view', $activity)->with($passed ? 'success' : 'error', $passed
+            ? 'Sınavı geçtiniz! Puan: %'.$score
+            : 'Sınavı geçemediniz. Puan: %'.$score.' (gerekli: %'.$activity->pass_score.')');
     }
 
     /**

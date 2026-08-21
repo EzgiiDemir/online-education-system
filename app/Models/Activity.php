@@ -14,4 +14,14 @@ class Activity extends Model
     {
         return $this->belongsTo(CourseSection::class, 'course_section_id');
     }
+
+    public function quizQuestions()
+    {
+        return $this->hasMany(QuizQuestion::class)->orderBy('sort_order');
+    }
+
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
 }
