@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\Material;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -73,6 +75,33 @@ class AdminPanelSmokeTest extends TestCase
         $response->assertOk();
         $response->assertSee('Seanslar');
         $response->assertSee('Katılımcılar');
+    }
+
+    public function test_every_admin_resource_edit_page_renders_with_a_real_record(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create();
+        $section = $course->sections()->create(['title' => 'Bölüm 1']);
+        $activity = $section->activities()->create(['title' => 'Video', 'type' => 'video', 'is_required' => true]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'demo/slides.pdf']);
+        $run = $course->runs()->create(['name' => 'Mart 2026', 'code' => 'RUN-SMOKE-1', 'status' => 'open']);
+        $learner = User::factory()->create(['role' => 'learner']);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $paths = [
+            "/admin/activities/{$activity->id}/edit",
+            "/admin/course-runs/{$run->id}/edit",
+            "/admin/course-sections/{$section->id}/edit",
+            "/admin/course-sessions/{$session->id}/edit",
+            "/admin/enrollments/{$enrollment->id}/edit",
+            "/admin/materials/{$material->id}/edit",
+            "/admin/users/{$learner->id}/edit",
+        ];
+
+        foreach ($paths as $path) {
+            $this->actingAs($admin)->get($path)->assertOk();
+        }
     }
 
     public function test_non_admin_cannot_access_the_admin_panel(): void

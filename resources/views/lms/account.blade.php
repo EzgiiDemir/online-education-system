@@ -4,7 +4,13 @@
 <div class="section-heading"><div><span class="eyebrow">HESABIM</span><h1>Hesap bilgileri</h1><p class="muted">Profil bilgileriniz ve eğitim geçmişiniz.</p></div></div>
 <div class="grid" style="display:grid;gap:20px;grid-template-columns:280px 1fr;align-items:start">
 <div class="card surface" style="padding:24px">
-<div class="profile-avatar" style="width:64px;height:64px;font-size:22px;margin-bottom:14px">@if($user->avatar_path)<img src="{{ asset('storage/'.$user->avatar_path) }}" alt="">@else{{ mb_strtoupper(mb_substr($user->name,0,1)) }}@endif</div>
+<div class="profile-avatar" style="width:64px;height:64px;font-size:22px;margin-bottom:14px">
+@if($user->avatar_path)
+<img src="{{ asset('storage/'.$user->avatar_path) }}" alt="">
+@else
+{{ mb_strtoupper(mb_substr($user->name,0,1)) }}
+@endif
+</div>
 <h2 style="margin:0 0 4px">{{ $user->name }}</h2>
 <p class="muted" style="margin:0 0 4px">{{ $user->email }}</p>
 <p class="muted" style="margin:0 0 18px">{{ ['admin'=>'Yönetici','instructor'=>'Eğitmen','learner'=>'Öğrenci'][$user->role] ?? $user->role }}</p>

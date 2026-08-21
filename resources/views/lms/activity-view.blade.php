@@ -19,7 +19,13 @@
 <div class="viewer-progress">
 <div class="viewer-progress-label"><span>Görüntülenme süresi</span><span id="watched-pct">%{{ $required ? min(100, (int) round($progress->watched_seconds / $required * 100)) : 0 }}</span></div>
 <progress id="progress-bar" max="{{ $required }}" value="{{ min($progress->watched_seconds, $required) }}"></progress>
-<small id="hint">@if($progress->completed)Tamamlandı@else<span id="watched">{{ $progress->watched_seconds }}</span> / {{ $required }} sn@endif</small>
+<small id="hint">
+@if($progress->completed)
+Tamamlandı
+@else
+<span id="watched">{{ $progress->watched_seconds }}</span> / {{ $required }} sn
+@endif
+</small>
 </div>
 @if($progress->completed)
 <div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)">✓ Tamamlandı</span></div>

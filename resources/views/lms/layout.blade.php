@@ -14,7 +14,13 @@
 @auth
 <div class="profile-menu">
 <button class="profile-trigger" type="button" data-profile-toggle>
-<span class="profile-avatar">@if(auth()->user()->avatar_path)<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">@else{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}@endif</span>
+<span class="profile-avatar">
+@if(auth()->user()->avatar_path)
+<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">
+@else
+{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}
+@endif
+</span>
 <span class="profile-name">{{ auth()->user()->name }}</span>
 </button>
 <div class="profile-dropdown" data-profile-dropdown>
