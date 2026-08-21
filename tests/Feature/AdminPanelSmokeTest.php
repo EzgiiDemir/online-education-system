@@ -27,6 +27,7 @@ class AdminPanelSmokeTest extends TestCase
         $paths = [
             '/admin',
             '/admin/activities',
+            '/admin/audit-logs',
             '/admin/course-runs',
             '/admin/course-sections',
             '/admin/course-sessions',

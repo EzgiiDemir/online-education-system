@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class PortalSetting extends Model
 {
+    use Auditable;
+
     protected $guarded = [];
 
     protected $casts = ['accepted_domains' => 'array', 'available_locales' => 'array', 'entra_client_secret' => 'encrypted', 'entra_enabled' => 'boolean', 'local_login_enabled' => 'boolean', 'self_registration_enabled' => 'boolean', 'internal_class_enabled' => 'boolean'];

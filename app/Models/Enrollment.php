@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class Enrollment extends Model
 {
+    use Auditable;
+
     protected $guarded = [];
 
     protected $casts = ['completed_at' => 'datetime'];
