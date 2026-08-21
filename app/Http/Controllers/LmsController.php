@@ -223,9 +223,40 @@ class LmsController extends Controller
             return redirect('/admin');
         }
         abort_unless(Auth::user()->role === 'instructor', 403);
-        $courses = Auth::user()->courses()->with(['sessions', 'enrollments'])->latest()->get();
 
-        return view('lms.instructor', compact('courses'));
+        $courseIds = Auth::user()->courses()->pluck('id');
+
+        $courses = Auth::user()->courses()
+            ->withCount([
+                'enrollments',
+                'enrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
+                'enrollments as new_enrollments_count' => fn ($q) => $q->where('created_at', '>=', now()->subDays(7)),
+            ])
+            ->with('sessions')
+            ->latest()
+            ->get();
+
+        $upcomingSession = CourseSession::whereIn('course_id', $courseIds)
+            ->where('starts_at', '>', now())
+            ->with('course')
+            ->orderBy('starts_at')
+            ->first();
+
+        $incompleteLearnersCount = Enrollment::whereIn('course_id', $courseIds)->where('status', '!=', 'completed')->count();
+        $newEnrollmentsCount = Enrollment::whereIn('course_id', $courseIds)->where('created_at', '>=', now()->subDays(7))->count();
+
+        // Past sessions (last 7 days) where nobody has been recorded as attended yet --
+        // a concrete, actionable "go check this" list for the instructor.
+        $sessionsNeedingAttendanceReview = CourseSession::whereIn('course_id', $courseIds)
+            ->whereBetween('starts_at', [now()->subDays(7), now()])
+            ->whereDoesntHave('progress', fn ($q) => $q->whereNotNull('completed_at'))
+            ->with('course')
+            ->orderByDesc('starts_at')
+            ->get();
+
+        return view('lms.instructor', compact(
+            'courses', 'upcomingSession', 'incompleteLearnersCount', 'newEnrollmentsCount', 'sessionsNeedingAttendanceReview'
+        ));
     }
 
     public function instructorProfile()
