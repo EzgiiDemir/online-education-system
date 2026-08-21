@@ -148,6 +148,10 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .due-warning.is-overdue{color:#b3402e;font-weight:650}
 .skill-tags{display:flex;flex-wrap:wrap;gap:8px}
 .skill-tag{display:inline-flex;align-items:center;gap:4px;background:var(--brand-soft);color:var(--brand-dark);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:650}
+.path-course-list{list-style:none;padding:0;margin:0}
+.path-course-item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.path-course-item:first-child{border-top:0}
+.path-course-item.is-locked{opacity:.55}
 
 .tab-bar{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;padding-bottom:2px}
 .tab-bar a{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;font-size:13px;font-weight:650;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}

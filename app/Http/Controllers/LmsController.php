@@ -9,6 +9,7 @@ use App\Models\ClassMessage;
 use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
+use App\Models\LearningPath;
 use App\Models\Material;
 use App\Models\MaterialProgress;
 use App\Models\PortalSetting;
@@ -216,6 +217,13 @@ class LmsController extends Controller
     public function enroll(Course $course)
     {
         abort_unless($course->status === 'published', 404);
+        $this->enrollUserInCourse($course);
+
+        return redirect()->route('learning.index')->with('success', 'Eğitime kaydınız oluşturuldu. Canlı ders bilgileri e-posta adresinize gönderildi.');
+    }
+
+    private function enrollUserInCourse(Course $course): Enrollment
+    {
         $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
         $enrollment = Auth::user()->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $openRun?->id]);
         if ($enrollment->wasRecentlyCreated) {
@@ -224,7 +232,44 @@ class LmsController extends Controller
             }
         }
 
-        return redirect()->route('learning.index')->with('success', 'Eğitime kaydınız oluşturuldu. Canlı ders bilgileri e-posta adresinize gönderildi.');
+        return $enrollment;
+    }
+
+    public function learningPaths()
+    {
+        $paths = LearningPath::where('status', 'published')->withCount('courses')->get();
+
+        $progress = [];
+        if (Auth::check()) {
+            foreach ($paths as $path) {
+                $courseIds = $path->courses->pluck('id');
+                $completedCount = Auth::user()->enrollments()->whereIn('course_id', $courseIds)->where('status', 'completed')->count();
+                $progress[$path->id] = $courseIds->isEmpty() ? 0 : (int) round($completedCount / $courseIds->count() * 100);
+            }
+        }
+
+        return view('lms.learning-paths', compact('paths', 'progress'));
+    }
+
+    public function learningPathShow(LearningPath $path)
+    {
+        abort_unless($path->status === 'published', 404);
+        $path->load('courses.instructor');
+
+        $enrolledCourseIds = Auth::check() ? Auth::user()->enrollments()->pluck('course_id') : collect();
+        $completedCourseIds = Auth::check() ? Auth::user()->enrollments()->where('status', 'completed')->pluck('course_id') : collect();
+
+        return view('lms.learning-path-show', compact('path', 'enrolledCourseIds', 'completedCourseIds'));
+    }
+
+    public function enrollInPath(LearningPath $path)
+    {
+        abort_unless($path->status === 'published', 404);
+        foreach ($path->courses()->where('status', 'published')->get() as $course) {
+            $this->enrollUserInCourse($course);
+        }
+
+        return redirect()->route('learning-paths.show', $path)->with('success', 'Öğrenim yolundaki tüm eğitimlere kaydınız oluşturuldu.');
     }
 
     public function instructor()

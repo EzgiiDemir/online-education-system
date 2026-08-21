@@ -44,6 +44,11 @@ class Course extends Model
         return $this->belongsToMany(Skill::class);
     }
 
+    public function learningPaths()
+    {
+        return $this->belongsToMany(LearningPath::class, 'learning_path_course')->withPivot(['sort_order', 'is_required']);
+    }
+
     public function dueDateFor(Enrollment $enrollment): ?\Illuminate\Support\Carbon
     {
         return $this->due_days ? $enrollment->created_at->copy()->addDays($this->due_days) : null;

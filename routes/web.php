@@ -21,11 +21,14 @@ Route::get('/auth/entra/redirect', [EntraSsoController::class, 'redirect'])->nam
 Route::get('/auth/entra/callback', [EntraSsoController::class, 'callback'])->name('entra.callback');
 Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.join');
 Route::get('/courses/{course}', [LmsController::class, 'courseShow'])->name('courses.show');
+Route::get('/learning-paths', [LmsController::class, 'learningPaths'])->name('learning-paths.index');
+Route::get('/learning-paths/{path}', [LmsController::class, 'learningPathShow'])->name('learning-paths.show');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LmsController::class, 'logout'])->name('logout');
     Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');
+    Route::post('/learning-paths/{path}/enroll', [LmsController::class, 'enrollInPath'])->name('learning-paths.enroll');
     Route::get('/instructor', [LmsController::class, 'instructor'])->name('instructor.dashboard');
     Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
