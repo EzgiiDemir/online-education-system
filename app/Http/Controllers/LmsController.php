@@ -158,11 +158,49 @@ class LmsController extends Controller
         return redirect()->route('lms.home')->with('success', 'Hesabınız oluşturuldu, hoş geldiniz!');
     }
 
-    public function myLearning()
+    /**
+     * "Required" is deliberately not a separate tab here: in this app's
+     * completion model an enrollment's status flips to 'completed' the
+     * instant every required item is done (checkAndCompleteEnrollment), so
+     * "status != completed" already IS "still has required work outstanding".
+     * A second tab computing the same thing from completionStats() would
+     * just show the same rows under a different label.
+     */
+    public function myLearning(Request $r)
     {
-        $enrollments = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate'])->latest()->paginate(10);
+        $tab = $r->query('tab', 'all');
+        $allowedTabs = ['all', 'in_progress', 'upcoming', 'completed', 'certificates'];
+        if (! in_array($tab, $allowedTabs, true)) {
+            $tab = 'all';
+        }
 
-        return view('lms.my-learning', compact('enrollments'));
+        $counts = Auth::user()->enrollments()
+            ->selectRaw("count(*) as total_count")
+            ->selectRaw("sum(case when status != 'completed' then 1 else 0 end) as in_progress_count")
+            ->selectRaw("sum(case when status = 'completed' then 1 else 0 end) as completed_count")
+            ->first();
+
+        $counts = [
+            'all' => (int) $counts->total_count,
+            'in_progress' => (int) $counts->in_progress_count,
+            'upcoming' => Auth::user()->enrollments()->where('status', '!=', 'completed')->whereHas('course.sessions', fn ($q) => $q->where('starts_at', '>', now()))->count(),
+            'completed' => (int) $counts->completed_count,
+            'certificates' => Auth::user()->enrollments()->whereHas('certificate')->count(),
+        ];
+
+        $query = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate']);
+
+        $query = match ($tab) {
+            'in_progress' => $query->where('status', '!=', 'completed'),
+            'completed' => $query->where('status', 'completed'),
+            'certificates' => $query->whereHas('certificate'),
+            'upcoming' => $query->where('status', '!=', 'completed')->whereHas('course.sessions', fn ($q) => $q->where('starts_at', '>', now())),
+            default => $query,
+        };
+
+        $enrollments = $query->latest()->paginate(10)->withQueryString();
+
+        return view('lms.my-learning', compact('enrollments', 'counts', 'tab'));
     }
 
     public function enroll(Course $course)
