@@ -116,6 +116,18 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 
 .account-grid{display:grid;gap:20px;grid-template-columns:280px 1fr;align-items:start}
 
+.home-greeting{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:32px;margin:28px 0 44px}
+.greeting-text h1{font-size:clamp(28px,3.4vw,40px);margin:6px 0 10px}
+.greeting-text p{color:var(--muted);font-size:15px;margin:0}
+.continue-card{flex-shrink:0;min-width:260px;background:var(--surface-solid);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:18px 20px;box-shadow:0 8px 24px #10182812}
+.continue-card small{display:block;margin-bottom:4px}
+.continue-card strong{display:block;font-size:16px;margin-bottom:10px}
+.continue-card .button{width:100%;margin-top:12px}
+.today-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:40px}
+.today-card{padding:20px}
+.today-card h3{font-size:16px;margin:12px 0 6px}
+.today-card .button{width:100%;margin-top:12px}
+
 @media(max-width:900px){.nav-link{display:none}}
-@media(max-width:700px){.account-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.account-grid{grid-template-columns:1fr}.home-greeting{flex-direction:column;align-items:stretch;text-align:center;padding:24px}.continue-card{min-width:auto}}
 @media(max-width:700px){.hero{padding-top:6px;min-height:auto;flex-direction:column-reverse;text-align:center}.hero p{max-width:none}.hero-mark{width:140px;height:140px}.page-shell{padding:28px 18px}.profile-name{display:none}.site-nav{padding:10px 18px}.nav-actions{gap:10px}}

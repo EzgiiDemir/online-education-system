@@ -68,4 +68,36 @@ class Enrollment extends Model
             'percent' => $total ? (int) round($completed / $total * 100) : ($this->status === 'completed' ? 100 : 0),
         ];
     }
+
+    /**
+     * "Continue Learning" CTA'sının nereye götüreceğini belirler: sıradaki
+     * tamamlanmamış materyal, yoksa sıradaki tamamlanmamış zorunlu etkinlik.
+     * live_session tipi etkinlikler hariç -- onlar sadece oturum katılımıyla
+     * tamamlanır, kendi görüntüleme sayfaları yok. İkisi de kalmadıysa null
+     * döner (geriye kalan tek şey seans katılımıdır).
+     */
+    public function nextIncompleteItem(): ?array
+    {
+        $completedMaterialIds = $this->progress()->where('completed', true)->pluck('material_id');
+        $material = Material::whereHas('session', fn ($q) => $q->where('course_id', $this->course_id))
+            ->whereNotIn('id', $completedMaterialIds)
+            ->orderBy('id')
+            ->first();
+        if ($material) {
+            return ['type' => 'material', 'model' => $material];
+        }
+
+        $completedActivityIds = $this->activityProgress()->where('completed', true)->pluck('activity_id');
+        $activity = Activity::whereHas('section', fn ($q) => $q->where('course_id', $this->course_id))
+            ->where('is_required', true)
+            ->where('type', '!=', 'live_session')
+            ->whereNotIn('id', $completedActivityIds)
+            ->orderBy('sort_order')
+            ->first();
+        if ($activity) {
+            return ['type' => 'activity', 'model' => $activity];
+        }
+
+        return null;
+    }
 }

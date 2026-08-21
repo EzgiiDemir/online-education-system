@@ -37,9 +37,52 @@ class LmsController extends Controller
         $courses = Schema::hasTable('courses')
             ? Course::where('status', 'published')->with('instructor', 'sessions')->latest()->paginate(12)
             : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, 12);
-        $enrolledCourseIds = Auth::check() ? Auth::user()->enrollments()->pluck('course_id') : collect();
+        $enrolledCourseIds = collect();
+        $continueLearning = null;
+        $requiredIncomplete = collect();
+        $todaySessions = collect();
 
-        return view('lms.home', compact('courses', 'enrolledCourseIds'));
+        if (Auth::check()) {
+            $enrolledCourseIds = Auth::user()->enrollments()->pluck('course_id');
+
+            $activeEnrollments = Auth::user()->enrollments()
+                ->with('course')
+                ->where('status', '!=', 'completed')
+                ->withMax('progress', 'updated_at')
+                ->withMax('activityProgress', 'updated_at')
+                ->get();
+
+            $continueLearning = $activeEnrollments->sortByDesc(fn ($e) => max(
+                $e->progress_max_updated_at ?? $e->created_at,
+                $e->activity_progress_max_updated_at ?? $e->created_at,
+                $e->created_at,
+            ))->first();
+
+            $requiredIncomplete = $activeEnrollments
+                ->map(fn ($e) => ['enrollment' => $e, 'stats' => $e->completionStats()])
+                ->filter(fn ($row) => $row['stats']['total'] > 0 && $row['stats']['completed'] < $row['stats']['total'])
+                ->values();
+
+            if ($enrolledCourseIds->isNotEmpty()) {
+                $todaySessions = CourseSession::whereIn('course_id', $enrolledCourseIds)
+                    ->whereBetween('starts_at', [now()->startOfDay(), now()->endOfDay()])
+                    ->with('course')
+                    ->orderBy('starts_at')
+                    ->get();
+            }
+        }
+
+        $continueUrl = null;
+        if ($continueLearning) {
+            $nextItem = $continueLearning->nextIncompleteItem();
+            $continueUrl = match ($nextItem['type'] ?? null) {
+                'material' => route('materials.view', $nextItem['model']),
+                'activity' => route('activities.view', $nextItem['model']),
+                default => route('learning.index'),
+            };
+        }
+
+        return view('lms.home', compact('courses', 'enrolledCourseIds', 'continueLearning', 'continueUrl', 'requiredIncomplete', 'todaySessions'));
     }
 
     public function login(Request $r)

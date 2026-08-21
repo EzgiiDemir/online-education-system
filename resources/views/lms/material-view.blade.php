@@ -13,17 +13,7 @@
 @else
 <div class="viewer-empty"><p class="muted">Bu içerik türü tarayıcıda önizlenemiyor.</p><a class="button secondary" href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">Dosyayı indir / aç</a></div>
 @endif
-<div class="viewer-progress">
-<div class="viewer-progress-label"><span>İzlenme süresi</span><span id="watched-pct">%{{ $required ? min(100, (int) round($progress->watched_seconds / $required * 100)) : 0 }}</span></div>
-<progress id="progress-bar" max="{{ $required }}" value="{{ min($progress->watched_seconds, $required) }}"></progress>
-<small id="hint">
-@if($progress->completed)
-Tamamlandı
-@else
-<span id="watched">{{ $progress->watched_seconds }}</span> / {{ $required }} sn
-@endif
-</small>
-</div>
+@include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('materials.heartbeat', $material), 'labelWatched' => 'İzlenme süresi'])
 @if($progress->completed)
 <div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)">✓ Tamamlandı</span></div>
 @else
@@ -34,30 +24,4 @@ Tamamlandı
 @endif
 </div>
 </div>
-@if(!$progress->completed)
-<script>
-(function(){
-    var required = {{ $required }};
-    var btn = document.getElementById('complete-btn');
-    var watchedEl = document.getElementById('watched');
-    var pctEl = document.getElementById('watched-pct');
-    var barEl = document.getElementById('progress-bar');
-    var token = document.querySelector('meta[name="csrf-token"]').content;
-    function tick(){
-        if (document.visibilityState !== 'visible') return;
-        fetch('{{ route('materials.heartbeat', $material) }}', {
-            method: 'POST',
-            headers: {'X-CSRF-TOKEN': token, 'Accept': 'application/json'}
-        }).then(function(r){ return r.json(); }).then(function(data){
-            watchedEl.textContent = data.watched_seconds;
-            pctEl.textContent = '%' + Math.min(100, Math.round(data.watched_seconds / required * 100));
-            barEl.value = Math.min(data.watched_seconds, required);
-            if (data.eligible && btn) btn.disabled = false;
-        });
-    }
-    setInterval(tick, 5000);
-    tick();
-})();
-</script>
-@endif
 @endsection
