@@ -34,6 +34,7 @@ class AdminPanelSmokeTest extends TestCase
             '/admin/courses',
             '/admin/enrollments',
             '/admin/materials',
+            '/admin/skills',
             '/admin/users',
         ];
 
@@ -58,6 +59,7 @@ class AdminPanelSmokeTest extends TestCase
             '/admin/courses/create',
             '/admin/enrollments/create',
             '/admin/materials/create',
+            '/admin/skills/create',
             '/admin/users/create',
         ];
 

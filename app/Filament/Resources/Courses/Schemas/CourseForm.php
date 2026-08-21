@@ -28,6 +28,14 @@ class CourseForm
                     Select::make('status')->label('Yayın durumu')->options(['draft' => 'Taslak', 'published' => 'Yayınlandı', 'completed' => 'Tamamlandı'])->default('draft')->required(),
                     DateTimePicker::make('starts_at')->label('Başlangıç'), DateTimePicker::make('ends_at')->label('Bitiş'),
                 ])->columns(2),
+                Section::make('Sınıflandırma ve uyumluluk')->schema([
+                    Select::make('category')->label('Eğitim kategorisi')->options(['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk (Compliance)', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim'])->default('optional')->required(),
+                    TextInput::make('due_days')->label('Tamamlama süresi (gün)')->numeric()->minValue(1)->helperText('Kayıttan itibaren kaç gün içinde tamamlanmalı. Boş bırakılırsa süre sınırı yok.'),
+                    TextInput::make('recertification_period_days')->label('Yeniden sertifikalandırma süresi (gün)')->numeric()->minValue(1)->helperText('Sertifika verildikten kaç gün sonra geçerliliğini yitirir. Uyumluluk eğitimleri için kullanılır, boş bırakılırsa süresiz geçerlidir.'),
+                    Select::make('skills')->label('Kazandırdığı yetkinlikler')->relationship('skills', 'name')->multiple()->searchable()->preload()->createOptionForm([
+                        TextInput::make('name')->label('Yetkinlik adı')->required()->unique(),
+                    ]),
+                ])->columns(2),
                 Section::make('Misafir eğitimci')->description('Kurum dışından katkı sunan eğitmen')->schema([
                     TextInput::make('guest_instructor_name')->label('Ad soyad'), TextInput::make('guest_instructor_email')->label('E-posta')->email(), Textarea::make('guest_instructor_bio')->label('Kısa biyografi')->columnSpanFull(),
                 ])->columns(2),

@@ -17,12 +17,27 @@
                 <span>•</span>
                 <span>{{ $course->sessions->count() }} {{ $en ? 'sessions' : 'seans' }}</span>
                 @if($course->certificate_enabled)<span>•</span><span>🎓 {{ $en ? 'Certificate' : 'Sertifikalı' }}</span>@endif
+                @if($course->category && $course->category !== 'optional')<span>•</span><span class="status">{{ ['required' => $en ? 'REQUIRED' : 'ZORUNLU', 'compliance' => $en ? 'COMPLIANCE' : 'UYUMLULUK', 'onboarding' => $en ? 'ONBOARDING' : 'ORYANTASYON', 'professional_development' => $en ? 'PROF. DEVELOPMENT' : 'MESLEKİ GELİŞİM'][$course->category] ?? $course->category }}</span>@endif
             </div>
 
             @if($enrollment)
             <div class="course-show-progress">
                 <div class="meter"><span style="width:{{ $stats['percent'] }}%"></span></div>
                 <small class="muted">{{ $stats['completed'] }} / {{ $stats['total'] }} {{ $en ? 'completed' : 'tamamlandı' }} · %{{ $stats['percent'] }}</small>
+                @if($enrollment->status !== 'completed' && $course->dueDateFor($enrollment))
+                <p class="{{ $course->isOverdueFor($enrollment) ? 'due-warning is-overdue' : 'due-warning' }}">
+                @if($course->isOverdueFor($enrollment))
+                ⚠ {{ $en ? 'Overdue since '.$course->dueDateFor($enrollment)->format('d.m.Y') : $course->dueDateFor($enrollment)->format('d.m.Y').' tarihinden beri gecikmiş' }}
+                @else
+                {{ $en ? 'Due by '.$course->dueDateFor($enrollment)->format('d.m.Y') : $course->dueDateFor($enrollment)->format('d.m.Y').' tarihine kadar tamamlanmalı' }}
+                @endif
+                </p>
+                @endif
+                @if($enrollment->status === 'completed' && $enrollment->certificate && $enrollment->certificate->expiresAt())
+                <p class="{{ $enrollment->certificate->isExpired() ? 'due-warning is-overdue' : 'due-warning' }}">
+                {{ $enrollment->certificate->isExpired() ? ($en ? 'Certificate expired on ' : 'Sertifika süresi doldu: ') : ($en ? 'Certificate valid until ' : 'Sertifika geçerlilik tarihi: ') }}{{ $enrollment->certificate->expiresAt()->format('d.m.Y') }}
+                </p>
+                @endif
             </div>
             @if($enrollment->status === 'completed')
                 @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <span>→</span></a>@endif
@@ -44,6 +59,10 @@
     <div class="card surface course-show-section">
         <h2>{{ $en ? 'About' : 'Hakkında' }}</h2>
         <p class="muted">{{ $course->description ?: ($en ? 'No description provided yet.' : 'Henüz açıklama eklenmemiş.') }}</p>
+        @if($course->skills->isNotEmpty())
+        <p class="muted" style="margin-bottom:6px">{{ $en ? "What you'll learn" : 'Kazanacağınız yetkinlikler' }}</p>
+        <div class="skill-tags">@foreach($course->skills as $skill)<span class="skill-tag">🏅 {{ $skill->name }}</span>@endforeach</div>
+        @endif
     </div>
 
     @if($enrollment && $stats['total'] > 0)

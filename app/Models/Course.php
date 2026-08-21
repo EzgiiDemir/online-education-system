@@ -38,4 +38,24 @@ class Course extends Model
     {
         return $this->hasMany(CourseSection::class)->orderBy('sort_order');
     }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class);
+    }
+
+    public function dueDateFor(Enrollment $enrollment): ?\Illuminate\Support\Carbon
+    {
+        return $this->due_days ? $enrollment->created_at->copy()->addDays($this->due_days) : null;
+    }
+
+    public function isOverdueFor(Enrollment $enrollment): bool
+    {
+        if ($enrollment->status === 'completed') {
+            return false;
+        }
+        $due = $this->dueDateFor($enrollment);
+
+        return $due !== null && $due->isPast();
+    }
 }

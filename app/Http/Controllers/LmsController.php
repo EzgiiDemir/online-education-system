@@ -90,7 +90,7 @@ class LmsController extends Controller
         $isOwnerOrAdmin = Auth::check() && (Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id);
         abort_unless($course->status === 'published' || $isOwnerOrAdmin, 404);
 
-        $course->load(['instructor', 'sessions.materials', 'sections.activities', 'runs']);
+        $course->load(['instructor', 'sessions.materials', 'sections.activities', 'runs', 'skills']);
 
         $enrollment = null;
         $stats = null;
@@ -109,6 +109,13 @@ class LmsController extends Controller
         }
 
         return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl'));
+    }
+
+    public function mySkills()
+    {
+        $skills = Auth::user()->earnedSkills();
+
+        return view('lms.my-skills', compact('skills'));
     }
 
     public function login(Request $r)

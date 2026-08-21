@@ -50,6 +50,19 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(User::class, 'manager_id');
     }
 
+    /**
+     * Skills earned through completed courses. Derived from
+     * completed enrollments, not stored directly on the user.
+     */
+    public function earnedSkills()
+    {
+        $completedCourseIds = $this->enrollments()->where('status', 'completed')->pluck('course_id');
+
+        return Skill::whereHas('courses', fn ($q) => $q->whereIn('courses.id', $completedCourseIds))
+            ->with(['courses' => fn ($q) => $q->whereIn('courses.id', $completedCourseIds)])
+            ->get();
+    }
+
     public function routeNotificationForMail()
     {
         return $this->email;

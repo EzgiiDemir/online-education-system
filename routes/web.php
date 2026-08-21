@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/activities/{activity}/heartbeat', [LmsController::class, 'activityHeartbeat'])->name('activities.heartbeat');
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
+    Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
     Route::get('/account', [AccountController::class, 'show'])->name('account.show');
     Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
 });

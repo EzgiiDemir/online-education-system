@@ -32,6 +32,14 @@ class CoursesTable
                         default => 'warning',
                     })
                     ->searchable(),
+                TextColumn::make('category')->label('Kategori')->badge()
+                    ->formatStateUsing(fn ($state) => ['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim'][$state] ?? $state)
+                    ->color(fn ($state) => match ($state) {
+                        'compliance' => 'danger',
+                        'required' => 'warning',
+                        'onboarding' => 'info',
+                        default => 'gray',
+                    }),
                 TextColumn::make('guest_instructor_name')->label('Misafir eğitimci')->placeholder('Yok')->toggleable(),
                 TextColumn::make('certificate_enabled')->label('Sertifika')->formatStateUsing(fn ($state) => $state ? 'Aktif' : 'Pasif')->badge(),
                 TextColumn::make('starts_at')
@@ -52,6 +60,7 @@ class CoursesTable
             ->filters([
                 SelectFilter::make('status')->label('Durum')->options(['draft' => 'Taslak', 'published' => 'Yayında', 'completed' => 'Tamamlandı']),
                 SelectFilter::make('delivery_type')->label('Tür')->options(['online' => 'Online', 'offline' => 'Offline']),
+                SelectFilter::make('category')->label('Kategori')->options(['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim']),
                 SelectFilter::make('instructor_id')->label('Eğitmen')->relationship('instructor', 'name')->searchable()->preload(),
             ])
             ->recordActions([

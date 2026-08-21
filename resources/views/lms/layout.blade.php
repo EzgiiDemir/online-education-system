@@ -30,6 +30,7 @@
 @if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}">▦ {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
 @if(auth()->user()->role==='manager')<a href="{{ route('manager.dashboard') }}">▦ {{ $en ? 'Manager panel' : 'Yönetici paneli' }}</a>@endif
 <a href="{{ route('account.show') }}">◎ {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
+<a href="{{ route('skills.index') }}">🏅 {{ $en ? 'My Skills' : 'Yetkinliklerim' }}</a>
 <button type="button" data-theme-toggle>◐ {{ $en ? 'Theme' : 'Tema' }}</button>
 <form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger">↪ {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
