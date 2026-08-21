@@ -85,6 +85,32 @@ class LmsController extends Controller
         return view('lms.home', compact('courses', 'enrolledCourseIds', 'continueLearning', 'continueUrl', 'requiredIncomplete', 'todaySessions'));
     }
 
+    public function courseShow(Course $course)
+    {
+        $isOwnerOrAdmin = Auth::check() && (Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id);
+        abort_unless($course->status === 'published' || $isOwnerOrAdmin, 404);
+
+        $course->load(['instructor', 'sessions.materials', 'sections.activities', 'runs']);
+
+        $enrollment = null;
+        $stats = null;
+        $continueUrl = null;
+        if (Auth::check()) {
+            $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->with('progress', 'activityProgress', 'certificate')->first();
+            if ($enrollment) {
+                $stats = $enrollment->completionStats();
+                $nextItem = $enrollment->nextIncompleteItem();
+                $continueUrl = match ($nextItem['type'] ?? null) {
+                    'material' => route('materials.view', $nextItem['model']),
+                    'activity' => route('activities.view', $nextItem['model']),
+                    default => null,
+                };
+            }
+        }
+
+        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl'));
+    }
+
     public function login(Request $r)
     {
         $data = $r->validate(['email' => 'required|email', 'password' => 'required']);

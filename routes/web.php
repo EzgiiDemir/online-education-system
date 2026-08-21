@@ -19,6 +19,7 @@ Route::post('/register', [LmsController::class, 'register']);
 Route::get('/auth/entra/redirect', [EntraSsoController::class, 'redirect'])->name('entra.redirect');
 Route::get('/auth/entra/callback', [EntraSsoController::class, 'callback'])->name('entra.callback');
 Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.join');
+Route::get('/courses/{course}', [LmsController::class, 'courseShow'])->name('courses.show');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
 Route::middleware('auth')->group(function () {
