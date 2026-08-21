@@ -14,6 +14,29 @@
 <a class="nav-link" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenim Yolları' }}</a>
 <div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
 @auth
+@php($unreadNotifCount = auth()->user()->unreadNotifications->count())
+@php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
+<div class="notif-menu">
+<button class="notif-trigger" type="button" data-notif-toggle>
+🔔
+@if($unreadNotifCount > 0)<span class="notif-badge">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
+</button>
+<div class="notif-dropdown" data-notif-dropdown>
+<div class="dropdown-head">
+<strong>{{ $en ? 'Notifications' : 'Bildirimler' }}</strong>
+@if($unreadNotifCount > 0)<form method="post" action="{{ route('notifications.read-all') }}">@csrf<button type="submit" class="notif-mark-all">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>@endif
+</div>
+@forelse($recentNotifications as $notification)
+<form method="post" action="{{ route('notifications.read', $notification->id) }}" class="notif-item{{ $notification->read_at ? '' : ' is-unread' }}">
+@csrf
+<button type="submit">{{ $notification->data['message'] ?? '—' }}</button>
+</form>
+@empty
+<p class="muted" style="padding:16px;margin:0">{{ $en ? 'No notifications yet.' : 'Henüz bildirim yok.' }}</p>
+@endforelse
+<a href="{{ route('notifications.index') }}" class="notif-viewall">{{ $en ? 'View all' : 'Tümünü gör' }}</a>
+</div>
+</div>
 <div class="profile-menu">
 <button class="profile-trigger" type="button" data-profile-toggle>
 <span class="profile-avatar">
@@ -49,6 +72,12 @@ document.addEventListener('click', function (e) {
     if (dropdown) {
         if (toggle) { dropdown.classList.toggle('is-open'); return; }
         if (!e.target.closest('[data-profile-dropdown]')) dropdown.classList.remove('is-open');
+    }
+    var notifToggle = e.target.closest('[data-notif-toggle]');
+    var notifDropdown = document.querySelector('[data-notif-dropdown]');
+    if (notifDropdown) {
+        if (notifToggle) { notifDropdown.classList.toggle('is-open'); return; }
+        if (!e.target.closest('[data-notif-dropdown]')) notifDropdown.classList.remove('is-open');
     }
     if (e.target.closest('[data-theme-toggle]')) {
         var isDark = document.documentElement.dataset.theme === 'dark';

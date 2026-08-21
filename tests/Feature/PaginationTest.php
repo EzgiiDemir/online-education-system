@@ -47,8 +47,14 @@ class PaginationTest extends TestCase
         $queriesFor3 = count(\Illuminate\Support\Facades\DB::getQueryLog());
 
         Course::factory()->count(6)->create(['status' => 'published']);
+        // Re-fetch a fresh model instead of reusing $learner: a real second HTTP
+        // request never carries over Eloquent's in-memory relation cache (e.g.
+        // unreadNotifications) the way reusing the same PHP object across two
+        // actingAs() calls in-process would, which would hide a real query. Do
+        // this before flushing the log so the lookup itself isn't measured.
+        $freshLearner = User::find($learner->id);
         \Illuminate\Support\Facades\DB::flushQueryLog();
-        $this->actingAs($learner)->get('/')->assertOk();
+        $this->actingAs($freshLearner)->get('/')->assertOk();
         $queriesFor9 = count(\Illuminate\Support\Facades\DB::getQueryLog());
 
         $this->assertSame($queriesFor3, $queriesFor9, 'Query count scaled with course count: N+1 regressed.');

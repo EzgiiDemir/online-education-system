@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
@@ -53,6 +54,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
     Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/account', [AccountController::class, 'show'])->name('account.show');
     Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
 });
