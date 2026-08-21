@@ -23,6 +23,7 @@ Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.joi
 Route::get('/courses/{course}', [LmsController::class, 'courseShow'])->name('courses.show');
 Route::get('/learning-paths', [LmsController::class, 'learningPaths'])->name('learning-paths.index');
 Route::get('/learning-paths/{path}', [LmsController::class, 'learningPathShow'])->name('learning-paths.show');
+Route::get('/verify/{certificateNumber}', [LmsController::class, 'verifyCertificate'])->name('certificates.verify');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
 Route::middleware('auth')->group(function () {

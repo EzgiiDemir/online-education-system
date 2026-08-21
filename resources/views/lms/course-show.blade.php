@@ -40,7 +40,7 @@
                 @endif
             </div>
             @if($enrollment->status === 'completed')
-                @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <span>→</span></a>@endif
+                @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <span>→</span></a> <a class="button secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
             @elseif($continueUrl)
                 <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <span>→</span></a>
             @else

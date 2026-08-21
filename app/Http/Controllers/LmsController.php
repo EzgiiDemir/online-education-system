@@ -655,4 +655,20 @@ class LmsController extends Controller
 
         return Pdf::loadView('lms.certificate', ['certificate' => $certificate, 'enrollment' => $certificate->enrollment->load('user', 'course')])->download($certificate->certificate_number.'.pdf');
     }
+
+    /**
+     * Public, unauthenticated: anyone holding a certificate number (e.g. a
+     * hiring manager checking a candidate's claim) can confirm it's real
+     * without needing an account or access to the downloadable PDF itself.
+     * Deliberately shows only holder name / course / dates -- not a login,
+     * not the PDF, not any other enrollment data.
+     */
+    public function verifyCertificate(string $certificateNumber)
+    {
+        $certificate = Certificate::where('certificate_number', $certificateNumber)
+            ->with('enrollment.user', 'enrollment.course')
+            ->first();
+
+        return view('lms.certificate-verify', compact('certificate', 'certificateNumber'));
+    }
 }
