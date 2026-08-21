@@ -16,7 +16,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .nav-lang a{color:#585b66;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;transition:.15s var(--ease)}
 .nav-lang a.is-active{background:#fff;color:var(--brand-dark);box-shadow:0 1px 3px #1018281a}
 .nav-button{background:var(--brand);color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:650;box-shadow:0 1px 2px #1018281a;border:0}
-.nav-button:hover{background:var(--brand-dark);color:#fff}
+.nav-button:hover{color:#fff}
 
 /* Profile menu */
 .profile-menu{position:relative}
@@ -36,6 +36,9 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 
 .inline-form{display:inline}
 .page-shell{max-width:1180px;margin:0 auto;padding:48px 28px}
+.back-link{display:inline-flex;align-items:center;gap:6px;background:none;border:0;box-shadow:none;color:var(--muted);font-size:13px;font-weight:600;padding:0;margin-bottom:18px;cursor:pointer}
+.back-link:hover{color:var(--brand)}
+.viewer-back{display:none!important}
 
 /* Hero */
 .hero{display:flex;align-items:center;justify-content:space-between;min-height:260px;padding:28px 0 60px;gap:48px}
@@ -62,17 +65,22 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .empty-state{padding:40px;text-align:center}
 .status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.03em;background:var(--brand-soft);color:var(--brand-dark)}
 
-/* Buttons — flat, no hover animation by request */
+/* Buttons — flat, no hover animation. :hover rules below only pin the
+   text/icon color so a generic a:hover rule can't bleed onto a <a class="button">
+   and turn it low-contrast; they deliberately do not change anything else. */
 button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;box-shadow:0 1px 2px #1018281a}
+button:hover,.button:hover{color:#fff}
 button:disabled,.button:disabled{opacity:.5;cursor:not-allowed}
 .button-secondary,.button.secondary,.secondary{background:rgba(255,255,255,.6);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
+.button-secondary:hover,.button.secondary:hover,.secondary:hover{color:var(--brand-dark)}
 
 .alert{padding:13px 18px;margin-bottom:20px;border-radius:var(--radius-sm);font-size:14px}
 .success{background:#eef1e9;color:var(--success-dark)}
 .error{background:#fbe9e4;color:#b3402e}
 .button-danger{background:linear-gradient(180deg,#c0604a,#a4482f);box-shadow:0 1px 2px #1018281a,0 6px 16px -6px #c0604a66}
+.button-danger:hover{color:#fff}
 .button-secondary.button-danger{background:transparent;color:#b3402e;border-color:#f0d8d1}
-.button-secondary.button-danger:hover{background:#fbe9e4;color:#8a3020}
+.button-secondary.button-danger:hover{color:#b3402e}
 .danger-zone{margin-top:14px;padding:16px;border:1px solid #f0d8d1;border-radius:var(--radius-sm);background:#fbe9e4}
 .danger-zone p{margin:0 0 10px;font-size:13px;color:#8a3020}
 

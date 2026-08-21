@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "campus/lms",
+    "name": "arucad/campus-lms",
     "type": "project",
-    "description": "Campus LMS - kurumsal eğitim portalı (kurs kataloğu, canlı sınıf, sertifikasyon).",
+    "description": "Arucad Campus LMS - kurumsal eğitim portalı (kurs kataloğu, canlı sınıf, sertifikasyon).",
     "keywords": ["laravel", "lms", "filament"],
     "license": "MIT",
     "require": {

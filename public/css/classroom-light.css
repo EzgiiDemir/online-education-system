@@ -17,15 +17,12 @@
 .classroom-page .participant small,.classroom-page .chat-message p,.classroom-page .panel-empty{color:#6b6f80}
 .classroom-page .chat-message{border-color:#e5e1da}
 .classroom-page .chat-form input{background:#fff;color:#23262b;border-color:#e5e1da}
-.classroom-page .control{background:rgba(255,255,255,.85);color:#40434c;border:1px solid #e5e1da;box-shadow:0 2px 6px #10182812;border-radius:14px;transition:transform .15s cubic-bezier(.4,0,.2,1),box-shadow .15s cubic-bezier(.4,0,.2,1),background .15s}
+.classroom-page .control{background:rgba(255,255,255,.85);color:#40434c;border:1px solid #e5e1da;box-shadow:0 2px 6px #10182812;border-radius:14px}
 .classroom-page .control:before{color:#40434c}
 .classroom-page .control.primary{background:linear-gradient(180deg,#4d6787,#3a4e67);border-color:#3a4e67;color:#fff;box-shadow:0 4px 14px #4d678766}
 .classroom-page .control.primary:before{color:#fff}
 .classroom-page .control.record:before{color:#da8359}
 .classroom-page .control.leave{color:#b3402e}
-.classroom-page .control:hover{background:#fff;transform:translateY(-1px);box-shadow:0 6px 16px #10182818}
-.classroom-page .control.primary:hover{filter:brightness(1.06)}
-.classroom-page .control.leave:hover{background:#fbe9e4}
-.classroom-page .control:disabled{background:#f0eee9;color:#a8acbb;box-shadow:none;transform:none}
+.classroom-page .control:disabled{background:#f0eee9;color:#a8acbb;box-shadow:none}
 .classroom-page .control:hover:after{background:#23262b;color:#fff;border-radius:8px}
 .classroom-page .shared-file{color:#40434c;border-color:#e5e1da}

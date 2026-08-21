@@ -12,6 +12,6 @@ class PortalSetting extends Model
 
     public static function current(): self
     {
-        return static::firstOrCreate(['id' => 1], ['portal_name' => 'Campus LMS', 'accepted_domains' => ['company.com'], 'available_locales' => ['tr', 'en']]);
+        return static::firstOrCreate(['id' => 1], ['portal_name' => 'Arucad Campus LMS', 'accepted_domains' => ['company.com'], 'available_locales' => ['tr', 'en']]);
     }
 }

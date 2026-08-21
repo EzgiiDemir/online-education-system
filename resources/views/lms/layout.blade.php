@@ -30,7 +30,7 @@
 @endauth
 </div>
 </nav>
-<main class="page-shell">@if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')">← {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
 <script>
 document.addEventListener('click', function (e) {
     var toggle = e.target.closest('[data-profile-toggle]');
