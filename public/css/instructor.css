@@ -18,7 +18,6 @@
 .instructor-main{flex:1;min-width:0;padding:42px clamp(24px,5vw,64px)}
 .instructor-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:34px;gap:18px}
 .instructor-header h1{font-size:32px;margin:6px 0 0}
-.instructor-main .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
 .instructor-main .card{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;box-shadow:0 10px 34px #10182812}
 .instructor-main button{width:auto}
 .instructor-main .tag{font-size:11px;letter-spacing:.08em}

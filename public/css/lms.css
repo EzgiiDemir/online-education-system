@@ -88,7 +88,6 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .muted{color:var(--muted)}
 .section-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}
 .section-heading h2{margin:5px 0 0}
-.course-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px}
 
 /* Glass surfaces */
 .surface{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);box-shadow:0 10px 34px #10182812;transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
@@ -149,7 +148,6 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .continue-card small{display:block;margin-bottom:4px}
 .continue-card strong{display:block;font-size:16px;margin-bottom:10px}
 .continue-card .button{width:100%;margin-top:12px}
-.today-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:40px}
 .today-card{padding:20px}
 .today-card h3{font-size:16px;margin:12px 0 6px}
 .today-card .button{width:100%;margin-top:12px}

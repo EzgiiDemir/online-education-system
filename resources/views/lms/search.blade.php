@@ -25,7 +25,7 @@
 @else
 @if($results['courses']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Courses' : 'Eğitimler' }}</h2>
-<div class="course-grid">@foreach($results['courses'] as $course)<article class="course-card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }});border-left:4px solid var(--course-accent)"><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 100) }}</p><span class="muted"><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span></article>@endforeach</div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">@foreach($results['courses'] as $course)<article class="course-card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }});border-left:4px solid var(--course-accent)"><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 100) }}</p><span class="muted"><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span></article>@endforeach</div>
 @endif
 
 @if($results['activities']->isNotEmpty())

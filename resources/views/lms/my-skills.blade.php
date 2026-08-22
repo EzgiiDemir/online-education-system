@@ -3,7 +3,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'MY SKILLS' : 'YETKİNLİKLERİM' }}</span><h1>{{ $en ? 'Skills' : 'Yetkinliklerim' }}</h1><p class="muted">{{ $en ? 'Skills you have earned by completing courses.' : 'Eğitimleri tamamlayarak kazandığınız yetkinlikler.' }}</p></div></div>
-<div class="course-grid">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 @forelse($skills as $skill)
 <article class="course-card surface" style="--course-accent:var(--course-accent-{{ $skill->id % 6 }});border-left:4px solid var(--course-accent)">
 <div class="course-card-top"><span class="status"><x-lucide name="award" size="14" /> {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
