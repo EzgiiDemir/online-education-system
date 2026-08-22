@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title','Bildirimler · Arucad Campus LMS')
+@section('title', (session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler').' · Arucad Campus LMS')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'NOTIFICATIONS' : 'BİLDİRİMLER' }}</span><h1>{{ $en ? 'Notifications' : 'Bildirimler' }}</h1></div>
@@ -11,7 +11,7 @@
 @forelse($notifications as $notification)
 <div class="requirement-row" style="align-items:flex-start">
 <div>
-<b style="{{ $notification->read_at ? '' : 'color:var(--brand-dark)' }}">{{ $notification->data['message'] ?? '—' }}</b><br>
+<b style="{{ $notification->read_at ? '' : 'color:var(--brand-dark)' }}">@unless($notification->read_at)<span class="status" style="margin-right:6px">{{ $en ? 'NEW' : 'YENİ' }}</span>@endunless{{ $notification->data['message'] ?? '—' }}</b><br>
 <small class="muted">{{ $notification->created_at->format('d.m.Y H:i') }}</small>
 </div>
 @unless($notification->read_at)

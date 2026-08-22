@@ -23,3 +23,10 @@
 .builder-add-section form input,.builder-add-section form textarea{width:auto;flex:1;min-width:180px}
 .builder-add-activity form input,.builder-add-activity form select{width:auto}
 .builder-add-activity form .check-field{width:auto;padding:9px 12px;margin:0}
+@media(max-width:600px){
+.builder-section-head{flex-wrap:wrap}
+.builder-section-head h3{flex-basis:100%;order:1}
+.builder-activity-list li{flex-wrap:wrap}
+.builder-add-section form,.builder-add-activity form{flex-direction:column;align-items:stretch}
+.builder-add-section form input,.builder-add-section form textarea,.builder-add-activity form input,.builder-add-activity form select{width:100%;min-width:0}
+}

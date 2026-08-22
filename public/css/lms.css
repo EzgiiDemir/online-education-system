@@ -97,7 +97,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .card{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);box-shadow:0 10px 34px #10182812;padding:26px}
 .course-card{padding:24px}
 .course-card-top,.course-meta{display:flex;align-items:center;gap:10px}
-.course-card h3{font-size:21px;margin:18px 0 10px}
+.course-card h2,.course-card h3{font-size:21px;margin:18px 0 10px;font-weight:650}
 .course-meta{font-size:13px;color:var(--muted);margin:20px 0}
 .course-card button,.course-card .button{width:100%}
 .completed-label{display:block;color:var(--success-dark);font-weight:700}
@@ -170,7 +170,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .curriculum-list{list-style:none;padding:0;margin:10px 0 0}
 .curriculum-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;font-size:13px}
 .requirement-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0}
-.course-card h3 a{color:inherit}
+.course-card h2 a,.course-card h3 a{color:inherit}
 .due-warning{font-size:12px;color:var(--muted);margin:8px 0 0}
 .due-warning.is-overdue{color:#b3402e;font-weight:650}
 .skill-tags{display:flex;flex-wrap:wrap;gap:8px}
@@ -201,6 +201,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .calendar-event-due{background:var(--accent)}
 .calendar-event-expiry{background:#b3402e}
 @media(max-width:800px){.calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr))}.calendar-cell{min-height:64px;padding:5px}.calendar-event{font-size:9px;padding:2px 4px}.calendar-dow{font-size:9px}}
+@media(max-width:480px){.calendar-legend,.calendar-grid{display:none}}
 
 .report-filters{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:24px;padding:20px;background:var(--surface);border:1px solid var(--glass-border);border-radius:var(--radius)}
 .report-filters .field{min-width:150px;flex:1}
@@ -211,6 +212,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .report-table td{padding:12px 16px;border-bottom:1px solid var(--line)}
 .report-table tr:last-child td{border-bottom:0}
 @media(max-width:900px){.report-filters .field{min-width:120px}}
+@media(max-width:700px){.report-table .col-secondary{display:none}.notif-dropdown,.profile-dropdown{width:min(300px,calc(100vw - 32px))}}
 
 .tab-bar{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;padding-bottom:2px}
 .tab-bar a{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;font-size:13px;font-weight:650;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}

@@ -8,7 +8,7 @@
 <button type="button" class="text-link" onclick="document.getElementById('edit-section-{{$section->id}}').style.display='block'">Düzenle</button>
 <form method="post" action="{{route('builder.sections.destroy',$section)}}" onsubmit="return confirm('Bu bölüm ve içindeki tüm etkinlikler silinecek. Emin misiniz?')" class="inline-form">@csrf<input type="hidden" name="_method" value="DELETE"><button type="submit" class="text-link" style="color:#b3402e">Sil</button></form>
 </div>
-<form method="post" action="{{route('builder.sections.update',$section)}}" id="edit-section-{{$section->id}}" style="display:none;margin:10px 0">@csrf<input name="title" value="{{$section->title}}" required><textarea name="description" rows="2" placeholder="Açıklama (opsiyonel)">{{$section->description}}</textarea><button type="submit">Kaydet</button></form>
+<form method="post" action="{{route('builder.sections.update',$section)}}" id="edit-section-{{$section->id}}" style="display:none;margin:10px 0">@csrf<input name="title" value="{{$section->title}}" aria-label="Bölüm başlığı" required><textarea name="description" rows="2" placeholder="Açıklama (opsiyonel)" aria-label="Bölüm açıklaması">{{$section->description}}</textarea><button type="submit">Kaydet</button></form>
 @if($section->description)<p class="muted">{{$section->description}}</p>@endif
 <ul class="builder-activity-list" data-activities data-section-id="{{$section->id}}">
 @forelse($section->activities as $activity)

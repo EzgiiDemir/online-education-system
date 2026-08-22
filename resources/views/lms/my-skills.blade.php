@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title','Yetkinliklerim · Arucad Campus LMS')
+@section('title', (session('locale', 'tr') === 'en' ? 'My Skills' : 'Yetkinliklerim').' · Arucad Campus LMS')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'MY SKILLS' : 'YETKİNLİKLERİM' }}</span><h1>{{ $en ? 'Skills' : 'Yetkinliklerim' }}</h1><p class="muted">{{ $en ? 'Skills you have earned by completing courses.' : 'Eğitimleri tamamlayarak kazandığınız yetkinlikler.' }}</p></div></div>
@@ -7,7 +7,7 @@
 @forelse($skills as $skill)
 <article class="course-card surface">
 <div class="course-card-top"><span class="status">🏅 {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
-<h3>{{ $skill->name }}</h3>
+<h2>{{ $skill->name }}</h2>
 <p class="muted">{{ $en ? 'Earned from:' : 'Kazanıldığı eğitim(ler):' }}</p>
 <ul class="curriculum-list">
 @foreach($skill->courses as $course)

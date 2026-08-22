@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="{{ session('locale','tr') }}">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@yield('page-title','Yönetici çalışma alanı') · Arucad Campus LMS</title><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor-forms.css') }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@yield('page-title', session('locale', 'tr') === 'en' ? 'Manager workspace' : 'Yönetici çalışma alanı') · Arucad Campus LMS</title><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor-forms.css') }}">
 <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}})();</script>
 </head>
 <body class="instructor-page">
 @php($en = session('locale', 'tr') === 'en')
 <div class="instructor-shell">
 <aside class="instructor-sidebar"><a class="brand sidebar-brand" href="{{ route('manager.dashboard') }}">Arucad Campus <span>LMS</span></a><div class="sidebar-profile"><div class="sidebar-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</div><div><strong>{{ auth()->user()->name }}</strong><small>{{ $en ? 'Manager' : 'Yönetici' }}</small></div></div><div class="sidebar-label">{{ $en ? 'TEAM' : 'EKİP' }}</div><nav class="sidebar-nav"><a href="{{ route('manager.dashboard') }}" class="{{ request()->routeIs('manager.dashboard') ? 'is-active' : '' }}"><span>⌂</span> {{ $en ? 'Team overview' : 'Ekip genel bakış' }}</a><a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'is-active' : '' }}"><span>⚿</span> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a></nav><div class="sidebar-label">{{ $en ? 'SHORTCUTS' : 'KISAYOLLAR' }}</div><nav class="sidebar-nav"><a href="{{ route('lms.home') }}"><span>↗</span> {{ $en ? 'View portal' : 'Portalı görüntüle' }}</a></nav><form class="sidebar-logout" method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger"><span>⏻</span> {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form></aside>
-<main class="instructor-main"><header class="instructor-header"><div><span class="eyebrow">MANAGER WORKSPACE</span><h1>@yield('page-title','Yönetici çalışma alanı')</h1></div>
+<main class="instructor-main"><header class="instructor-header"><div><span class="eyebrow">MANAGER WORKSPACE</span><h1>@yield('page-title', $en ? 'Manager workspace' : 'Yönetici çalışma alanı')</h1></div>
 <div class="profile-menu">
 <button class="profile-trigger" type="button" data-profile-toggle>
 <span class="profile-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span>

@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', 'Arucad Campus LMS · Eğitim kataloğu')
+@section('title', 'Arucad Campus LMS · '.(session('locale', 'tr') === 'en' ? 'Course catalog' : 'Eğitim kataloğu'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @guest

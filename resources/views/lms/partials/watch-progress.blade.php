@@ -1,17 +1,18 @@
 {{-- Expects: $progress, $required, $heartbeatRoute, $labelWatched --}}
+@php($en = session('locale', 'tr') === 'en')
 <div class="viewer-progress">
     <div class="viewer-progress-label"><span>{{ $labelWatched }}</span><span id="watched-pct">%{{ $required ? min(100, (int) round($progress->watched_seconds / $required * 100)) : 0 }}</span></div>
     <progress id="progress-bar" max="{{ $required }}" value="{{ min($progress->watched_seconds, $required) }}"></progress>
     <div class="progress-breakdown">
-        <span><b>Gerekli:</b> <span id="req-time">{{ gmdate('i:s', $required) }}</span></span>
-        <span><b>Doğrulanan:</b> <span id="watched-time">{{ gmdate('i:s', min($progress->watched_seconds, $required)) }}</span></span>
-        <span><b>Kalan:</b> <span id="remaining-time">{{ gmdate('i:s', max(0, $required - $progress->watched_seconds)) }}</span></span>
+        <span><b>{{ $en ? 'Required:' : 'Gerekli:' }}</b> <span id="req-time">{{ gmdate('i:s', $required) }}</span></span>
+        <span><b>{{ $en ? 'Verified:' : 'Doğrulanan:' }}</b> <span id="watched-time">{{ gmdate('i:s', min($progress->watched_seconds, $required)) }}</span></span>
+        <span><b>{{ $en ? 'Remaining:' : 'Kalan:' }}</b> <span id="remaining-time">{{ gmdate('i:s', max(0, $required - $progress->watched_seconds)) }}</span></span>
     </div>
     <small id="hint" class="muted">
     @if($progress->completed)
-    ✓ Tamamlandı
+    ✓ {{ $en ? 'Completed' : 'Tamamlandı' }}
     @else
-    Sekme arka plandayken geçen süre sayılmaz — içerik ekranda açık ve görünür olmalı.
+    {{ $en ? 'Time spent on a background tab does not count — the content must stay open and visible on screen.' : 'Sekme arka plandayken geçen süre sayılmaz — içerik ekranda açık ve görünür olmalı.' }}
     @endif
     </small>
 </div>
