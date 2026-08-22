@@ -22,12 +22,12 @@
 @auth
 @php($unreadNotifCount = auth()->user()->unreadNotifications->count())
 @php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
-<div class="notif-menu">
-<button class="notif-trigger" type="button" data-notif-toggle aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
+<div class="notif-menu dropdown">
+<button class="notif-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
 <x-lucide name="bell" size="20" />
 @if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
 </button>
-<div class="notif-dropdown" data-notif-dropdown>
+<div class="notif-dropdown dropdown-menu">
 <div class="dropdown-head">
 <strong>{{ $en ? 'Notifications' : 'Bildirimler' }}</strong>
 @if($unreadNotifCount > 0)<form method="post" action="{{ route('notifications.read-all') }}">@csrf<button type="submit" class="notif-mark-all">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>@endif
@@ -43,8 +43,8 @@
 <a href="{{ route('notifications.index') }}" class="notif-viewall">{{ $en ? 'View all' : 'Tümünü gör' }}</a>
 </div>
 </div>
-<div class="profile-menu">
-<button class="profile-trigger" type="button" data-profile-toggle>
+<div class="profile-menu dropdown">
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
 <span class="profile-avatar">
 @if(auth()->user()->avatar_path)
 <img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">
@@ -54,7 +54,7 @@
 </span>
 <span class="profile-name">{{ auth()->user()->name }}</span>
 </button>
-<div class="profile-dropdown" data-profile-dropdown>
+<div class="profile-dropdown dropdown-menu">
 <div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
 @if(auth()->user()->role==='admin')<a href="/admin"><x-lucide name="settings" size="16" /> {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a><a href="{{ route('reports.index') }}"><x-lucide name="bar-chart" size="16" /> {{ $en ? 'Reports' : 'Raporlar' }}</a>@endif
 @if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
@@ -74,18 +74,6 @@
 <main class="page-shell">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
 <script>
 document.addEventListener('click', function (e) {
-    var toggle = e.target.closest('[data-profile-toggle]');
-    var dropdown = document.querySelector('[data-profile-dropdown]');
-    if (dropdown) {
-        if (toggle) { dropdown.classList.toggle('is-open'); return; }
-        if (!e.target.closest('[data-profile-dropdown]')) dropdown.classList.remove('is-open');
-    }
-    var notifToggle = e.target.closest('[data-notif-toggle]');
-    var notifDropdown = document.querySelector('[data-notif-dropdown]');
-    if (notifDropdown) {
-        if (notifToggle) { notifDropdown.classList.toggle('is-open'); return; }
-        if (!e.target.closest('[data-notif-dropdown]')) notifDropdown.classList.remove('is-open');
-    }
     if (e.target.closest('[data-theme-toggle]')) {
         var isDark = document.documentElement.dataset.theme === 'dark';
         if (isDark) { delete document.documentElement.dataset.theme; } else { document.documentElement.dataset.theme = 'dark'; }
