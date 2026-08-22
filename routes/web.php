@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/activities/{activity}/heartbeat', [LmsController::class, 'activityHeartbeat'])->name('activities.heartbeat');
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::post('/activities/{activity}/quiz-attempts', [LmsController::class, 'submitQuizAttempt'])->name('activities.quiz-attempts.store');
+    Route::post('/activities/{activity}/submissions', [LmsController::class, 'submitAssignment'])->name('activities.submissions.store');
+    Route::get('/instructor/activities/{activity}/submissions', [LmsController::class, 'assignmentSubmissions'])->name('instructor.activities.submissions');
+    Route::post('/instructor/submissions/{submission}/grade', [LmsController::class, 'gradeAssignment'])->name('instructor.submissions.grade');
     Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
     Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
     Route::get('/calendar', [LmsController::class, 'calendar'])->name('calendar.index');

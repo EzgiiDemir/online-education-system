@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityProgress;
+use App\Models\AssignmentSubmission;
 use App\Models\Certificate;
 use App\Models\ClassMessage;
 use App\Models\Course;
@@ -625,14 +626,86 @@ class LmsController extends Controller
             return view('lms.quiz-view', compact('activity', 'progress', 'attempts', 'hasPassed', 'attemptsRemaining', 'canAttempt'));
         }
 
+        if ($activity->type === 'assignment') {
+            $submissions = AssignmentSubmission::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)->orderByDesc('submitted_at')->get();
+            $hasPassed = $submissions->contains(fn ($s) => $s->isGraded() && $s->score >= ($activity->pass_score ?? 0));
+            $hasPendingSubmission = $submissions->contains(fn ($s) => ! $s->isGraded());
+
+            return view('lms.assignment-view', compact('activity', 'progress', 'submissions', 'hasPassed', 'hasPendingSubmission'));
+        }
+
         $required = $this->requiredWatchSeconds($activity->duration_seconds);
 
         return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required]);
     }
 
+    /**
+     * Learner submission -- content only, no self-grading. Score/feedback
+     * only ever get written by an instructor via gradeAssignment().
+     */
+    public function submitAssignment(Request $r, Activity $activity)
+    {
+        abort_unless($activity->type === 'assignment', 404);
+        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+
+        $alreadyPassed = AssignmentSubmission::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)
+            ->whereNotNull('graded_at')->where('score', '>=', $activity->pass_score ?? 0)->exists();
+        abort_if($alreadyPassed, 422, 'Bu ödevi zaten geçtiniz.');
+
+        $submission = ['activity_id' => $activity->id, 'enrollment_id' => $enrollment->id, 'submitted_at' => now()];
+
+        if ($activity->submission_type === 'file') {
+            $data = $r->validate(['file' => 'required|file|max:20480']);
+            $submission['file_path'] = $data['file']->store('assignment-submissions', 'public');
+        } elseif ($activity->submission_type === 'url') {
+            $data = $r->validate(['content' => 'required|url']);
+            $submission['content'] = $data['content'];
+        } else {
+            $data = $r->validate(['content' => 'required|string|max:10000']);
+            $submission['content'] = $data['content'];
+        }
+
+        AssignmentSubmission::create($submission);
+
+        return redirect()->route('activities.view', $activity)->with('success', 'Ödeviniz teslim edildi, eğitmeniniz değerlendirecek.');
+    }
+
+    /**
+     * Instructor-only grading queue for one activity's submissions, scoped
+     * to courses the grader actually owns (or an admin).
+     */
+    public function assignmentSubmissions(Activity $activity)
+    {
+        abort_unless($activity->type === 'assignment', 404);
+        $course = $activity->section->course;
+        abort_unless(Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id, 403);
+
+        $submissions = AssignmentSubmission::where('activity_id', $activity->id)->with('enrollment.user', 'grader')->orderByDesc('submitted_at')->get();
+
+        return view('lms.assignment-submissions', compact('activity', 'course', 'submissions'));
+    }
+
+    public function gradeAssignment(Request $r, AssignmentSubmission $submission)
+    {
+        $activity = $submission->activity;
+        $course = $activity->section->course;
+        abort_unless(Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id, 403);
+
+        $data = $r->validate(['score' => 'required|integer|min:0|max:100', 'feedback' => 'nullable|string|max:4000']);
+        $submission->update(['score' => $data['score'], 'feedback' => $data['feedback'] ?? null, 'graded_by' => Auth::id(), 'graded_at' => now()]);
+
+        if ($data['score'] >= ($activity->pass_score ?? 0)) {
+            $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $submission->enrollment_id, 'activity_id' => $activity->id]);
+            $progress->update(['completed' => true, 'completed_at' => now()]);
+            $this->checkAndCompleteEnrollment($submission->enrollment);
+        }
+
+        return back()->with('success', 'Ödev değerlendirildi.');
+    }
+
     public function activityHeartbeat(Activity $activity)
     {
-        abort_if(in_array($activity->type, ['live_session', 'quiz'], true), 422, 'Bu etkinlik türü izleme süresiyle takip edilmez.');
+        abort_if(in_array($activity->type, ['live_session', 'quiz', 'assignment'], true), 422, 'Bu etkinlik türü izleme süresiyle takip edilmez.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         $this->accrueHeartbeat($progress);
@@ -643,7 +716,7 @@ class LmsController extends Controller
 
     public function completeActivity(Activity $activity)
     {
-        abort_if(in_array($activity->type, ['live_session', 'quiz'], true), 422, 'Bu etkinlik türü bu şekilde tamamlanamaz.');
+        abort_if(in_array($activity->type, ['live_session', 'quiz', 'assignment'], true), 422, 'Bu etkinlik türü bu şekilde tamamlanamaz.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         $required = $this->requiredWatchSeconds($activity->duration_seconds);
