@@ -12,7 +12,7 @@
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>
 <form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
-<input type="search" name="q" placeholder="{{ $en ? 'Search…' : 'Ara…' }}" data-search-input>
+<input type="search" name="q" placeholder="{{ $en ? 'Search…' : 'Ara…' }}" aria-label="{{ $en ? 'Search the portal' : 'Portalda ara' }}" data-search-input>
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
@@ -23,9 +23,9 @@
 @php($unreadNotifCount = auth()->user()->unreadNotifications->count())
 @php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
 <div class="notif-menu">
-<button class="notif-trigger" type="button" data-notif-toggle>
-🔔
-@if($unreadNotifCount > 0)<span class="notif-badge">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
+<button class="notif-trigger" type="button" data-notif-toggle aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
+<span aria-hidden="true">🔔</span>
+@if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
 </button>
 <div class="notif-dropdown" data-notif-dropdown>
 <div class="dropdown-head">

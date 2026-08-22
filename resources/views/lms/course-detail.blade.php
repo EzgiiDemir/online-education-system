@@ -4,7 +4,7 @@
 <div id="sections-list">
 @foreach($course->sections as $section)
 <div class="builder-section" draggable="true" data-section-id="{{$section->id}}">
-<div class="builder-section-head"><span class="drag-handle">⠿</span><h3 style="margin:0;flex:1">{{$section->title}}</h3>
+<div class="builder-section-head"><span class="drag-handle" aria-hidden="true">⠿</span><span class="reorder-buttons"><button type="button" class="reorder-btn" data-move="up" aria-label="Bölümü yukarı taşı">▲</button><button type="button" class="reorder-btn" data-move="down" aria-label="Bölümü aşağı taşı">▼</button></span><h3 style="margin:0;flex:1">{{$section->title}}</h3>
 <button type="button" class="text-link" onclick="document.getElementById('edit-section-{{$section->id}}').style.display='block'">Düzenle</button>
 <form method="post" action="{{route('builder.sections.destroy',$section)}}" onsubmit="return confirm('Bu bölüm ve içindeki tüm etkinlikler silinecek. Emin misiniz?')" class="inline-form">@csrf<input type="hidden" name="_method" value="DELETE"><button type="submit" class="text-link" style="color:#b3402e">Sil</button></form>
 </div>
@@ -12,7 +12,7 @@
 @if($section->description)<p class="muted">{{$section->description}}</p>@endif
 <ul class="builder-activity-list" data-activities data-section-id="{{$section->id}}">
 @forelse($section->activities as $activity)
-<li draggable="true" data-activity-id="{{$activity->id}}"><span class="drag-handle">⠿</span><span>{{$activity->title}}</span> <small class="muted">({{$activity->type}}@if(!$activity->is_required) · opsiyonel @endif)</small>
+<li draggable="true" data-activity-id="{{$activity->id}}"><span class="drag-handle" aria-hidden="true">⠿</span><span class="reorder-buttons"><button type="button" class="reorder-btn" data-move="up" aria-label="Etkinliği yukarı taşı">▲</button><button type="button" class="reorder-btn" data-move="down" aria-label="Etkinliği aşağı taşı">▼</button></span><span>{{$activity->title}}</span> <small class="muted">({{$activity->type}}@if(!$activity->is_required) · opsiyonel @endif)</small>
 @if($activity->type==='assignment')<a class="text-link" href="{{route('instructor.activities.submissions',$activity)}}">Teslimler →</a>@endif
 @if($activity->type!=='quiz')<form method="post" action="{{route('builder.activities.destroy',$activity)}}" onsubmit="return confirm('Bu etkinlik silinsin mi?')" class="inline-form">@csrf<input type="hidden" name="_method" value="DELETE"><button type="submit" class="text-link" style="color:#b3402e">Sil</button></form>@endif
 </li>
@@ -38,6 +38,16 @@
 <script>
 (function(){
     function csrf(){ return document.querySelector('meta[name="csrf-token"]').content; }
+    function persist(container, endpointFn, idAttr){
+        var ids = Array.prototype.map.call(container.children, function(el){ return el.dataset[idAttr]; });
+        fetch(endpointFn(), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json'},
+            body: JSON.stringify({ids: ids})
+        });
+    }
+    // Drag-and-drop is a mouse-only interaction; the ▲▼ buttons give keyboard
+    // and screen-reader users an equivalent way to reorder (WCAG 2.5.7).
     function setupSortable(container, endpointFn, idAttr){
         var dragEl = null;
         container.addEventListener('dragstart', function(e){
@@ -57,13 +67,23 @@
         container.addEventListener('drop', function(e){
             e.preventDefault();
             if (!dragEl) return;
-            var ids = Array.prototype.map.call(container.children, function(el){ return el.dataset[idAttr]; });
-            fetch(endpointFn(), {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json'},
-                body: JSON.stringify({ids: ids})
-            });
+            persist(container, endpointFn, idAttr);
             dragEl = null;
+        });
+        container.addEventListener('click', function(e){
+            var btn = e.target.closest('[data-move]');
+            if (!btn) return;
+            var item = btn.closest('[draggable="true"]');
+            if (!item || item.parentElement !== container) return;
+            if (btn.dataset.move === 'up' && item.previousElementSibling) {
+                container.insertBefore(item, item.previousElementSibling);
+            } else if (btn.dataset.move === 'down' && item.nextElementSibling) {
+                container.insertBefore(item.nextElementSibling, item);
+            } else {
+                return;
+            }
+            btn.focus();
+            persist(container, endpointFn, idAttr);
         });
     }
     var sectionsList = document.getElementById('sections-list');

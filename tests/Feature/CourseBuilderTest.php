@@ -161,4 +161,23 @@ class CourseBuilderTest extends TestCase
         $response->assertSee('Görünür Bölüm');
         $response->assertSee('+ Bölüm ekle');
     }
+
+    /**
+     * Drag-and-drop is mouse-only; §31 (accessibility) requires a
+     * keyboard-operable equivalent (WCAG 2.5.7) -- the ▲▼ buttons rendered
+     * next to each draggable section/activity.
+     */
+    public function test_reorder_buttons_are_present_as_a_keyboard_alternative_to_drag_and_drop(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Bölüm 1']);
+        Activity::create(['course_section_id' => $section->id, 'title' => 'Video 1', 'type' => 'video', 'is_required' => true]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.courses.show', $course));
+
+        $response->assertOk();
+        $response->assertSee('Bölümü yukarı taşı');
+        $response->assertSee('Etkinliği yukarı taşı');
+    }
 }
