@@ -129,4 +129,85 @@ class I18nAndA11yAuditTest extends TestCase
         $response->assertOk();
         $response->assertSee('aria-label="Bölüm başlığı"', false);
     }
+
+    /**
+     * The pages left Turkish-only from earlier sessions (login, register,
+     * account, my-learning, course-detail, instructor dashboard,
+     * instructor-profile, classroom) were bilingualized in this pass. One
+     * representative assertion per page, all under a single EN session.
+     */
+    public function test_previously_turkish_only_pages_now_render_in_english(): void
+    {
+        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true, 'self_registration_enabled' => true]);
+
+        $loginResponse = $this->withSession(['locale' => 'en'])->get('/login');
+        $loginResponse->assertOk();
+        $loginResponse->assertSee('Sign in', false);
+
+        $registerResponse = $this->withSession(['locale' => 'en'])->get('/register');
+        $registerResponse->assertOk();
+        $registerResponse->assertSee('Create account', false);
+
+        $learner = User::factory()->create(['role' => 'learner']);
+        $accountResponse = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('account.show'));
+        $accountResponse->assertOk();
+        $accountResponse->assertSee('Delete my account');
+
+        $myLearningResponse = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('learning.index'));
+        $myLearningResponse->assertOk();
+        $myLearningResponse->assertSee('My Courses');
+
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $dashboardResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee("Today's actions");
+
+        $profileResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.profile'));
+        $profileResponse->assertOk();
+        $profileResponse->assertSee('Profile information');
+
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $courseDetailResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.courses.show', $course));
+        $courseDetailResponse->assertOk();
+        $courseDetailResponse->assertSee('Curriculum');
+
+        $classroomCourse = Course::factory()->create(['status' => 'published', 'delivery_type' => 'online']);
+        $session = $classroomCourse->sessions()->create(['title' => 'Session 1', 'room_key' => 'en-test-room']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $classroomCourse->id]);
+        $classroomResponse = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('sessions.classroom', $session));
+        $classroomResponse->assertOk();
+        $classroomResponse->assertSee('Ready to join the class?');
+    }
+
+    public function test_certificate_pdf_and_grading_queue_page_render_in_english(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Section 1']);
+        $activity = Activity::create(['course_section_id' => $section->id, 'title' => 'Assignment', 'type' => 'assignment', 'submission_type' => 'text', 'is_required' => true]);
+
+        $gradingResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.activities.submissions', $activity));
+        $gradingResponse->assertOk();
+        $gradingResponse->assertSee('No submissions for this activity yet.');
+    }
+
+    /**
+     * The certificate PDF template doesn't go through a normal HTTP response
+     * (it's converted to a binary PDF by DomPDF), so rendering the Blade
+     * view directly is the practical way to assert its localization without
+     * needing a PDF-parsing library.
+     */
+    public function test_certificate_template_renders_in_english(): void
+    {
+        $learner = User::factory()->create();
+        $course = Course::factory()->create(['title' => 'Test Course']);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
+        $certificate = \App\Models\Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-EN01', 'issued_at' => now()]);
+
+        session(['locale' => 'en']);
+        $html = view('lms.certificate', ['certificate' => $certificate, 'enrollment' => $enrollment->load('user', 'course')])->render();
+
+        $this->assertStringContainsString('Certificate of Achievement', $html);
+        $this->assertStringContainsString('Issued on:', $html);
+    }
 }
