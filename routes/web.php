@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CourseBuilderController;
 use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\ManagerController;
@@ -40,6 +41,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
     Route::post('/instructor/courses/{course}/sessions', [LmsController::class, 'addSession'])->name('instructor.sessions.store');
+    Route::post('/instructor/courses/{course}/sections', [CourseBuilderController::class, 'storeSection'])->name('builder.sections.store');
+    Route::post('/instructor/sections/{section}', [CourseBuilderController::class, 'updateSection'])->name('builder.sections.update');
+    Route::delete('/instructor/sections/{section}', [CourseBuilderController::class, 'destroySection'])->name('builder.sections.destroy');
+    Route::post('/instructor/courses/{course}/sections/reorder', [CourseBuilderController::class, 'reorderSections'])->name('builder.sections.reorder');
+    Route::post('/instructor/sections/{section}/activities', [CourseBuilderController::class, 'storeActivity'])->name('builder.activities.store');
+    Route::post('/instructor/activities/{activity}', [CourseBuilderController::class, 'updateActivity'])->name('builder.activities.update');
+    Route::delete('/instructor/activities/{activity}', [CourseBuilderController::class, 'destroyActivity'])->name('builder.activities.destroy');
+    Route::post('/instructor/sections/{section}/activities/reorder', [CourseBuilderController::class, 'reorderActivities'])->name('builder.activities.reorder');
     Route::post('/sessions/{session}/start', [LmsController::class, 'startSession'])->name('sessions.start');
     Route::post('/sessions/{session}/complete', [LmsController::class, 'completeSession'])->name('sessions.complete');
     Route::get('/sessions/{session}/attendance-status', [LmsController::class, 'sessionAttendanceStatus'])->name('sessions.attendance-status');

@@ -4,3 +4,18 @@
 .wizard-dot.is-done{color:var(--success-dark)}
 .wizard-checklist{display:flex;flex-wrap:wrap;gap:16px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--text-secondary)}
 @media(max-width:700px){.course-form .form-grid{grid-template-columns:1fr}.course-form .field.full,.course-form .check-field.full{grid-column:auto}.form-actions{align-items:stretch;flex-direction:column}.form-actions button{width:100%}.wizard-steps{gap:6px}.wizard-dot{flex:1;text-align:center;padding:8px 6px;font-size:11px}}
+
+.builder-section{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;background:var(--surface);cursor:grab}
+.builder-section:active{cursor:grabbing}
+.builder-section-head{display:flex;align-items:center;gap:10px}
+.drag-handle{color:var(--muted);cursor:grab;font-size:16px;user-select:none}
+.builder-activity-list{list-style:none;padding:0;margin:10px 0 6px}
+.builder-activity-list li{display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:8px;font-size:13px;cursor:grab}
+.builder-activity-list li:active{cursor:grabbing}
+.builder-activity-list li:hover{background:var(--brand-soft)}
+.builder-add-section,.builder-add-activity{margin-top:10px}
+.builder-add-section summary,.builder-add-activity summary{cursor:pointer;font-weight:650;color:var(--brand);font-size:13px;padding:6px 0}
+.builder-add-section form,.builder-add-activity form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin-top:8px}
+.builder-add-section form input,.builder-add-section form textarea{width:auto;flex:1;min-width:180px}
+.builder-add-activity form input,.builder-add-activity form select{width:auto}
+.builder-add-activity form .check-field{width:auto;padding:9px 12px;margin:0}
