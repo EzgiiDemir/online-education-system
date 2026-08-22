@@ -5,6 +5,7 @@ use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
@@ -25,6 +26,8 @@ Route::get('/courses/{course}', [LmsController::class, 'courseShow'])->name('cou
 Route::get('/learning-paths', [LmsController::class, 'learningPaths'])->name('learning-paths.index');
 Route::get('/learning-paths/{path}', [LmsController::class, 'learningPathShow'])->name('learning-paths.show');
 Route::get('/verify/{certificateNumber}', [LmsController::class, 'verifyCertificate'])->name('certificates.verify');
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+Route::get('/search/quick', [SearchController::class, 'quick'])->name('search.quick');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware('auth')->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
 Route::middleware('auth')->group(function () {

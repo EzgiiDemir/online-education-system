@@ -10,6 +10,12 @@
 <nav class="site-nav">
 <a class="brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
 <div class="nav-actions">
+<div class="nav-search" data-search-widget>
+<form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
+<input type="search" name="q" placeholder="{{ $en ? 'Search…' : 'Ara…' }}" data-search-input>
+</form>
+<div class="nav-search-results" data-search-results></div>
+</div>
 @auth @if(auth()->user()->role !== 'admin')<a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
 <a class="nav-link" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenim Yolları' }}</a>
 <div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
@@ -85,5 +91,68 @@ document.addEventListener('click', function (e) {
         try { localStorage.setItem('theme', isDark ? 'light' : 'dark'); } catch (err) {}
     }
 });
+</script>
+<script>
+(function(){
+    var widget = document.querySelector('[data-search-widget]');
+    if (!widget) return;
+    var input = widget.querySelector('[data-search-input]');
+    var results = widget.querySelector('[data-search-results]');
+    var groups = [
+        ['courses', {{ $en ? "'Courses'" : "'Eğitimler'" }}],
+        ['activities', {{ $en ? "'Activities'" : "'Etkinlikler'" }}],
+        ['materials', {{ $en ? "'Materials'" : "'Materyaller'" }}],
+        ['sessions', {{ $en ? "'Sessions'" : "'Seanslar'" }}],
+        ['instructors', {{ $en ? "'Instructors'" : "'Eğitmenler'" }}]
+    ];
+    var timer = null;
+    var lastQuery = '';
+
+    function render(data, query) {
+        var total = groups.reduce(function(sum, g){ return sum + data[g[0]].length; }, 0);
+        if (total === 0) {
+            results.innerHTML = '<p class="nav-search-empty">{{ $en ? "No results" : "Sonuç bulunamadı" }}</p>';
+            results.classList.add('is-open');
+            return;
+        }
+        var html = '';
+        groups.forEach(function(g){
+            var items = data[g[0]];
+            if (!items.length) return;
+            html += '<div class="nav-search-group"><small>' + g[1] + '</small>';
+            items.forEach(function(item){
+                if (item.url) {
+                    html += '<a href="' + item.url + '">' + item.title + '</a>';
+                } else {
+                    html += '<span class="nav-search-plain">' + item.title + '</span>';
+                }
+            });
+            html += '</div>';
+        });
+        html += '<a class="notif-viewall" href="/search?q=' + encodeURIComponent(query) + '">{{ $en ? "View all results" : "Tüm sonuçları gör" }} →</a>';
+        results.innerHTML = html;
+        results.classList.add('is-open');
+    }
+
+    input.addEventListener('input', function () {
+        var query = input.value.trim();
+        clearTimeout(timer);
+        if (query.length < 2) { results.classList.remove('is-open'); results.innerHTML = ''; return; }
+        timer = setTimeout(function () {
+            lastQuery = query;
+            fetch('{{ route('search.quick') }}?q=' + encodeURIComponent(query), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) { if (query === input.value.trim()) render(data, query); });
+        }, 250);
+    });
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { results.classList.remove('is-open'); input.blur(); }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!widget.contains(e.target)) results.classList.remove('is-open');
+    });
+})();
 </script>
 </body></html>
