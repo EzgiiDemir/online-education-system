@@ -18,7 +18,8 @@ class CoursesTable
                 TextColumn::make('instructor.name')->label('Eğitmen')->searchable()->sortable(),
                 TextColumn::make('title')
                     ->label('Eğitim')
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => 'v'.$record->version.($record->version_group_id ? ' · v1\'den türetildi' : '')),
                 TextColumn::make('delivery_type')->label('Tür')->badge()->formatStateUsing(fn ($state) => $state === 'online' ? 'Online' : 'Offline')
                     ->searchable(),
                 TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),

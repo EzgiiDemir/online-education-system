@@ -111,7 +111,9 @@ class LmsController extends Controller
             }
         }
 
-        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl'));
+        $newerVersion = $course->versions()->where('status', 'published')->where('version', '>', $course->version)->first();
+
+        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion'));
     }
 
     public function mySkills()

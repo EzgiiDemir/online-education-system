@@ -13,6 +13,23 @@ class Enrollment extends Model
 
     protected $casts = ['completed_at' => 'datetime'];
 
+    /**
+     * Snapshots which course version a learner enrolled under, once, at
+     * creation time. This is what "completion is tied to a version" means
+     * (§29): the value never changes afterwards even if the course is later
+     * edited or forked into a new version, so a completed/certified
+     * enrollment always keeps pointing at the content it was actually
+     * completed against.
+     */
+    public static function booted(): void
+    {
+        static::creating(function (Enrollment $enrollment) {
+            if ($enrollment->course_version === null && $enrollment->course_id) {
+                $enrollment->course_version = Course::find($enrollment->course_id)?->version ?? 1;
+            }
+        });
+    }
+
     public function course()
     {
         return $this->belongsTo(Course::class);

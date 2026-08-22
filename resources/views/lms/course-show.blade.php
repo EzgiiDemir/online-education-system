@@ -3,6 +3,12 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="course-show">
+    @if($newerVersion)
+    <div class="alert success" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <span>{{ $en ? 'A newer version of this course is available (v'.$newerVersion->version.').' : 'Bu eğitimin daha yeni bir sürümü mevcut (v'.$newerVersion->version.').' }}</span>
+    <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} →</a>
+    </div>
+    @endif
     <div class="course-show-hero card surface">
         @if($course->poster_path || $course->image_path)
         <div class="course-show-cover"><img src="{{ asset('storage/'.($course->poster_path ?: $course->image_path)) }}" alt=""></div>
@@ -16,6 +22,8 @@
                 <span>{{ strtoupper($course->language ?? 'tr') }}</span>
                 <span>•</span>
                 <span>{{ $course->sessions->count() }} {{ $en ? 'sessions' : 'seans' }}</span>
+                <span>•</span>
+                <span>v{{ $course->version }}</span>
                 @if($course->certificate_enabled)<span>•</span><span>🎓 {{ $en ? 'Certificate' : 'Sertifikalı' }}</span>@endif
                 @if($course->category && $course->category !== 'optional')<span>•</span><span class="status">{{ ['required' => $en ? 'REQUIRED' : 'ZORUNLU', 'compliance' => $en ? 'COMPLIANCE' : 'UYUMLULUK', 'onboarding' => $en ? 'ONBOARDING' : 'ORYANTASYON', 'professional_development' => $en ? 'PROF. DEVELOPMENT' : 'MESLEKİ GELİŞİM'][$course->category] ?? $course->category }}</span>@endif
             </div>
@@ -24,6 +32,9 @@
             <div class="course-show-progress">
                 <div class="meter"><span style="width:{{ $stats['percent'] }}%"></span></div>
                 <small class="muted">{{ $stats['completed'] }} / {{ $stats['total'] }} {{ $en ? 'completed' : 'tamamlandı' }} · %{{ $stats['percent'] }}</small>
+                @if($enrollment->status === 'completed' && $enrollment->course_version)
+                <p class="due-warning">{{ $en ? 'Completed against course version v'.$enrollment->course_version.'.' : 'v'.$enrollment->course_version.' sürümüne göre tamamlandı.' }}</p>
+                @endif
                 @if($enrollment->status !== 'completed' && $course->dueDateFor($enrollment))
                 <p class="{{ $course->isOverdueFor($enrollment) ? 'due-warning is-overdue' : 'due-warning' }}">
                 @if($course->isOverdueFor($enrollment))

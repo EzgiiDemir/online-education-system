@@ -12,6 +12,11 @@ class Course extends Model
 
     protected $guarded = [];
 
+    // Mirrors the DB column default so a freshly-instantiated (not yet
+    // reloaded) model reflects version 1 immediately -- SQLite/MySQL don't
+    // populate column defaults back onto the in-memory model after create().
+    protected $attributes = ['version' => 1];
+
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'certificate_enabled' => 'boolean', 'sdg_goals' => 'array'];
 
     public function instructor()
@@ -62,5 +67,63 @@ class Course extends Model
         $due = $this->dueDateFor($enrollment);
 
         return $due !== null && $due->isPast();
+    }
+
+    /**
+     * The v1 course this row descends from -- itself, if this row has no
+     * version_group_id (i.e. it IS the original).
+     */
+    public function versionRoot()
+    {
+        return $this->belongsTo(Course::class, 'version_group_id');
+    }
+
+    public function rootCourseId(): int
+    {
+        return $this->version_group_id ?? $this->id;
+    }
+
+    /**
+     * Every version that shares this course's lineage, oldest first,
+     * including both the original and this row itself.
+     */
+    public function versions()
+    {
+        $rootId = $this->rootCourseId();
+
+        // Grouped in a closure so callers can safely chain further ->where()
+        // clauses afterwards (e.g. ->where('status', 'published')) without
+        // it being AND-ed into only the second half of this OR condition.
+        return Course::where(fn ($q) => $q->where('id', $rootId)->orWhere('version_group_id', $rootId))->orderBy('version');
+    }
+
+    /**
+     * Forks this course into a new version: a brand-new Course row (with its
+     * own sections/activities copied over) linked back to the same lineage.
+     * The original row -- and every enrollment/certificate that already
+     * points at it -- is never touched by this. New enrollments only ever
+     * happen against the new row via its own course_id.
+     */
+    public function createNewVersion(): Course
+    {
+        $nextVersion = ((int) $this->versions()->max('version')) + 1;
+
+        $attributes = $this->only(array_diff(array_keys($this->getAttributes()), ['id', 'created_at', 'updated_at', 'version', 'version_group_id']));
+        $attributes['version'] = $nextVersion;
+        $attributes['version_group_id'] = $this->rootCourseId();
+        $attributes['status'] = 'draft';
+
+        $newCourse = Course::create($attributes);
+
+        foreach ($this->sections()->with('activities')->get() as $section) {
+            $newSection = $newCourse->sections()->create($section->only(['title', 'description', 'sort_order']));
+            foreach ($section->activities as $activity) {
+                $newSection->activities()->create($activity->only([
+                    'title', 'type', 'description', 'path', 'duration_seconds', 'pass_score', 'max_attempts', 'submission_type', 'sort_order', 'is_required',
+                ]));
+            }
+        }
+
+        return $newCourse;
     }
 }
