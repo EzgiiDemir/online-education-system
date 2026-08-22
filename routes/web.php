@@ -5,6 +5,7 @@ use App\Http\Controllers\EntraSsoController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +61,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
     Route::get('/calendar', [LmsController::class, 'calendar'])->name('calendar.index');
     Route::get('/calendar/sessions/{session}.ics', [LmsController::class, 'calendarSessionIcs'])->name('calendar.ics.session');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
