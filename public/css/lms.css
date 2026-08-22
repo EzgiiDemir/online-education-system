@@ -222,4 +222,14 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 
 @media(max-width:900px){.nav-link{display:none}}
 @media(max-width:700px){.account-grid{grid-template-columns:1fr}.home-greeting{flex-direction:column;align-items:stretch;text-align:center;padding:24px}.continue-card{min-width:auto}}
+
+.icon{display:inline-block;vertical-align:-3px;flex:none}
+button .icon,a .icon{vertical-align:-3px}
+.theme-icon-light{display:none}
+html[data-theme="dark"] .theme-icon-dark{display:none}
+html[data-theme="dark"] .theme-icon-light{display:inline-block}
+
+.course-show-cover-accent{max-height:180px;min-height:120px;display:flex;align-items:center;justify-content:center;background-image:linear-gradient(135deg,rgba(255,255,255,.25),rgba(255,255,255,0)),linear-gradient(var(--course-accent),var(--course-accent))}
+.course-show-cover-initial{font-size:64px;font-weight:800;color:#fff;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.15)}
+
 @media(max-width:700px){.hero{padding-top:6px;min-height:auto;flex-direction:column-reverse;text-align:center}.hero p{max-width:none}.hero-mark{width:140px;height:140px}.page-shell{padding:28px 18px}.profile-name{display:none}.site-nav{padding:10px 18px}.nav-actions{gap:10px}.nav-search input{width:110px}.nav-search-results{width:270px;right:0;left:auto}}

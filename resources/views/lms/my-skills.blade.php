@@ -5,8 +5,8 @@
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'MY SKILLS' : 'YETKİNLİKLERİM' }}</span><h1>{{ $en ? 'Skills' : 'Yetkinliklerim' }}</h1><p class="muted">{{ $en ? 'Skills you have earned by completing courses.' : 'Eğitimleri tamamlayarak kazandığınız yetkinlikler.' }}</p></div></div>
 <div class="course-grid">
 @forelse($skills as $skill)
-<article class="course-card surface">
-<div class="course-card-top"><span class="status">🏅 {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
+<article class="course-card surface" style="--course-accent:var(--course-accent-{{ $skill->id % 6 }});border-left:4px solid var(--course-accent)">
+<div class="course-card-top"><span class="status"><x-lucide name="award" size="14" /> {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
 <h2>{{ $skill->name }}</h2>
 <p class="muted">{{ $en ? 'Earned from:' : 'Kazanıldığı eğitim(ler):' }}</p>
 <ul class="curriculum-list">

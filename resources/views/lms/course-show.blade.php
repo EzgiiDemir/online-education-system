@@ -9,15 +9,17 @@
     <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} →</a>
     </div>
     @endif
-    <div class="course-show-hero card surface">
+    <div class="course-show-hero card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }})">
         @if($course->poster_path || $course->image_path)
         <div class="course-show-cover"><img src="{{ asset('storage/'.($course->poster_path ?: $course->image_path)) }}" alt=""></div>
+        @else
+        <div class="course-show-cover course-show-cover-accent"><span class="course-show-cover-initial">{{ mb_strtoupper(mb_substr($course->title, 0, 1)) }}</span></div>
         @endif
         <div class="course-show-hero-body">
             <span class="status">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span>
             <h1>{{ $course->title }}</h1>
             <div class="course-show-meta">
-                <span>◉ {{ $course->instructor->name }}</span>
+                <span><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span>
                 <span>•</span>
                 <span>{{ strtoupper($course->language ?? 'tr') }}</span>
                 <span>•</span>

@@ -26,7 +26,7 @@ class PaginationTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Sayfa 1 / 2');
-        $this->assertSame(12, substr_count($response->getContent(), '<article class="course-card surface">'));
+        $this->assertSame(12, substr_count($response->getContent(), '<article class="course-card surface"'));
     }
 
     /**

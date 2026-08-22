@@ -2,7 +2,7 @@
 <html lang="{{ session('locale', 'tr') }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Arucad Campus LMS')</title><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
+    <title>@yield('title', 'Arucad Campus LMS')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
     <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
@@ -24,7 +24,7 @@
 @php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
 <div class="notif-menu">
 <button class="notif-trigger" type="button" data-notif-toggle aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
-<span aria-hidden="true">🔔</span>
+<x-lucide name="bell" size="20" />
 @if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
 </button>
 <div class="notif-dropdown" data-notif-dropdown>
@@ -56,14 +56,14 @@
 </button>
 <div class="profile-dropdown" data-profile-dropdown>
 <div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
-@if(auth()->user()->role==='admin')<a href="/admin">⚙ {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a><a href="{{ route('reports.index') }}">📊 {{ $en ? 'Reports' : 'Raporlar' }}</a>@endif
-@if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}">▦ {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
-@if(auth()->user()->role==='manager')<a href="{{ route('manager.dashboard') }}">▦ {{ $en ? 'Manager panel' : 'Yönetici paneli' }}</a>@endif
-<a href="{{ route('account.show') }}">◎ {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
-<a href="{{ route('skills.index') }}">🏅 {{ $en ? 'My Skills' : 'Yetkinliklerim' }}</a>
-<a href="{{ route('calendar.index') }}">📅 {{ $en ? 'Calendar' : 'Takvim' }}</a>
-<button type="button" data-theme-toggle>◐ {{ $en ? 'Theme' : 'Tema' }}</button>
-<form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger">↪ {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
+@if(auth()->user()->role==='admin')<a href="/admin"><x-lucide name="settings" size="16" /> {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a><a href="{{ route('reports.index') }}"><x-lucide name="bar-chart" size="16" /> {{ $en ? 'Reports' : 'Raporlar' }}</a>@endif
+@if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
+@if(auth()->user()->role==='manager')<a href="{{ route('manager.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Manager panel' : 'Yönetici paneli' }}</a>@endif
+<a href="{{ route('account.show') }}"><x-lucide name="circle-user" size="16" /> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
+<a href="{{ route('skills.index') }}"><x-lucide name="award" size="16" /> {{ $en ? 'My Skills' : 'Yetkinliklerim' }}</a>
+<a href="{{ route('calendar.index') }}"><x-lucide name="calendar" size="16" /> {{ $en ? 'Calendar' : 'Takvim' }}</a>
+<button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
+<form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger"><x-lucide name="log-out" size="16" /> {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
 </div>
 @else
@@ -71,7 +71,7 @@
 @endauth
 </div>
 </nav>
-<main class="page-shell">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')">← {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
 <script>
 document.addEventListener('click', function (e) {
     var toggle = e.target.closest('[data-profile-toggle]');
@@ -156,4 +156,5 @@ document.addEventListener('click', function (e) {
     });
 })();
 </script>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 </body></html>

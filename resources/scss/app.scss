@@ -1,0 +1,73 @@
+// Arucad Campus LMS — Bootstrap 5 built from source with the brand palette.
+//
+// Rebuild after editing this file:
+//   npx sass resources/scss/app.scss public/vendor/bootstrap/bootstrap.custom.min.css --style=compressed --no-source-map
+//
+// This is a source file, not loaded directly by the browser — only the
+// compiled public/vendor/bootstrap/bootstrap.custom.min.css is linked from
+// the Blade layouts.
+
+// ---- Brand palette (as supplied) ------------------------------------------
+$brand-blue-grey:  #4D6787; // Mavi-Gri
+$brand-lilac:      #898AA6; // Puslu Mavi-Lila
+$brand-sage:       #94A378; // Adaçayı Yeşili
+$brand-warm-amber: #F2D388; // Sıcak Sarı
+$brand-terracotta: #DA8359; // Kiremit
+$brand-rose:       #886F6F; // Puslu Gül
+
+// ---- Bootstrap theme colors -------------------------------------------
+$primary:   $brand-blue-grey;
+$secondary: $brand-lilac;
+$success:   $brand-sage;
+$warning:   $brand-warm-amber;
+$info:      $brand-terracotta;
+$danger:    #C0392B; // kept a plain, unambiguous red on purpose: danger buttons
+                      // (delete account, log out) are a strict zero-hover-change
+                      // rule elsewhere in the app; a muted brand rose would read
+                      // as "less serious" for a destructive action.
+
+$theme-colors: (
+  "primary":   $primary,
+  "secondary": $secondary,
+  "success":   $success,
+  "info":      $info,
+  "warning":   $warning,
+  "danger":    $danger,
+  "light":     #F5F7FB,
+  "dark":      #23262B,
+);
+
+// ---- Typography & shape --------------------------------------------------
+$font-family-sans-serif: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+$body-bg:      #F5F7FB;
+$body-color:   #23262B;
+$link-decoration: none;
+$link-hover-color: darken($primary, 8%);
+
+$border-radius:      1rem;
+$border-radius-sm:   .7rem;
+$border-radius-lg:   1.25rem;
+$border-radius-xl:   1.5rem;
+$border-radius-pill: 50rem;
+
+$enable-shadows: false;
+$enable-negative-margins: true;
+
+// Course-card accent rotation, exposed as CSS custom properties below so
+// Blade/PHP can pick one deterministically per course (e.g. by course id %
+// count) without needing to duplicate the hex values anywhere else.
+$course-accents: $brand-blue-grey, $brand-terracotta, $brand-sage, $brand-warm-amber, $brand-lilac, $brand-rose;
+
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+:root {
+  --brand-blue-grey: #{$brand-blue-grey};
+  --brand-lilac: #{$brand-lilac};
+  --brand-sage: #{$brand-sage};
+  --brand-warm-amber: #{$brand-warm-amber};
+  --brand-terracotta: #{$brand-terracotta};
+  --brand-rose: #{$brand-rose};
+  @for $i from 1 through length($course-accents) {
+    --course-accent-#{$i - 1}: #{nth($course-accents, $i)};
+  }
+}

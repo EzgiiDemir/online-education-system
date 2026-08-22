@@ -25,7 +25,7 @@
 @else
 @if($results['courses']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Courses' : 'Eğitimler' }}</h2>
-<div class="course-grid">@foreach($results['courses'] as $course)<article class="course-card surface"><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 100) }}</p><span class="muted">◉ {{ $course->instructor->name }}</span></article>@endforeach</div>
+<div class="course-grid">@foreach($results['courses'] as $course)<article class="course-card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }});border-left:4px solid var(--course-accent)"><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 100) }}</p><span class="muted"><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span></article>@endforeach</div>
 @endif
 
 @if($results['activities']->isNotEmpty())
@@ -35,7 +35,7 @@
 
 @if($results['materials']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Materials' : 'Materyaller' }}</h2>
-<div class="card surface">@foreach($results['materials'] as $material)<div class="requirement-row"><span>📄 <a href="{{ route('materials.view', $material) }}">{{ $material->title }}</a> <small class="muted">— {{ $material->session->course->title }}</small></span></div>@endforeach</div>
+<div class="card surface">@foreach($results['materials'] as $material)<div class="requirement-row"><span><x-lucide name="file-text" size="14" /> <a href="{{ route('materials.view', $material) }}">{{ $material->title }}</a> <small class="muted">— {{ $material->session->course->title }}</small></span></div>@endforeach</div>
 @endif
 
 @if($results['sessions']->isNotEmpty())
@@ -45,7 +45,7 @@
 
 @if($results['instructors']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Instructors' : 'Eğitmenler' }}</h2>
-<div class="card surface">@foreach($results['instructors'] as $instructor)<div class="requirement-row"><span>◉ {{ $instructor->name }}</span></div>@endforeach</div>
+<div class="card surface">@foreach($results['instructors'] as $instructor)<div class="requirement-row"><span><x-lucide name="user" size="14" /> {{ $instructor->name }}</span></div>@endforeach</div>
 @endif
 @endif
 @else
