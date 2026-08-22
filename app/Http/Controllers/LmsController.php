@@ -120,6 +120,59 @@ class LmsController extends Controller
         return view('lms.my-skills', compact('skills'));
     }
 
+    /**
+     * All calendar-worthy dates for the learner are derived from data that
+     * already exists elsewhere -- live session times, due dates (course.due_days
+     * + enrollment date), certificate expiry -- there is no separate "events"
+     * table. Week view is intentionally not built; month + agenda cover the
+     * same underlying event set without a second rendering path to maintain.
+     */
+    public function calendar(Request $r)
+    {
+        $month = \Illuminate\Support\Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
+
+        $enrollments = Auth::user()->enrollments()->with('course', 'certificate')->get();
+        $courseIds = $enrollments->pluck('course_id');
+
+        $events = collect();
+
+        CourseSession::whereIn('course_id', $courseIds)->whereNotNull('starts_at')->with('course')->get()->each(function ($session) use (&$events) {
+            $events->push(['date' => $session->starts_at->toDateString(), 'time' => $session->starts_at->format('H:i'), 'type' => 'session', 'title' => $session->title, 'course' => $session->course->title, 'url' => route('courses.show', $session->course), 'ics' => route('calendar.ics.session', $session)]);
+        });
+
+        $enrollments->where('status', '!=', 'completed')->each(function ($enrollment) use (&$events) {
+            $due = $enrollment->course->dueDateFor($enrollment);
+            if ($due) {
+                $events->push(['date' => $due->toDateString(), 'time' => null, 'type' => 'due', 'title' => $enrollment->course->title, 'course' => null, 'url' => route('courses.show', $enrollment->course), 'ics' => null]);
+            }
+        });
+
+        $enrollments->whereNotNull('certificate')->each(function ($enrollment) use (&$events) {
+            $expiry = $enrollment->certificate->expiresAt();
+            if ($expiry) {
+                $events->push(['date' => $expiry->toDateString(), 'time' => null, 'type' => 'expiry', 'title' => $enrollment->course->title, 'course' => null, 'url' => route('courses.show', $enrollment->course), 'ics' => null]);
+            }
+        });
+
+        $eventsByDate = $events->groupBy('date');
+        $upcoming = $events->filter(fn ($e) => $e['date'] >= now()->toDateString())->sortBy('date')->values();
+
+        return view('lms.calendar', compact('month', 'eventsByDate', 'upcoming'));
+    }
+
+    public function calendarSessionIcs(CourseSession $session)
+    {
+        $enrolled = Auth::user()->enrollments()->where('course_id', $session->course_id)->exists();
+        abort_unless($enrolled, 403);
+
+        $session->load('course');
+        $start = $session->starts_at?->utc()->format('Ymd\\THis\\Z') ?? now()->utc()->format('Ymd\\THis\\Z');
+        $end = $session->ends_at?->utc()->format('Ymd\\THis\\Z') ?? now()->addHour()->utc()->format('Ymd\\THis\\Z');
+        $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Arucad Campus LMS//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:session-{$session->id}@campus-lms\r\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\r\nURL:{$session->meeting_url}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
+
+        return response($ics, 200, ['Content-Type' => 'text/calendar', 'Content-Disposition' => 'attachment; filename="'.$session->id.'.ics"']);
+    }
+
     public function login(Request $r)
     {
         $data = $r->validate(['email' => 'required|email', 'password' => 'required']);
