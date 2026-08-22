@@ -121,12 +121,15 @@ button:disabled,.button:disabled{opacity:.5;cursor:not-allowed}
 .danger-zone{margin-top:14px;padding:16px;border:1px solid #f0d8d1;border-radius:var(--radius-sm);background:var(--alert-error-bg)}
 .danger-zone p{margin:0 0 10px;font-size:13px;color:var(--alert-error-ink)}
 
-/* Form controls — every text input/select/textarea across the app shares this */
-input:not([type=checkbox]):not([type=radio]),select,textarea{width:100%;font:inherit;color:var(--ink);background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;margin:6px 0 0;transition:border-color .15s var(--ease),box-shadow .15s var(--ease);appearance:none}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6f80' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:32px}
-input::placeholder,textarea::placeholder{color:#9a9fae}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px #4d678722;background:#fff}
-label{display:block;color:var(--text-secondary);font-size:13px;font-weight:650;margin-top:16px}
+/* Form controls — every text input/select/textarea NOT yet migrated to Bootstrap's
+   own .form-control/.form-select shares this. Pages converted to real Bootstrap
+   form markup opt out via :not(.form-control) and get Bootstrap's own styling
+   (which already follows the brand palette through resources/scss/app.scss). */
+input:not([type=checkbox]):not([type=radio]):not(.form-control),select:not(.form-select),textarea:not(.form-control){width:100%;font:inherit;color:var(--ink);background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 14px;margin:6px 0 0;transition:border-color .15s var(--ease),box-shadow .15s var(--ease);appearance:none}
+select:not(.form-select){background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6f80' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:32px}
+input:not(.form-control)::placeholder,textarea:not(.form-control)::placeholder{color:#9a9fae}
+input:not(.form-control):focus,select:not(.form-select):focus,textarea:not(.form-control):focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px #4d678722;background:#fff}
+label:not(.form-label){display:block;color:var(--text-secondary);font-size:13px;font-weight:650;margin-top:16px}
 
 /* Progress meter (replaces raw <progress>) */
 .meter{height:8px;background:var(--brand-soft);border-radius:999px;overflow:hidden;margin:10px 0}
