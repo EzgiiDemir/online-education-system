@@ -58,7 +58,7 @@ class LearnerHomeTest extends TestCase
     {
         $learner = User::factory()->create(['role' => 'learner']);
         $course = Course::factory()->create(['status' => 'published', 'delivery_type' => 'online']);
-        $session = $course->sessions()->create(['title' => 'Bugünkü Ders', 'starts_at' => now()->addHours(2), 'room_key' => 'today-room']);
+        $session = $course->sessions()->create(['title' => 'Bugünkü Ders', 'starts_at' => now()->startOfDay()->addHours(12), 'room_key' => 'today-room']);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
 
         $response = $this->actingAs($learner)->get('/');

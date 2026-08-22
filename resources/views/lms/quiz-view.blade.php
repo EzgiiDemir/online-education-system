@@ -3,7 +3,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-wrap">
-<a class="viewer-back" href="{{ route('learning.index') }}">← {{ $en ? 'Back to My Learning' : 'Öğrenim alanıma dön' }}</a>
+<a class="viewer-back" href="{{ route('learning.index') }}"><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Back to My Learning' : 'Öğrenim alanıma dön' }}</a>
 <div class="card surface viewer-card">
 <span class="eyebrow">{{ $activity->section->course->title }}</span>
 <h1>{{ $activity->title }}</h1>
@@ -19,13 +19,13 @@
 <div class="quiz-attempt-history">
 <p class="muted" style="margin-bottom:8px">{{ $en ? 'Your previous attempts' : 'Önceki denemeleriniz' }}</p>
 @foreach($attempts as $attempt)
-<div class="requirement-row"><span>{{ $attempt->submitted_at->format('d.m.Y H:i') }}</span><span class="status" style="{{ $attempt->passed ? 'background:#eef1e9;color:var(--success-dark)' : 'background:#fbe9e4;color:#b3402e' }}">{{ $attempt->passed ? '✓' : '✕' }} %{{ $attempt->score }}</span></div>
+<div class="requirement-row"><span>{{ $attempt->submitted_at->format('d.m.Y H:i') }}</span><span class="status" style="{{ $attempt->passed ? 'background:#eef1e9;color:var(--success-dark)' : 'background:#fbe9e4;color:#b3402e' }}"><x-lucide :name="$attempt->passed ? 'check' : 'x'" size="14" /> %{{ $attempt->score }}</span></div>
 @endforeach
 </div>
 @endif
 
 @if($hasPassed)
-<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)">✓ {{ $en ? 'You passed this quiz' : 'Sınavı geçtiniz' }}</span></div>
+<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> {{ $en ? 'You passed this quiz' : 'Sınavı geçtiniz' }}</span></div>
 @elseif(!$canAttempt)
 <div class="viewer-empty"><p class="muted" style="margin:0">{{ $en ? "You've used all your allowed attempts. Contact your instructor to retry." : 'İzin verilen deneme hakkınızı kullandınız. Yeniden deneme için eğitmeninizle iletişime geçin.' }}</p></div>
 @else

@@ -6,7 +6,7 @@
     @if($newerVersion)
     <div class="alert success" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
     <span>{{ $en ? 'A newer version of this course is available (v'.$newerVersion->version.').' : 'Bu eğitimin daha yeni bir sürümü mevcut (v'.$newerVersion->version.').' }}</span>
-    <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} →</a>
+    <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
     </div>
     @endif
     <div class="course-show-hero card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }})">
@@ -26,7 +26,7 @@
                 <span>{{ $course->sessions->count() }} {{ $en ? 'sessions' : 'seans' }}</span>
                 <span>•</span>
                 <span>v{{ $course->version }}</span>
-                @if($course->certificate_enabled)<span>•</span><span>🎓 {{ $en ? 'Certificate' : 'Sertifikalı' }}</span>@endif
+                @if($course->certificate_enabled)<span>•</span><span><x-lucide name="graduation-cap" size="14" /> {{ $en ? 'Certificate' : 'Sertifikalı' }}</span>@endif
                 @if($course->category && $course->category !== 'optional')<span>•</span><span class="status">{{ ['required' => $en ? 'REQUIRED' : 'ZORUNLU', 'compliance' => $en ? 'COMPLIANCE' : 'UYUMLULUK', 'onboarding' => $en ? 'ONBOARDING' : 'ORYANTASYON', 'professional_development' => $en ? 'PROF. DEVELOPMENT' : 'MESLEKİ GELİŞİM'][$course->category] ?? $course->category }}</span>@endif
             </div>
 
@@ -40,7 +40,7 @@
                 @if($enrollment->status !== 'completed' && $course->dueDateFor($enrollment))
                 <p class="{{ $course->isOverdueFor($enrollment) ? 'due-warning is-overdue' : 'due-warning' }}">
                 @if($course->isOverdueFor($enrollment))
-                ⚠ {{ $en ? 'Overdue since '.$course->dueDateFor($enrollment)->format('d.m.Y') : $course->dueDateFor($enrollment)->format('d.m.Y').' tarihinden beri gecikmiş' }}
+                <x-lucide name="triangle-alert" size="14" /> {{ $en ? 'Overdue since '.$course->dueDateFor($enrollment)->format('d.m.Y') : $course->dueDateFor($enrollment)->format('d.m.Y').' tarihinden beri gecikmiş' }}
                 @else
                 {{ $en ? 'Due by '.$course->dueDateFor($enrollment)->format('d.m.Y') : $course->dueDateFor($enrollment)->format('d.m.Y').' tarihine kadar tamamlanmalı' }}
                 @endif
@@ -53,17 +53,17 @@
                 @endif
             </div>
             @if($enrollment->status === 'completed')
-                @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <span>→</span></a> <a class="button secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
+                @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="button secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
             @elseif($continueUrl)
-                <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <span>→</span></a>
+                <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <x-lucide name="arrow-right" size="14" /></a>
             @else
-                <a class="button" href="{{ route('learning.index') }}">{{ $en ? 'Go to My Learning' : 'Eğitimlerime git' }} <span>→</span></a>
+                <a class="button" href="{{ route('learning.index') }}">{{ $en ? 'Go to My Learning' : 'Eğitimlerime git' }} <x-lucide name="arrow-right" size="14" /></a>
             @endif
             @else
                 @auth
-                <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <span>→</span></button></form>
+                <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
                 @else
-                <a class="button" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <span>→</span></a>
+                <a class="button" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
                 @endauth
             @endif
         </div>
@@ -74,7 +74,7 @@
         <p class="muted">{{ $course->description ?: ($en ? 'No description provided yet.' : 'Henüz açıklama eklenmemiş.') }}</p>
         @if($course->skills->isNotEmpty())
         <p class="muted" style="margin-bottom:6px">{{ $en ? "What you'll learn" : 'Kazanacağınız yetkinlikler' }}</p>
-        <div class="skill-tags">@foreach($course->skills as $skill)<span class="skill-tag">🏅 {{ $skill->name }}</span>@endforeach</div>
+        <div class="skill-tags">@foreach($course->skills as $skill)<span class="skill-tag"><x-lucide name="award" size="12" /> {{ $skill->name }}</span>@endforeach</div>
         @endif
     </div>
 
@@ -98,7 +98,7 @@
                 <span>{{ $activity->title }} @unless($activity->is_required)<small class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</small>@endunless</span>
                 @if($enrollment && $activity->type !== 'live_session')
                     @php($activityDone = $enrollment->activityProgress->firstWhere('activity_id', $activity->id)?->completed)
-                    <span class="status">{{ $activityDone ? '✓' : ($en ? 'Not started' : 'Başlanmadı') }}</span>
+                    <span class="status">@if($activityDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
                 @endif
             </li>
             @endforeach
@@ -118,10 +118,10 @@
             <ul class="curriculum-list">
             @foreach($session->materials as $material)
             <li>
-                <span>📄 {{ $material->title }}</span>
+                <span><x-lucide name="file-text" size="14" /> {{ $material->title }}</span>
                 @if($enrollment)
                     @php($materialDone = $enrollment->progress->firstWhere('material_id', $material->id)?->completed)
-                    <span class="status">{{ $materialDone ? '✓' : ($en ? 'Not started' : 'Başlanmadı') }}</span>
+                    <span class="status">@if($materialDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
                 @endif
             </li>
             @endforeach

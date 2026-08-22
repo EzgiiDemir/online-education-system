@@ -2,7 +2,7 @@
 @section('title', $material->title.' · Arucad Campus LMS')
 @section('content')
 <div class="viewer-wrap">
-<a class="viewer-back" href="{{ route('learning.index') }}">← Öğrenim alanıma dön</a>
+<a class="viewer-back" href="{{ route('learning.index') }}"><x-lucide name="arrow-left" size="14" /> Öğrenim alanıma dön</a>
 <div class="card surface viewer-card">
 <span class="eyebrow">{{ $material->session->course->title }}</span>
 <h1>{{ $material->title }}</h1>
@@ -15,7 +15,7 @@
 @endif
 @include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('materials.heartbeat', $material), 'labelWatched' => 'İzlenme süresi'])
 @if($progress->completed)
-<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)">✓ Tamamlandı</span></div>
+<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
 @else
 <div class="viewer-actions">
 <form method="post" action="{{ route('materials.complete', $material) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" disabled>Tamamlandı olarak işaretle</button></form>

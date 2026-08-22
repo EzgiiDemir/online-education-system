@@ -69,7 +69,7 @@ class CompletionTransparencyTest extends TestCase
         $response = $this->actingAs($learner)->get(route('materials.view', $material));
 
         $response->assertOk();
-        $response->assertSee('✓ Tamamlandı');
+        $response->assertSee('Tamamlandı');
         $response->assertDontSee('Sekme arka plandayken geçen süre sayılmaz');
     }
 }

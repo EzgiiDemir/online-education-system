@@ -10,7 +10,7 @@
     </div>
     <small id="hint" class="muted">
     @if($progress->completed)
-    ✓ {{ $en ? 'Completed' : 'Tamamlandı' }}
+    <x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}
     @else
     {{ $en ? 'Time spent on a background tab does not count — the content must stay open and visible on screen.' : 'Sekme arka plandayken geçen süre sayılmaz — içerik ekranda açık ve görünür olmalı.' }}
     @endif

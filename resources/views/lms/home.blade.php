@@ -26,7 +26,7 @@
         <small class="muted">{{ $en ? 'Continue' : 'Devam et' }}</small>
         <strong>{{ $continueLearning->course->title }}</strong>
         <div class="meter"><span style="width:{{ $continueLearning->completionStats()['percent'] }}%"></span></div>
-        <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <span>→</span></a>
+        <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <x-lucide name="arrow-right" size="14" /></a>
     </div>
     @endif
 </section>

@@ -1,8 +1,8 @@
 @php($en = session('locale', 'tr') === 'en')
 @if($paginator->hasPages())
 <nav class="pagination">
-<a href="{{ $paginator->previousPageUrl() }}" class="button secondary{{ $paginator->onFirstPage() ? ' is-disabled' : '' }}"@if($paginator->onFirstPage()) aria-disabled="true" onclick="return false"@endif>← {{ $en ? 'Previous' : 'Önceki' }}</a>
+<a href="{{ $paginator->previousPageUrl() }}" class="button secondary{{ $paginator->onFirstPage() ? ' is-disabled' : '' }}"@if($paginator->onFirstPage()) aria-disabled="true" onclick="return false"@endif><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Previous' : 'Önceki' }}</a>
 <span class="muted">{{ $en ? 'Page' : 'Sayfa' }} {{ $paginator->currentPage() }} / {{ $paginator->lastPage() }}</span>
-<a href="{{ $paginator->nextPageUrl() }}" class="button secondary{{ !$paginator->hasMorePages() ? ' is-disabled' : '' }}"@unless($paginator->hasMorePages()) aria-disabled="true" onclick="return false"@endunless>{{ $en ? 'Next' : 'Sonraki' }} →</a>
+<a href="{{ $paginator->nextPageUrl() }}" class="button secondary{{ !$paginator->hasMorePages() ? ' is-disabled' : '' }}"@unless($paginator->hasMorePages()) aria-disabled="true" onclick="return false"@endunless>{{ $en ? 'Next' : 'Sonraki' }} <x-lucide name="arrow-right" size="14" /></a>
 </nav>
 @endif

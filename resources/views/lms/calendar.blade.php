@@ -12,8 +12,8 @@
 
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'CALENDAR' : 'TAKVİM' }}</span><h1>{{ $monthLabels[$month->month - 1] }} {{ $month->year }}</h1></div>
 <div style="display:flex;gap:8px">
-<a class="button secondary" href="{{ route('calendar.index', ['month' => $prevMonth]) }}">← {{ $en ? 'Prev' : 'Önceki' }}</a>
-<a class="button secondary" href="{{ route('calendar.index', ['month' => $nextMonth]) }}">{{ $en ? 'Next' : 'Sonraki' }} →</a>
+<a class="button secondary" href="{{ route('calendar.index', ['month' => $prevMonth]) }}"><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Prev' : 'Önceki' }}</a>
+<a class="button secondary" href="{{ route('calendar.index', ['month' => $nextMonth]) }}">{{ $en ? 'Next' : 'Sonraki' }} <x-lucide name="arrow-right" size="14" /></a>
 </div>
 </div>
 

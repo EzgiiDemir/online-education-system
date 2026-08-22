@@ -3,7 +3,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-wrap">
-<a class="viewer-back" href="{{ route('learning.index') }}">← {{ $en ? 'Back to My Learning' : 'Öğrenim alanıma dön' }}</a>
+<a class="viewer-back" href="{{ route('learning.index') }}"><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Back to My Learning' : 'Öğrenim alanıma dön' }}</a>
 <div class="card surface viewer-card">
 <span class="eyebrow">{{ $activity->section->course->title }}</span>
 <h1>{{ $activity->title }}</h1>
@@ -24,7 +24,7 @@
 @endif
 </div>
 @if($submission->isGraded())
-<span class="status" style="{{ $passed ? 'background:#eef1e9;color:var(--success-dark)' : 'background:#fbe9e4;color:#b3402e' }}">{{ $passed ? '✓' : '✕' }} %{{ $submission->score }}</span>
+<span class="status" style="{{ $passed ? 'background:#eef1e9;color:var(--success-dark)' : 'background:#fbe9e4;color:#b3402e' }}"><x-lucide :name="$passed ? 'check' : 'x'" size="14" /> %{{ $submission->score }}</span>
 @endif
 </div>
 @endforeach
@@ -32,7 +32,7 @@
 @endif
 
 @if($hasPassed)
-<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)">✓ {{ $en ? 'Assignment accepted' : 'Ödev kabul edildi' }}</span></div>
+<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> {{ $en ? 'Assignment accepted' : 'Ödev kabul edildi' }}</span></div>
 @elseif($hasPendingSubmission)
 <div class="viewer-empty"><p class="muted" style="margin:0">{{ $en ? 'Your submission is awaiting review by your instructor.' : 'Teslim ettiğiniz ödev eğitmeniniz tarafından değerlendirilmeyi bekliyor.' }}</p></div>
 @else
