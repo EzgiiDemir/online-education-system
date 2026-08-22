@@ -39,13 +39,13 @@
 <form method="post" action="{{ route('activities.submissions.store', $activity) }}" enctype="multipart/form-data" class="quiz-form">
 @csrf
 @if($activity->submission_type === 'file')
-<label>{{ $en ? 'File' : 'Dosya' }}<input type="file" name="file" required></label>
+<label class="form-label">{{ $en ? 'File' : 'Dosya' }}</label><input type="file" name="file" class="form-control" required>
 @elseif($activity->submission_type === 'url')
-<label>{{ $en ? 'Link (URL)' : 'Bağlantı (URL)' }}<input type="url" name="content" placeholder="https://…" required></label>
+<label class="form-label">{{ $en ? 'Link (URL)' : 'Bağlantı (URL)' }}</label><input type="url" name="content" class="form-control" placeholder="https://…" required>
 @else
-<label>{{ $en ? 'Your answer' : 'Cevabınız' }}<textarea name="content" rows="8" required></textarea></label>
+<label class="form-label">{{ $en ? 'Your answer' : 'Cevabınız' }}</label><textarea name="content" class="form-control" rows="8" required></textarea>
 @endif
-<button type="submit" style="margin-top:14px">{{ $en ? 'Submit' : 'Teslim et' }}</button>
+<button type="submit" class="btn btn-primary mt-3">{{ $en ? 'Submit' : 'Teslim et' }}</button>
 </form>
 @endif
 </div>

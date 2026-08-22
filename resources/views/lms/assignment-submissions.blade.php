@@ -20,11 +20,11 @@
 <p class="muted">{{ $en ? 'Graded:' : 'Değerlendirildi:' }} %{{ $submission->score }} · {{ $submission->grader->name }} — {{ $submission->graded_at->format('d.m.Y H:i') }}</p>
 @if($submission->feedback)<p class="muted"><b>{{ $en ? 'Feedback:' : 'Geri bildirim:' }}</b> {{ $submission->feedback }}</p>@endif
 @else
-<form method="post" action="{{ route('instructor.submissions.grade', $submission) }}" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+<form method="post" action="{{ route('instructor.submissions.grade', $submission) }}" class="d-flex gap-2 align-items-end flex-wrap">
 @csrf
-<div class="field" style="margin:0"><label>{{ $en ? 'Score (0-100)' : 'Puan (0-100)' }}</label><input type="number" name="score" min="0" max="100" required style="width:100px"></div>
-<div class="field" style="margin:0;flex:1;min-width:200px"><label>{{ $en ? 'Feedback' : 'Geri bildirim' }}</label><input type="text" name="feedback"></div>
-<button type="submit">{{ $en ? 'Grade' : 'Değerlendir' }}</button>
+<div style="width:100px"><label class="form-label">{{ $en ? 'Score (0-100)' : 'Puan (0-100)' }}</label><input type="number" name="score" min="0" max="100" required class="form-control"></div>
+<div style="flex:1;min-width:200px"><label class="form-label">{{ $en ? 'Feedback' : 'Geri bildirim' }}</label><input type="text" name="feedback" class="form-control"></div>
+<button type="submit" class="btn btn-primary">{{ $en ? 'Grade' : 'Değerlendir' }}</button>
 </form>
 @endif
 </div>

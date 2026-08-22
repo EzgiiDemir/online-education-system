@@ -3,8 +3,9 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'MY ACCOUNT' : 'HESABIM' }}</span><h1>{{ $en ? 'Account' : 'Hesap bilgileri' }}</h1><p class="muted">{{ $en ? 'Your profile information and training history.' : 'Profil bilgileriniz ve eğitim geçmişiniz.' }}</p></div></div>
-<div class="account-grid">
-<div class="card surface" style="padding:24px">
+<div class="row g-4">
+<div class="col-md-4 col-lg-3">
+<div class="card surface p-4">
 <div class="profile-avatar" style="width:64px;height:64px;font-size:22px;margin-bottom:14px">
 @if($user->avatar_path)
 <img src="{{ asset('storage/'.$user->avatar_path) }}" alt="">
@@ -18,25 +19,19 @@
 @if($user->department)<p style="margin:4px 0"><b>{{ $en ? 'Department:' : 'Departman:' }}</b> {{ $user->department }}</p>@endif
 @if($user->job_title)<p style="margin:4px 0"><b>{{ $en ? 'Job title:' : 'Unvan:' }}</b> {{ $user->job_title }}</p>@endif
 <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
-<button type="button" class="button-danger" style="width:100%" onclick="document.getElementById('deleteAccountDialog').style.display='block'">{{ $en ? 'Delete my account' : 'Hesabımı sil' }}</button>
-<div id="deleteAccountDialog" class="danger-zone" style="display:none">
-<p>{{ $en ? 'This action cannot be undone. All your records and certificates will be deleted. Enter your password to confirm.' : 'Bu işlem geri alınamaz. Tüm kayıtlarınız ve sertifikalarınız silinecektir. Onaylamak için şifrenizi girin.' }}</p>
-<form method="post" action="{{ route('account.destroy') }}" onsubmit="return confirm('{{ $en ? 'Are you sure you want to permanently delete your account?' : 'Hesabınızı kalıcı olarak silmek istediğinize emin misiniz?' }}')">@csrf
-<input type="password" name="password" placeholder="{{ $en ? 'Your password' : 'Şifreniz' }}" required>
-<button type="submit" class="button-danger" style="width:100%;margin-top:10px">{{ $en ? 'Delete permanently' : 'Kalıcı olarak sil' }}</button>
-</form>
+<button type="button" class="button-danger" style="width:100%" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">{{ $en ? 'Delete my account' : 'Hesabımı sil' }}</button>
 </div>
 </div>
-<div>
+<div class="col-md-8 col-lg-9">
 @if($courses->isNotEmpty())
-<div class="card surface" style="padding:24px;margin-bottom:18px">
+<div class="card surface p-4 mb-3">
 <h2 style="margin-top:0">{{ $en ? 'Courses I teach' : 'Eğitmen olduğum kurslar' }}</h2>
 <ul style="list-style:none;padding:0;margin:0">
 @foreach($courses as $course)<li style="padding:10px 0;border-top:1px solid var(--line)"><b>{{ $course->title }}</b> <span class="muted">· {{ $course->enrollments_count }} {{ $en ? 'participants' : 'katılımcı' }}</span></li>@endforeach
 </ul>
 </div>
 @endif
-<div class="card surface" style="padding:24px">
+<div class="card surface p-4">
 <h2 style="margin-top:0">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</h2>
 @forelse($enrollments as $row)
 <div style="padding:14px 0;border-top:1px solid var(--line)">
@@ -49,6 +44,28 @@
 <p class="muted">{{ $en ? "You aren't enrolled in any training yet." : 'Henüz kayıt olduğunuz bir eğitim yok.' }}</p>
 @endforelse
 {{ $enrollments->links('lms.partials.pagination') }}
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h2 class="modal-title h5" id="deleteAccountModalLabel">{{ $en ? 'Delete my account' : 'Hesabımı sil' }}</h2>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ $en ? 'Close' : 'Kapat' }}"></button>
+</div>
+<div class="modal-body">
+<div class="danger-zone">
+<p>{{ $en ? 'This action cannot be undone. All your records and certificates will be deleted. Enter your password to confirm.' : 'Bu işlem geri alınamaz. Tüm kayıtlarınız ve sertifikalarınız silinecektir. Onaylamak için şifrenizi girin.' }}</p>
+</div>
+<form method="post" action="{{ route('account.destroy') }}" onsubmit="return confirm('{{ $en ? 'Are you sure you want to permanently delete your account?' : 'Hesabınızı kalıcı olarak silmek istediğinize emin misiniz?' }}')" class="mt-3">
+@csrf
+<label for="deleteAccountPassword" class="form-label">{{ $en ? 'Your password' : 'Şifreniz' }}</label>
+<input type="password" id="deleteAccountPassword" name="password" class="form-control" placeholder="{{ $en ? 'Your password' : 'Şifreniz' }}" required>
+<button type="submit" class="button-danger" style="width:100%;margin-top:14px">{{ $en ? 'Delete permanently' : 'Kalıcı olarak sil' }}</button>
+</form>
+</div>
 </div>
 </div>
 </div>

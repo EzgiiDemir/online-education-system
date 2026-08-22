@@ -142,8 +142,6 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .pagination{display:flex;align-items:center;justify-content:center;gap:16px;margin:28px 0 4px}
 .pagination .is-disabled{opacity:.4;pointer-events:none}
 
-.account-grid{display:grid;gap:20px;grid-template-columns:280px 1fr;align-items:start}
-
 .home-greeting{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:32px;margin:28px 0 44px}
 .greeting-text h1{font-size:clamp(28px,3.4vw,40px);margin:6px 0 10px}
 .greeting-text p{color:var(--muted);font-size:15px;margin:0}
@@ -222,7 +220,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .tab-bar a.is-active .tab-count{background:var(--brand);color:#fff}
 
 @media(max-width:900px){.nav-link{display:none}}
-@media(max-width:700px){.account-grid{grid-template-columns:1fr}.home-greeting{flex-direction:column;align-items:stretch;text-align:center;padding:24px}.continue-card{min-width:auto}}
+@media(max-width:700px){.home-greeting{flex-direction:column;align-items:stretch;text-align:center;padding:24px}.continue-card{min-width:auto}}
 
 .icon{display:inline-block;vertical-align:-3px;flex:none}
 button .icon,a .icon{vertical-align:-3px}
