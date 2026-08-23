@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         $user = User::updateOrCreate(['email' => 'user@company.com'], ['name' => 'Demo Kullanıcı', 'password' => 'password', 'role' => 'learner']);
         $instructor = User::updateOrCreate(['email' => 'trainer@company.com'], ['name' => 'Demo Eğitmen', 'password' => 'password', 'role' => 'instructor']);
         User::updateOrCreate(['email' => 'admin@company.com'], ['name' => 'Demo Yönetici', 'password' => 'password', 'role' => 'admin']);
+        User::updateOrCreate(['email' => 'manager@company.com'], ['name' => 'Demo Departman Yöneticisi', 'password' => 'password', 'role' => 'manager', 'department' => 'İnsan Kaynakları']);
         PortalSetting::updateOrCreate(['id' => 1], ['portal_name' => 'Arucad Arucad Campus LMS', 'accepted_domains' => ['company.com'], 'local_login_enabled' => true, 'internal_class_enabled' => true, 'entra_enabled' => false, 'default_locale' => 'tr', 'available_locales' => ['tr', 'en']]);
 
         $offline = Course::updateOrCreate(['title' => 'İş Sağlığı ve Güvenliği'], ['instructor_id' => $instructor->id, 'description' => 'Temel iş güvenliği, acil durum ve kurum prosedürleri.', 'delivery_type' => 'offline', 'status' => 'published', 'starts_at' => now(), 'ends_at' => now()->addDays(14), 'certificate_enabled' => true, 'sdg_goals' => ['3', '4', '8'], 'poster_path' => 'demo/isg-afis.jpg', 'image_path' => 'demo/isg-kapak.jpg']);

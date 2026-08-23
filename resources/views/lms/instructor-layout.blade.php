@@ -5,16 +5,17 @@
 </head>
 <body class="instructor-page">
 @php($en = session('locale', 'tr') === 'en')
-<div class="instructor-shell">
-<aside class="instructor-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="instructorSidebar" aria-labelledby="instructorSidebarLabel">
-<div class="offcanvas-header d-lg-none"><h2 class="offcanvas-title h6 mb-0" id="instructorSidebarLabel">{{ $en ? 'Menu' : 'Menü' }}</h2><button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#instructorSidebar" aria-label="{{ $en ? 'Close' : 'Kapat' }}"></button></div>
-<div class="offcanvas-body d-flex flex-column">
-<a class="brand sidebar-brand" href="{{ route('instructor.dashboard') }}">Arucad Campus <span>LMS</span></a><div class="sidebar-profile"><div class="sidebar-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</div><div><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->role === 'admin' ? ($en ? 'Admin' : 'Yönetici') : ($en ? 'Instructor' : 'Eğitmen') }}</small></div></div><div class="sidebar-label">{{ $en ? 'WORKSPACE' : 'ÇALIŞMA ALANI' }}</div><nav class="sidebar-nav"><a href="{{ route('instructor.dashboard') }}" class="{{ request()->routeIs('instructor.dashboard') ? 'is-active' : '' }}"><span><x-lucide name="house" size="16" /></span> {{ $en ? 'Overview' : 'Genel bakış' }}</a><a href="{{ route('instructor.courses.index') }}" class="{{ request()->routeIs('instructor.courses.index') ? 'is-active' : '' }}"><span><x-lucide name="layout-grid" size="16" /></span> {{ $en ? 'My Courses' : 'Eğitimlerim' }}</a><a href="{{ route('instructor.profile') }}" class="{{ request()->routeIs('instructor.profile') ? 'is-active' : '' }}"><span><x-lucide name="circle-user" size="16" /></span> {{ $en ? 'My Profile' : 'Profilim' }}</a><a href="{{ route('account.show') }}" class="{{ request()->routeIs('account.show') ? 'is-active' : '' }}"><span><x-lucide name="shield-check" size="16" /></span> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a></nav><div class="sidebar-label">{{ $en ? 'SHORTCUTS' : 'KISAYOLLAR' }}</div><nav class="sidebar-nav"><a href="{{ route('lms.home') }}"><span><x-lucide name="globe" size="16" /></span> {{ $en ? 'View portal' : 'Portalı görüntüle' }}</a></nav>
-</div>
-</aside>
-<main class="instructor-main"><header class="instructor-header"><div><button type="button" class="btn btn-outline-secondary sidebar-toggle-btn d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#instructorSidebar" aria-controls="instructorSidebar"><x-lucide name="menu" size="18" /></button>@unless(request()->routeIs('instructor.dashboard'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('instructor.dashboard') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless<span class="eyebrow">INSTRUCTOR WORKSPACE</span><h1>@yield('page-title', $en ? 'Instructor workspace' : 'Eğitmen çalışma alanı')</h1></div>
-<div class="instructor-header-actions">
-<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<nav class="navbar navbar-expand-lg site-nav sticky-top">
+<div class="container-fluid">
+<a class="navbar-brand brand" href="{{ route('instructor.dashboard') }}">Arucad Campus <span>LMS</span></a>
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#instructorNavCollapse" aria-controls="instructorNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
+<div class="collapse navbar-collapse" id="instructorNavCollapse">
+<ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
+<li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.dashboard') ? 'is-active' : '' }}" href="{{ route('instructor.dashboard') }}">{{ $en ? 'Overview' : 'Genel bakış' }}</a></li>
+<li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'is-active' : '' }}" href="{{ route('instructor.courses.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>
+<li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.profile') ? 'is-active' : '' }}" href="{{ route('instructor.profile') }}">{{ $en ? 'My Profile' : 'Profilim' }}</a></li>
+</ul>
+<div class="nav-actions">
 <div class="profile-menu dropdown">
 <button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
 <span class="profile-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span>
@@ -22,14 +23,24 @@
 </button>
 <div class="profile-dropdown dropdown-menu">
 <div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
+<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<div class="dropdown-divider"></div>
 <a href="{{ route('instructor.profile') }}"><x-lucide name="circle-user" size="16" /> {{ $en ? 'Profile' : 'Profilim' }}</a>
+<a href="{{ route('account.show') }}"><x-lucide name="shield-check" size="16" /> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
+<a href="{{ route('lms.home') }}"><x-lucide name="globe" size="16" /> {{ $en ? 'View portal' : 'Portalı görüntüle' }}</a>
 <button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
 <form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger"><x-lucide name="log-out" size="16" /> {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
 </div>
 </div>
-</header>@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
 </div>
+</div>
+</nav>
+<main class="page-shell container instructor-main">
+<header class="instructor-header"><div><span class="eyebrow">INSTRUCTOR WORKSPACE</span><h1>@yield('page-title', $en ? 'Instructor workspace' : 'Eğitmen çalışma alanı')</h1></div></header>
+@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
+@yield('content')
+</main>
 <script>
 document.addEventListener('click', function (e) {
     if (e.target.closest('[data-theme-toggle]')) {
