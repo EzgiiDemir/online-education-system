@@ -9,9 +9,9 @@
 <div class="course-card-top"><span class="badge"><x-lucide name="award" size="14" /> {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
 <h2>{{ $skill->name }}</h2>
 <p class="muted">{{ $en ? 'Earned from:' : 'Kazanıldığı eğitim(ler):' }}</p>
-<ul class="curriculum-list">
+<ul class="curriculum-list list-group list-group-flush">
 @foreach($skill->courses as $course)
-<li><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></li>
+<li class="list-group-item"><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></li>
 @endforeach
 </ul>
 </article>

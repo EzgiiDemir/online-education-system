@@ -33,9 +33,11 @@
 @if($incompleteEnrollments->isNotEmpty())
 <div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'FOLLOW-UP' : 'TAKİP' }}</span><h2>{{ $en ? 'Training in progress' : 'Devam eden eğitimler' }}</h2></div></div>
 <div class="card">
+<ul class="list-group list-group-flush">
 @foreach($incompleteEnrollments as $enrollment)
-<div class="requirement-row"><span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span><span class="badge">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span></div>
+<li class="list-group-item requirement-row"><span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span><span class="badge">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span></li>
 @endforeach
+</ul>
 </div>
 @endif
 @endsection

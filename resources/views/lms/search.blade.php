@@ -30,22 +30,22 @@
 
 @if($results['activities']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Activities' : 'Etkinlikler' }}</h2>
-<div class="card surface">@foreach($results['activities'] as $activity)<div class="requirement-row"><span><a href="{{ route('activities.view', $activity) }}">{{ $activity->title }}</a> <small class="muted">— {{ $activity->section->course->title }}</small></span></div>@endforeach</div>
+<div class="card surface"><ul class="list-group list-group-flush">@foreach($results['activities'] as $activity)<li class="list-group-item requirement-row"><span><a href="{{ route('activities.view', $activity) }}">{{ $activity->title }}</a> <small class="muted">— {{ $activity->section->course->title }}</small></span></li>@endforeach</ul></div>
 @endif
 
 @if($results['materials']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Materials' : 'Materyaller' }}</h2>
-<div class="card surface">@foreach($results['materials'] as $material)<div class="requirement-row"><span><x-lucide name="file-text" size="14" /> <a href="{{ route('materials.view', $material) }}">{{ $material->title }}</a> <small class="muted">— {{ $material->session->course->title }}</small></span></div>@endforeach</div>
+<div class="card surface"><ul class="list-group list-group-flush">@foreach($results['materials'] as $material)<li class="list-group-item requirement-row"><span><x-lucide name="file-text" size="14" /> <a href="{{ route('materials.view', $material) }}">{{ $material->title }}</a> <small class="muted">— {{ $material->session->course->title }}</small></span></li>@endforeach</ul></div>
 @endif
 
 @if($results['sessions']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Sessions' : 'Seanslar' }}</h2>
-<div class="card surface">@foreach($results['sessions'] as $session)<div class="requirement-row"><span>{{ $session->title }} <small class="muted">— {{ $session->course->title }}</small></span><a class="btn btn-outline-secondary" href="{{ route('courses.show', $session->course) }}">{{ $en ? 'View course' : 'Eğitimi görüntüle' }}</a></div>@endforeach</div>
+<div class="card surface"><ul class="list-group list-group-flush">@foreach($results['sessions'] as $session)<li class="list-group-item requirement-row"><span>{{ $session->title }} <small class="muted">— {{ $session->course->title }}</small></span><a class="btn btn-outline-secondary" href="{{ route('courses.show', $session->course) }}">{{ $en ? 'View course' : 'Eğitimi görüntüle' }}</a></li>@endforeach</ul></div>
 @endif
 
 @if($results['instructors']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Instructors' : 'Eğitmenler' }}</h2>
-<div class="card surface">@foreach($results['instructors'] as $instructor)<div class="requirement-row"><span><x-lucide name="user" size="14" /> {{ $instructor->name }}</span></div>@endforeach</div>
+<div class="card surface"><ul class="list-group list-group-flush">@foreach($results['instructors'] as $instructor)<li class="list-group-item requirement-row"><span><x-lucide name="user" size="14" /> {{ $instructor->name }}</span></li>@endforeach</ul></div>
 @endif
 @endif
 @else

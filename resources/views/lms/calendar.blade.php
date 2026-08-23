@@ -42,10 +42,12 @@
 <div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'AGENDA' : 'AJANDA' }}</span><h2>{{ $en ? 'Upcoming' : 'Yaklaşan' }}</h2></div></div>
 <div class="card surface">
 @forelse($upcoming->take(20) as $event)
-<div class="requirement-row">
+@if($loop->first)<ul class="list-group list-group-flush">@endif
+<li class="list-group-item requirement-row">
 <span><i class="dot dot-{{ $event['type'] }}"></i> <a href="{{ $event['url'] }}">{{ $event['title'] }}</a> <small class="muted">{{ \Illuminate\Support\Carbon::parse($event['date'])->format('d.m.Y') }}{{ $event['time'] ? ' · '.$event['time'] : '' }}</small></span>
 @if($event['ics'])<a class="btn btn-outline-secondary" href="{{ $event['ics'] }}">{{ $en ? 'Add to calendar' : 'Takvime ekle' }}</a>@endif
-</div>
+</li>
+@if($loop->last)</ul>@endif
 @empty
 <p class="muted" style="margin:0">{{ $en ? 'Nothing scheduled yet.' : 'Henüz planlanmış bir şey yok.' }}</p>
 @endforelse

@@ -9,7 +9,8 @@
 </div>
 <div class="card surface">
 @forelse($notifications as $notification)
-<div class="requirement-row" style="align-items:flex-start">
+@if($loop->first)<ul class="list-group list-group-flush">@endif
+<li class="list-group-item requirement-row" style="align-items:flex-start">
 <div>
 <b style="{{ $notification->read_at ? '' : 'color:var(--brand-dark)' }}">@unless($notification->read_at)<span class="badge" style="margin-right:6px">{{ $en ? 'NEW' : 'YENİ' }}</span>@endunless{{ $notification->data['message'] ?? '—' }}</b><br>
 <small class="muted">{{ $notification->created_at->format('d.m.Y H:i') }}</small>
@@ -17,7 +18,8 @@
 @unless($notification->read_at)
 <form method="post" action="{{ route('notifications.read', $notification->id) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-outline-secondary">{{ $en ? 'Mark read' : 'Okundu' }}</button></form>
 @endunless
-</div>
+</li>
+@if($loop->last)</ul>@endif
 @empty
 <p class="muted" style="margin:0">{{ $en ? 'No notifications yet.' : 'Henüz bildirim yok.' }}</p>
 @endforelse

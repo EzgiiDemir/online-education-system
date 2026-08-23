@@ -92,9 +92,9 @@
         @foreach($course->sections as $section)
         <div class="curriculum-section">
             <strong>{{ $section->title }}</strong>
-            <ul class="curriculum-list">
+            <ul class="curriculum-list list-group list-group-flush">
             @foreach($section->activities as $activity)
-            <li>
+            <li class="list-group-item">
                 <span>{{ $activity->title }} @unless($activity->is_required)<small class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</small>@endunless</span>
                 @if($enrollment && $activity->type !== 'live_session')
                     @php($activityDone = $enrollment->activityProgress->firstWhere('activity_id', $activity->id)?->completed)
@@ -115,9 +115,9 @@
         <div class="curriculum-section">
             <div class="course-card-top"><strong>{{ $session->title }}</strong><span class="muted">{{ $session->starts_at?->format('d.m.Y H:i') ?? ($en ? 'Date pending' : 'Tarih bekleniyor') }}</span></div>
             @if($session->materials->isNotEmpty())
-            <ul class="curriculum-list">
+            <ul class="curriculum-list list-group list-group-flush">
             @foreach($session->materials as $material)
-            <li>
+            <li class="list-group-item">
                 <span><x-lucide name="file-text" size="14" /> {{ $material->title }}</span>
                 @if($enrollment)
                     @php($materialDone = $enrollment->progress->firstWhere('material_id', $material->id)?->completed)
