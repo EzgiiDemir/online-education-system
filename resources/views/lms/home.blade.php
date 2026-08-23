@@ -3,7 +3,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @guest
-<section class="hero"><div><h1>{{ $en ? 'Learn, grow,' : 'Öğren, geliş,' }}<br><em>{{ $en ? 'track it all.' : 'takip et.' }}</em></h1><p>{{ $en ? 'Discover courses, join live classes, and track your growth from one platform.' : 'Eğitimleri keşfedin, canlı sınıflara katılın ve gelişiminizi tek bir platformdan takip edin.' }}</p></div><div class="hero-mark"><img src="{{ asset('images/sdg/onlinelogo.jpg') }}" alt="Arucad Campus LMS"></div></section>
+<section class="hero"><div><h1>{{ $en ? 'Learn, grow,' : 'Öğren, geliş,' }}<br><em>{{ $en ? 'track it all.' : 'takip et.' }}</em></h1><p>{{ $en ? 'Discover courses, join live classes, and track your growth from one platform.' : 'Eğitimleri keşfedin, canlı sınıflara katılın ve gelişiminizi tek bir platformdan takip edin.' }}</p></div></section>
 @endguest
 @auth
 @php($hour = (int) now()->format('H'))
@@ -35,7 +35,7 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-5">@foreach($todaySessions as $session)<div class="today-card surface"><span class="badge">{{ $en ? 'LIVE CLASS' : 'CANLI DERS' }}</span><h3>{{ $session->title }}</h3><p class="muted">{{ $session->course->title }} · {{ $session->starts_at?->format('H:i') }}</p><a class="btn btn-primary" href="{{ route('sessions.classroom', $session) }}">{{ $en ? 'Join class' : 'Derse katıl' }} <x-lucide name="arrow-right" size="14" /></a></div>@endforeach</div>
 @endif
 @if($requiredIncomplete->isNotEmpty())
-<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'REQUIRED' : 'ZORUNLU' }}</span><h2>{{ $en ? 'Required training' : 'Zorunlu eğitimler' }}</h2></div></div>
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'ONBOARDING' : 'ORYANTASYON' }}</span><h2>{{ $en ? 'Onboarding tasks' : 'Oryantasyon görevleri' }}</h2></div></div>
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-5">@foreach($requiredIncomplete as $row)<div class="today-card surface"><span class="badge">{{ $row['stats']['percent'] }}%</span><h3>{{ $row['enrollment']->course->title }}</h3><div class="meter"><span style="width:{{ $row['stats']['percent'] }}%"></span></div><small class="muted">{{ $row['stats']['completed'] }} / {{ $row['stats']['total'] }} {{ $en ? 'completed' : 'tamamlandı' }}</small></div>@endforeach</div>
 @endif
 @endauth

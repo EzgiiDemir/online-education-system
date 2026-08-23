@@ -14,7 +14,6 @@
 <div class="collapse navbar-collapse" id="mainNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
 @auth @if(auth()->user()->role !== 'admin')<li class="nav-item"><a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>@endif @endauth
-<li class="nav-item"><a class="nav-link" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenim Yolları' }}</a></li>
 </ul>
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>
@@ -23,16 +22,27 @@
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
-<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
 @auth
 @php($unreadNotifCount = auth()->user()->unreadNotifications->count())
 @php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
-<div class="notif-menu dropdown">
-<button class="notif-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
-<x-lucide name="bell" size="20" />
+<div class="profile-menu dropdown">
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ auth()->user()->name }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
+<span class="profile-avatar-wrap">
+<span class="profile-avatar">
+@if(auth()->user()->avatar_path)
+<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">
+@else
+{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}
+@endif
+</span>
 @if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
+</span>
+<span class="profile-name">{{ auth()->user()->name }}</span>
 </button>
-<div class="notif-dropdown dropdown-menu">
+<div class="profile-dropdown dropdown-menu">
+<div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
+<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<div class="dropdown-divider"></div>
 <div class="dropdown-head">
 <strong>{{ $en ? 'Notifications' : 'Bildirimler' }}</strong>
 @if($unreadNotifCount > 0)<form method="post" action="{{ route('notifications.read-all') }}">@csrf<button type="submit" class="notif-mark-all">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>@endif
@@ -46,21 +56,7 @@
 <p class="muted" style="padding:16px;margin:0">{{ $en ? 'No notifications yet.' : 'Henüz bildirim yok.' }}</p>
 @endforelse
 <a href="{{ route('notifications.index') }}" class="notif-viewall">{{ $en ? 'View all' : 'Tümünü gör' }}</a>
-</div>
-</div>
-<div class="profile-menu dropdown">
-<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-<span class="profile-avatar">
-@if(auth()->user()->avatar_path)
-<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">
-@else
-{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}
-@endif
-</span>
-<span class="profile-name">{{ auth()->user()->name }}</span>
-</button>
-<div class="profile-dropdown dropdown-menu">
-<div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
+<div class="dropdown-divider"></div>
 @if(auth()->user()->role==='admin')<a href="/admin"><x-lucide name="settings" size="16" /> {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a><a href="{{ route('reports.index') }}"><x-lucide name="bar-chart" size="16" /> {{ $en ? 'Reports' : 'Raporlar' }}</a>@endif
 @if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
 @if(auth()->user()->role==='manager')<a href="{{ route('manager.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Manager panel' : 'Yönetici paneli' }}</a>@endif

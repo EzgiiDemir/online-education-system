@@ -49,7 +49,7 @@ class LearnerHomeTest extends TestCase
         $response = $this->actingAs($learner)->get('/');
 
         $response->assertOk();
-        $response->assertSee('Zorunlu eğitimler');
+        $response->assertSee('Oryantasyon görevleri');
         $response->assertSee($course->title);
         $response->assertSee('0 / '.$enrollment->completionStats()['total'].' tamamlandı');
     }
