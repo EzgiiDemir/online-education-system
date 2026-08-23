@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Course;
 use App\Models\CourseSection;
+use App\Models\Material;
 use Illuminate\Http\Request;
 
 /**
@@ -109,5 +110,22 @@ class CourseBuilderController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    public function updateMaterial(Request $r, Material $material)
+    {
+        $this->authorize('update', $material->session->course);
+        $data = $r->validate(['title' => 'required|string|max:255']);
+        $material->update($data);
+
+        return back()->with('success', 'Materyal güncellendi.');
+    }
+
+    public function destroyMaterial(Material $material)
+    {
+        $this->authorize('update', $material->session->course);
+        $material->delete();
+
+        return back()->with('success', 'Materyal silindi.');
     }
 }

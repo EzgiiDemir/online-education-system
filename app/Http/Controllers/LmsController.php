@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\ActivityProgress;
 use App\Models\AssignmentSubmission;
+use App\Models\AuditLog;
 use App\Models\Certificate;
 use App\Models\ClassMessage;
 use App\Models\Course;
@@ -421,6 +422,58 @@ class LmsController extends Controller
         $participants = $course->enrollments()->with(['user', 'sessionProgress.session'])->latest()->paginate(15, ['*'], 'participants_page');
 
         return view('lms.course-detail', compact('course', 'stats', 'participants'));
+    }
+
+    /**
+     * "Kim eriştiği, ne yaptığı, istatistikler" audit view for a course:
+     * merges the mutation trail (AuditLog rows -- who created/edited/deleted
+     * the course/section/activity/material rows) with the access trail
+     * (material_progress/activity_progress -- who actually opened/watched
+     * each piece of content, learner-side). Two different questions, both
+     * asked in the same view: "who touched the content" vs "who consumed it".
+     */
+    public function courseLog(Course $course)
+    {
+        $this->authorize('view', $course);
+        $course->load(['sections.activities', 'sessions.materials']);
+
+        $activityIds = $course->sections->flatMap->activities->pluck('id');
+        $materialIds = $course->sessions->flatMap->materials->pluck('id');
+
+        $accessLog = ActivityProgress::with(['activity', 'enrollment.user'])
+            ->whereIn('activity_id', $activityIds)
+            ->get()
+            ->map(fn ($p) => ['learner' => $p->enrollment->user, 'content_title' => $p->activity->title, 'content_type' => 'Etkinlik', 'watched_seconds' => $p->watched_seconds, 'completed' => $p->completed, 'completed_at' => $p->completed_at, 'last_seen_at' => $p->last_heartbeat_at ?? $p->updated_at, 'first_seen_at' => $p->created_at, 'enrollment_user_id' => $p->enrollment->user_id])
+            ->toBase()
+            ->concat(
+                MaterialProgress::with(['material', 'enrollment.user'])
+                    ->whereIn('material_id', $materialIds)
+                    ->get()
+                    ->map(fn ($p) => ['learner' => $p->enrollment->user, 'content_title' => $p->material->title, 'content_type' => 'Materyal', 'watched_seconds' => $p->watched_seconds, 'completed' => $p->completed, 'completed_at' => $p->completed_at, 'last_seen_at' => $p->last_heartbeat_at ?? $p->updated_at, 'first_seen_at' => $p->created_at, 'enrollment_user_id' => $p->enrollment->user_id])
+            )
+            ->sortByDesc('last_seen_at')
+            ->values();
+
+        $auditTrail = AuditLog::with('actor')
+            ->where(fn ($q) => $q->where('entity_type', 'Course')->where('entity_id', $course->id))
+            ->orWhere(fn ($q) => $q->where('entity_type', 'CourseSection')->whereIn('entity_id', $course->sections->pluck('id')))
+            ->orWhere(fn ($q) => $q->where('entity_type', 'Activity')->whereIn('entity_id', $activityIds))
+            ->orWhere(fn ($q) => $q->where('entity_type', 'Material')->whereIn('entity_id', $materialIds))
+            ->latest()
+            ->limit(100)
+            ->get();
+
+        $totalContentItems = $activityIds->count() + $materialIds->count();
+        $stats = [
+            'total_content_items' => $totalContentItems,
+            'total_views' => $accessLog->count(),
+            'completed_views' => $accessLog->where('completed', true)->count(),
+            'completion_rate' => $accessLog->count() ? (int) round($accessLog->where('completed', true)->count() / $accessLog->count() * 100) : 0,
+            'avg_watched_minutes' => $accessLog->count() ? round($accessLog->avg('watched_seconds') / 60, 1) : 0,
+            'unique_learners' => $accessLog->pluck('enrollment_user_id')->unique()->count(),
+        ];
+
+        return view('lms.course-log', compact('course', 'accessLog', 'auditTrail', 'stats'));
     }
 
     public function storeCourse(Request $r)

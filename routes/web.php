@@ -50,6 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/instructor/activities/{activity}', [CourseBuilderController::class, 'updateActivity'])->name('builder.activities.update');
     Route::delete('/instructor/activities/{activity}', [CourseBuilderController::class, 'destroyActivity'])->name('builder.activities.destroy');
     Route::post('/instructor/sections/{section}/activities/reorder', [CourseBuilderController::class, 'reorderActivities'])->name('builder.activities.reorder');
+    Route::post('/instructor/materials/{material}', [CourseBuilderController::class, 'updateMaterial'])->name('builder.materials.update');
+    Route::delete('/instructor/materials/{material}', [CourseBuilderController::class, 'destroyMaterial'])->name('builder.materials.destroy');
+    Route::get('/instructor/courses/{course}/log', [LmsController::class, 'courseLog'])->name('instructor.courses.log');
     Route::post('/sessions/{session}/start', [LmsController::class, 'startSession'])->name('sessions.start');
     Route::post('/sessions/{session}/complete', [LmsController::class, 'completeSession'])->name('sessions.complete');
     Route::get('/sessions/{session}/attendance-status', [LmsController::class, 'sessionAttendanceStatus'])->name('sessions.attendance-status');

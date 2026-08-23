@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Activity;
 use App\Models\Course;
 use App\Models\CourseSection;
+use App\Models\Enrollment;
+use App\Models\Material;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -179,5 +181,83 @@ class CourseBuilderTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bölümü yukarı taşı');
         $response->assertSee('Etkinliği yukarı taşı');
+    }
+
+    public function test_owning_instructor_can_rename_a_material(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Eski Ad', 'type' => 'application/pdf', 'path' => 'demo/x.pdf']);
+
+        $this->actingAs($instructor)->post(route('builder.materials.update', $material), ['title' => 'Yeni Ad'])->assertRedirect();
+
+        $this->assertDatabaseHas('materials', ['id' => $material->id, 'title' => 'Yeni Ad']);
+    }
+
+    public function test_a_non_owning_instructor_cannot_rename_a_material(): void
+    {
+        $owner = User::factory()->create(['role' => 'instructor']);
+        $other = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $owner->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Eski Ad', 'type' => 'application/pdf', 'path' => 'demo/x.pdf']);
+
+        $this->actingAs($other)->post(route('builder.materials.update', $material), ['title' => 'İzinsiz Ad'])->assertForbidden();
+
+        $this->assertDatabaseHas('materials', ['id' => $material->id, 'title' => 'Eski Ad']);
+    }
+
+    public function test_owning_instructor_can_delete_a_material(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Silinecek', 'type' => 'application/pdf', 'path' => 'demo/x.pdf']);
+
+        $this->actingAs($instructor)->delete(route('builder.materials.destroy', $material));
+
+        $this->assertDatabaseMissing('materials', ['id' => $material->id]);
+    }
+
+    /**
+     * The Log view has to answer two different questions in one place: who
+     * actually consumed the content (material_progress/activity_progress --
+     * real learner access, not a mutation) and what was done to the content
+     * itself (AuditLog rows written by the Auditable trait on Course/
+     * CourseSection/Activity/Material). This test seeds one of each and
+     * checks both show up.
+     */
+    public function test_course_log_shows_learner_access_and_the_audit_trail(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Bölüm 1']);
+        $activity = Activity::create(['course_section_id' => $section->id, 'title' => 'Video 1', 'type' => 'video', 'is_required' => true]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'El Kitabı', 'type' => 'application/pdf', 'path' => 'demo/x.pdf']);
+        $learner = User::factory()->create(['role' => 'learner', 'name' => 'Kayıt İzleyen Öğrenci']);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        $enrollment->activityProgress()->create(['activity_id' => $activity->id, 'watched_seconds' => 30, 'completed' => true, 'completed_at' => now()]);
+        $enrollment->progress()->create(['material_id' => $material->id, 'watched_seconds' => 10, 'completed' => false]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.courses.log', $course));
+
+        $response->assertOk();
+        $response->assertSee('Kayıt İzleyen Öğrenci');
+        $response->assertSee('Video 1');
+        $response->assertSee('El Kitabı');
+        // CourseSection uses the Auditable trait, so creating it above must
+        // have written a 'created' AuditLog row that shows up here too.
+        $response->assertSee('Bölüm 1');
+    }
+
+    public function test_a_non_owning_instructor_cannot_view_another_instructors_course_log(): void
+    {
+        $owner = User::factory()->create(['role' => 'instructor']);
+        $other = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $owner->id]);
+
+        $this->actingAs($other)->get(route('instructor.courses.log', $course))->assertForbidden();
     }
 }
