@@ -7,7 +7,7 @@
 
 <form method="get" action="{{ route('search.index') }}" class="search-form">
 <input type="search" name="q" value="{{ $query }}" placeholder="{{ $en ? 'Search courses, activities, materials, sessions, instructors…' : 'Eğitim, etkinlik, materyal, seans, eğitmen ara…' }}" autofocus>
-<button type="submit">{{ $en ? 'Search' : 'Ara' }}</button>
+<button type="submit" class="btn btn-primary">{{ $en ? 'Search' : 'Ara' }}</button>
 </form>
 
 @if($query !== '')
@@ -40,7 +40,7 @@
 
 @if($results['sessions']->isNotEmpty())
 <h2 class="search-group-title">{{ $en ? 'Sessions' : 'Seanslar' }}</h2>
-<div class="card surface">@foreach($results['sessions'] as $session)<div class="requirement-row"><span>{{ $session->title }} <small class="muted">— {{ $session->course->title }}</small></span><a class="button secondary" href="{{ route('courses.show', $session->course) }}">{{ $en ? 'View course' : 'Eğitimi görüntüle' }}</a></div>@endforeach</div>
+<div class="card surface">@foreach($results['sessions'] as $session)<div class="requirement-row"><span>{{ $session->title }} <small class="muted">— {{ $session->course->title }}</small></span><a class="btn btn-outline-secondary" href="{{ route('courses.show', $session->course) }}">{{ $en ? 'View course' : 'Eğitimi görüntüle' }}</a></div>@endforeach</div>
 @endif
 
 @if($results['instructors']->isNotEmpty())

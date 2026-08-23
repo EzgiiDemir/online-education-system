@@ -8,7 +8,7 @@ html[data-theme="dark"] .nav-lang{background:rgba(255,255,255,.06)}
 html[data-theme="dark"] .nav-lang a{color:var(--muted)}
 html[data-theme="dark"] .nav-lang a.is-active{background:var(--surface-solid);color:#fff}
 html[data-theme="dark"] .profile-dropdown{background:rgba(27,29,34,.92)}
-html[data-theme="dark"] .button-secondary,html[data-theme="dark"] .button.secondary,html[data-theme="dark"] .secondary{background:rgba(255,255,255,.06)}
+html[data-theme="dark"] .button-secondary,html[data-theme="dark"] .button.secondary,html[data-theme="dark"] .secondary,html[data-theme="dark"] .btn.btn-outline-secondary{background:rgba(255,255,255,.06)}
 html[data-theme="dark"] .danger-zone{background:var(--alert-error-bg);border-color:#4a2e28}
 html[data-theme="dark"] select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a9fae' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E")}
 *{box-sizing:border-box}
@@ -104,7 +104,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .course-card-top,.course-meta{display:flex;align-items:center;gap:10px}
 .course-card h2,.course-card h3{font-size:21px;margin:18px 0 10px;font-weight:650}
 .course-meta{font-size:13px;color:var(--muted);margin:20px 0}
-.course-card button,.course-card .button{width:100%}
+.course-card button,.course-card .button,.course-card .btn{width:100%}
 .completed-label{display:block;color:var(--success-dark);font-weight:700}
 .empty-state{padding:40px;text-align:center}
 .status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.03em;background:var(--brand-soft);color:var(--brand-dark)}
@@ -112,19 +112,19 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 /* Buttons — flat, no hover animation. :hover rules below only pin the
    text/icon color so a generic a:hover rule can't bleed onto a <a class="button">
    and turn it low-contrast; they deliberately do not change anything else. */
-button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;box-shadow:0 1px 2px #1018281a}
-button:hover,.button:hover{color:#fff}
-button:disabled,.button:disabled{opacity:.5;cursor:not-allowed}
-.button-secondary,.button.secondary,.secondary{background:rgba(255,255,255,.6);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
-.button-secondary:hover,.button.secondary:hover,.secondary:hover{color:var(--brand-dark)}
+button,.button,.btn.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;box-shadow:0 1px 2px #1018281a}
+button:hover,.button:hover,.btn.btn-primary:hover,.btn.btn-primary:focus{color:#fff;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%)}
+button:disabled,.button:disabled,.btn.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.button-secondary,.button.secondary,.secondary,.btn.btn-outline-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;font-size:14px;padding:11px 20px;background:rgba(255,255,255,.6);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
+.button-secondary:hover,.button.secondary:hover,.secondary:hover,.btn.btn-outline-secondary:hover,.btn.btn-outline-secondary:focus{color:var(--brand-dark);background:rgba(255,255,255,.6);border-color:var(--line)}
 
 .alert{padding:13px 18px;margin-bottom:20px;border-radius:var(--radius-sm);font-size:14px}
 .success{background:var(--alert-success-bg);color:var(--success-dark)}
 .error{background:var(--alert-error-bg);color:var(--alert-error-ink)}
 /* Danger buttons (delete account, log out): solid red, white text, always —
    hover is intentionally identical to the resting state, no exceptions. */
-.button-danger,.profile-dropdown button.button-danger,.sidebar-logout button.button-danger{background:#c0392b;color:#fff;border:0;box-shadow:none}
-.button-danger:hover,.profile-dropdown button.button-danger:hover,.sidebar-logout button.button-danger:hover{background:#c0392b;color:#fff;box-shadow:none}
+.button-danger,.profile-dropdown button.button-danger{background:#c0392b;color:#fff;border:0;box-shadow:none}
+.button-danger:hover,.profile-dropdown button.button-danger:hover{background:#c0392b;color:#fff;box-shadow:none}
 .danger-zone{margin-top:14px;padding:16px;border:1px solid #f0d8d1;border-radius:var(--radius-sm);background:var(--alert-error-bg)}
 .danger-zone p{margin:0 0 10px;font-size:13px;color:var(--alert-error-ink)}
 
@@ -155,10 +155,10 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .continue-card{flex-shrink:0;min-width:260px;background:var(--surface-solid);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:18px 20px;box-shadow:0 8px 24px #10182812}
 .continue-card small{display:block;margin-bottom:4px}
 .continue-card strong{display:block;font-size:16px;margin-bottom:10px}
-.continue-card .button{width:100%;margin-top:12px}
+.continue-card .button,.continue-card .btn{width:100%;margin-top:12px}
 .today-card{padding:20px}
 .today-card h3{font-size:16px;margin:12px 0 6px}
-.today-card .button{width:100%;margin-top:12px}
+.today-card .button,.today-card .btn{width:100%;margin-top:12px}
 
 .course-show{max-width:820px;margin:0 auto;display:grid;gap:20px}
 .course-show-hero{padding:0;overflow:hidden}

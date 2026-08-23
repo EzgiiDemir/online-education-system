@@ -6,7 +6,7 @@
     @if($newerVersion)
     <div class="alert success" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
     <span>{{ $en ? 'A newer version of this course is available (v'.$newerVersion->version.').' : 'Bu eğitimin daha yeni bir sürümü mevcut (v'.$newerVersion->version.').' }}</span>
-    <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
+    <a class="btn btn-outline-secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
     </div>
     @endif
     <div class="course-show-hero card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }})">
@@ -53,17 +53,17 @@
                 @endif
             </div>
             @if($enrollment->status === 'completed')
-                @if($enrollment->certificate)<a class="button" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="button secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
+                @if($enrollment->certificate)<a class="btn btn-primary" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="btn btn-outline-secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
             @elseif($continueUrl)
-                <a class="button" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <x-lucide name="arrow-right" size="14" /></a>
+                <a class="btn btn-primary" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <x-lucide name="arrow-right" size="14" /></a>
             @else
-                <a class="button" href="{{ route('learning.index') }}">{{ $en ? 'Go to My Learning' : 'Eğitimlerime git' }} <x-lucide name="arrow-right" size="14" /></a>
+                <a class="btn btn-primary" href="{{ route('learning.index') }}">{{ $en ? 'Go to My Learning' : 'Eğitimlerime git' }} <x-lucide name="arrow-right" size="14" /></a>
             @endif
             @else
                 @auth
-                <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
+                <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
                 @else
-                <a class="button" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
+                <a class="btn btn-primary" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
                 @endauth
             @endif
         </div>

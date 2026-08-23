@@ -43,7 +43,7 @@
 </fieldset>
 @endforeach
 @if($attemptsRemaining !== null)<p class="muted">{{ $en ? 'Attempts remaining:' : 'Kalan deneme hakkı:' }} {{ $attemptsRemaining }}</p>@endif
-<button type="submit">{{ $en ? 'Submit quiz' : 'Sınavı gönder' }}</button>
+<button type="submit" class="btn btn-primary">{{ $en ? 'Submit quiz' : 'Sınavı gönder' }}</button>
 </form>
 @endif
 </div>

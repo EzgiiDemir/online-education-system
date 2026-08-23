@@ -13,7 +13,7 @@
 <div class="meter"><span style="width:{{ $progress[$path->id] ?? 0 }}%"></span></div>
 <small class="muted">%{{ $progress[$path->id] ?? 0 }} {{ $en ? 'complete' : 'tamamlandı' }}</small>
 @endauth
-<a class="button" href="{{ route('learning-paths.show', $path) }}">{{ $en ? 'View path' : 'Yolu görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
+<a class="btn btn-primary" href="{{ route('learning-paths.show', $path) }}">{{ $en ? 'View path' : 'Yolu görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
 </article>
 @empty
 <div class="empty-state surface">{{ $en ? 'No learning paths published yet.' : 'Henüz yayınlanmış bir öğrenim yolu yok.' }}</div>

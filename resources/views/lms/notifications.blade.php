@@ -4,7 +4,7 @@
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'NOTIFICATIONS' : 'BİLDİRİMLER' }}</span><h1>{{ $en ? 'Notifications' : 'Bildirimler' }}</h1></div>
 @if(auth()->user()->unreadNotifications->isNotEmpty())
-<form method="post" action="{{ route('notifications.read-all') }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="button secondary">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>
+<form method="post" action="{{ route('notifications.read-all') }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-outline-secondary">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>
 @endif
 </div>
 <div class="card surface">
@@ -15,7 +15,7 @@
 <small class="muted">{{ $notification->created_at->format('d.m.Y H:i') }}</small>
 </div>
 @unless($notification->read_at)
-<form method="post" action="{{ route('notifications.read', $notification->id) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="button secondary">{{ $en ? 'Mark read' : 'Okundu' }}</button></form>
+<form method="post" action="{{ route('notifications.read', $notification->id) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-outline-secondary">{{ $en ? 'Mark read' : 'Okundu' }}</button></form>
 @endunless
 </div>
 @empty

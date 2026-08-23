@@ -38,7 +38,7 @@
 <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px"><b>{{ $row['enrollment']->course->title }}</b><span class="status">{{ $row['stats']['percent'] }}%</span></div>
 <div class="meter"><span style="width:{{ $row['stats']['percent'] }}%"></span></div>
 <small class="muted">{{ $row['stats']['completed'] }} / {{ $row['stats']['total'] }} {{ $en ? 'completed' : 'tamamlandı' }} · {{ $en ? 'Status:' : 'Durum:' }} {{ $row['enrollment']->status }}</small>
-@if($row['enrollment']->certificate)<div style="margin-top:8px"><a class="button secondary" href="{{ route('certificates.download', $row['enrollment']->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }}</a></div>@endif
+@if($row['enrollment']->certificate)<div style="margin-top:8px"><a class="btn btn-outline-secondary" href="{{ route('certificates.download', $row['enrollment']->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }}</a></div>@endif
 </div>
 @empty
 <p class="muted">{{ $en ? "You aren't enrolled in any training yet." : 'Henüz kayıt olduğunuz bir eğitim yok.' }}</p>

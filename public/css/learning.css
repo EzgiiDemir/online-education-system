@@ -3,7 +3,7 @@
 .learning-session>div:first-child{min-width:0;flex:1 1 200px}
 .learning-session strong,.learning-session small{display:block}
 .learning-session small{font-size:12px;color:var(--muted);margin-top:3px}
-.learning-session .button{width:auto;white-space:nowrap;padding:8px 14px;font-size:12px}
+.learning-session .button,.learning-session .btn{width:auto;white-space:nowrap;padding:8px 14px;font-size:12px}
 
 /* Content viewer (materials/activities) */
 .viewer-wrap{max-width:760px;margin:0 auto}
@@ -25,7 +25,7 @@
 .progress-breakdown{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-size:12px;color:var(--text-secondary)}
 .progress-breakdown b{color:var(--muted);font-weight:600;margin-right:4px}
 .viewer-actions{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-.viewer-actions .button{min-width:240px}
+.viewer-actions .button,.viewer-actions .btn{min-width:240px}
 .viewer-done{margin-top:22px;text-align:center}
 @media(max-width:700px){.viewer-card{padding:22px}.viewer-media iframe{height:52vh}}
 

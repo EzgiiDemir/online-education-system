@@ -17,6 +17,6 @@
 <div class="card" style="max-width:760px;margin-top:20px">
 <h2>{{ $en ? 'Account management' : 'Hesap yönetimi' }}</h2>
 <p class="muted">{{ $en ? 'Go to your account page to view your training history or manage your account.' : 'Eğitim geçmişinizi görüntülemek veya hesabınızla ilgili işlemler için hesap sayfanıza gidin.' }}</p>
-<a class="button secondary" href="{{route('account.show')}}">{{ $en ? 'My account' : 'Hesap bilgilerim' }} <x-lucide name="arrow-right" size="14" /></a>
+<a class="btn btn-outline-secondary" href="{{route('account.show')}}">{{ $en ? 'My account' : 'Hesap bilgilerim' }} <x-lucide name="arrow-right" size="14" /></a>
 </div>
 @endsection

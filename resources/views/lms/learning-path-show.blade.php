@@ -9,9 +9,9 @@
             <h1>{{ $path->title }}</h1>
             <p class="muted">{{ $path->description }}</p>
             @auth
-            <form method="post" action="{{ route('learning-paths.enroll', $path) }}">@csrf<button type="submit">{{ $en ? 'Enroll in all courses' : 'Tüm eğitimlere kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
+            <form method="post" action="{{ route('learning-paths.enroll', $path) }}">@csrf<button type="submit" class="btn btn-primary">{{ $en ? 'Enroll in all courses' : 'Tüm eğitimlere kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
             @else
-            <a class="button" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
+            <a class="btn btn-primary" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
             @endauth
         </div>
     </div>
@@ -31,9 +31,9 @@
             @elseif($completedCourseIds->contains($course->id))
             <span class="status"><x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}</span>
             @elseif($enrolledCourseIds->contains($course->id))
-            <a class="button secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'Continue' : 'Devam et' }} <x-lucide name="arrow-right" size="14" /></a>
+            <a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'Continue' : 'Devam et' }} <x-lucide name="arrow-right" size="14" /></a>
             @else
-            <a class="button secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'View' : 'Görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
+            <a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'View' : 'Görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
             @endif
         </li>
         @endforeach

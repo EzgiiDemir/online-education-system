@@ -12,8 +12,8 @@
 
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'CALENDAR' : 'TAKVİM' }}</span><h1>{{ $monthLabels[$month->month - 1] }} {{ $month->year }}</h1></div>
 <div style="display:flex;gap:8px">
-<a class="button secondary" href="{{ route('calendar.index', ['month' => $prevMonth]) }}"><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Prev' : 'Önceki' }}</a>
-<a class="button secondary" href="{{ route('calendar.index', ['month' => $nextMonth]) }}">{{ $en ? 'Next' : 'Sonraki' }} <x-lucide name="arrow-right" size="14" /></a>
+<a class="btn btn-outline-secondary" href="{{ route('calendar.index', ['month' => $prevMonth]) }}"><x-lucide name="arrow-left" size="14" /> {{ $en ? 'Prev' : 'Önceki' }}</a>
+<a class="btn btn-outline-secondary" href="{{ route('calendar.index', ['month' => $nextMonth]) }}">{{ $en ? 'Next' : 'Sonraki' }} <x-lucide name="arrow-right" size="14" /></a>
 </div>
 </div>
 
@@ -44,7 +44,7 @@
 @forelse($upcoming->take(20) as $event)
 <div class="requirement-row">
 <span><i class="dot dot-{{ $event['type'] }}"></i> <a href="{{ $event['url'] }}">{{ $event['title'] }}</a> <small class="muted">{{ \Illuminate\Support\Carbon::parse($event['date'])->format('d.m.Y') }}{{ $event['time'] ? ' · '.$event['time'] : '' }}</small></span>
-@if($event['ics'])<a class="button secondary" href="{{ $event['ics'] }}">{{ $en ? 'Add to calendar' : 'Takvime ekle' }}</a>@endif
+@if($event['ics'])<a class="btn btn-outline-secondary" href="{{ $event['ics'] }}">{{ $en ? 'Add to calendar' : 'Takvime ekle' }}</a>@endif
 </div>
 @empty
 <p class="muted" style="margin:0">{{ $en ? 'Nothing scheduled yet.' : 'Henüz planlanmış bir şey yok.' }}</p>

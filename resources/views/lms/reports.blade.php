@@ -11,8 +11,8 @@
 <div class="field"><label for="from">{{ $en ? 'From' : 'Başlangıç' }}</label><input type="date" id="from" name="from" value="{{ request('from') }}"></div>
 <div class="field"><label for="to">{{ $en ? 'To' : 'Bitiş' }}</label><input type="date" id="to" name="to" value="{{ request('to') }}"></div>
 <div class="field" style="align-self:flex-end;display:flex;gap:8px">
-<button type="submit">{{ $en ? 'Filter' : 'Filtrele' }}</button>
-<a class="button secondary" href="{{ route('reports.export', request()->query()) }}">{{ $en ? 'Download CSV' : 'CSV indir' }}</a>
+<button type="submit" class="btn btn-primary">{{ $en ? 'Filter' : 'Filtrele' }}</button>
+<a class="btn btn-outline-secondary" href="{{ route('reports.export', request()->query()) }}">{{ $en ? 'Download CSV' : 'CSV indir' }}</a>
 </div>
 </form>
 

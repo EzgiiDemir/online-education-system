@@ -21,5 +21,5 @@
 <div class="today-card surface"><p class="muted" style="margin:0">{{ $en ? 'Nothing needs your attention right now.' : 'Şu an dikkat gerektiren bir şey yok.' }}</p></div>
 @endif
 </div>
-<div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'CONTENT MANAGEMENT' : 'İÇERİK YÖNETİMİ' }}</span><h2>{{ $en ? 'My Courses' : 'Eğitimlerim' }}</h2></div><a class="button" href="{{ route('instructor.courses.index') }}">{{ $en ? 'Manage courses' : 'Eğitimleri yönet' }} <x-lucide name="arrow-right" size="14" /></a></div>
+<div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'CONTENT MANAGEMENT' : 'İÇERİK YÖNETİMİ' }}</span><h2>{{ $en ? 'My Courses' : 'Eğitimlerim' }}</h2></div><a class="btn btn-primary" href="{{ route('instructor.courses.index') }}">{{ $en ? 'Manage courses' : 'Eğitimleri yönet' }} <x-lucide name="arrow-right" size="14" /></a></div>
 @endsection

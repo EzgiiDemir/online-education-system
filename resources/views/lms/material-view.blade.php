@@ -11,14 +11,14 @@
 @elseif($material->type === 'application/pdf')
 <div class="viewer-media"><iframe src="{{ asset('storage/'.$material->path) }}"></iframe></div>
 @else
-<div class="viewer-empty"><p class="muted">Bu içerik türü tarayıcıda önizlenemiyor.</p><a class="button secondary" href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">Dosyayı indir / aç</a></div>
+<div class="viewer-empty"><p class="muted">Bu içerik türü tarayıcıda önizlenemiyor.</p><a class="btn btn-outline-secondary" href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">Dosyayı indir / aç</a></div>
 @endif
 @include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('materials.heartbeat', $material), 'labelWatched' => 'İzlenme süresi'])
 @if($progress->completed)
 <div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
 @else
 <div class="viewer-actions">
-<form method="post" action="{{ route('materials.complete', $material) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" disabled>Tamamlandı olarak işaretle</button></form>
+<form method="post" action="{{ route('materials.complete', $material) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" class="btn btn-primary" disabled>Tamamlandı olarak işaretle</button></form>
 <small class="muted">İçeriği görüntüledikçe süre otomatik birikir; yeterli süreye ulaşınca buton aktif olur.</small>
 </div>
 @endif

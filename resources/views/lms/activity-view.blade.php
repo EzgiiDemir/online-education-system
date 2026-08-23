@@ -12,7 +12,7 @@
 @elseif($activity->path && in_array($activity->type, ['document', 'presentation']))
 <div class="viewer-media"><iframe src="{{ asset('storage/'.$activity->path) }}"></iframe></div>
 @elseif($activity->path)
-<div class="viewer-empty"><a class="button secondary" href="{{ asset('storage/'.$activity->path) }}" target="_blank" rel="noopener">Kaynağı aç</a></div>
+<div class="viewer-empty"><a class="btn btn-outline-secondary" href="{{ asset('storage/'.$activity->path) }}" target="_blank" rel="noopener">Kaynağı aç</a></div>
 @else
 <div class="viewer-empty"><p class="muted" style="margin:0">Bu etkinlik için ayrı bir dosya bulunmuyor.</p></div>
 @endif
@@ -21,7 +21,7 @@
 <div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
 @else
 <div class="viewer-actions">
-<form method="post" action="{{ route('activities.complete', $activity) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" disabled>Tamamlandı olarak işaretle</button></form>
+<form method="post" action="{{ route('activities.complete', $activity) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" class="btn btn-primary" disabled>Tamamlandı olarak işaretle</button></form>
 <small class="muted">İçeriği görüntüledikçe süre otomatik birikir; yeterli süreye ulaşınca buton aktif olur.</small>
 </div>
 @endif
