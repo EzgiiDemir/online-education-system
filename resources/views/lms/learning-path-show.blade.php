@@ -5,7 +5,7 @@
 <div class="course-show">
     <div class="course-show-hero card surface" style="--course-accent:var(--course-accent-{{ $path->id % 6 }});border-top:4px solid var(--course-accent)">
         <div class="course-show-hero-body">
-            <span class="status"><x-lucide name="map" size="14" /> {{ $en ? 'LEARNING PATH' : 'ÖĞRENİM YOLU' }}</span>
+            <span class="badge"><x-lucide name="map" size="14" /> {{ $en ? 'LEARNING PATH' : 'ÖĞRENİM YOLU' }}</span>
             <h1>{{ $path->title }}</h1>
             <p class="muted">{{ $path->description }}</p>
             @auth
@@ -27,9 +27,9 @@
                 @unless($course->pivot->is_required)<small class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</small>@endunless
             </div>
             @if($locked)
-            <span class="status"><x-lucide name="lock" size="14" /> {{ $en ? 'Locked' : 'Kilitli' }}</span>
+            <span class="badge"><x-lucide name="lock" size="14" /> {{ $en ? 'Locked' : 'Kilitli' }}</span>
             @elseif($completedCourseIds->contains($course->id))
-            <span class="status"><x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}</span>
+            <span class="badge"><x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}</span>
             @elseif($enrolledCourseIds->contains($course->id))
             <a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'Continue' : 'Devam et' }} <x-lucide name="arrow-right" size="14" /></a>
             @else

@@ -15,7 +15,7 @@
 @endif
 @include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('materials.heartbeat', $material), 'labelWatched' => 'İzlenme süresi'])
 @if($progress->completed)
-<div class="viewer-done"><span class="status" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
+<div class="viewer-done"><span class="badge" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
 @else
 <div class="viewer-actions">
 <form method="post" action="{{ route('materials.complete', $material) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" class="btn btn-primary" disabled>Tamamlandı olarak işaretle</button></form>

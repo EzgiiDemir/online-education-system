@@ -11,7 +11,7 @@
 @forelse($notifications as $notification)
 <div class="requirement-row" style="align-items:flex-start">
 <div>
-<b style="{{ $notification->read_at ? '' : 'color:var(--brand-dark)' }}">@unless($notification->read_at)<span class="status" style="margin-right:6px">{{ $en ? 'NEW' : 'YENİ' }}</span>@endunless{{ $notification->data['message'] ?? '—' }}</b><br>
+<b style="{{ $notification->read_at ? '' : 'color:var(--brand-dark)' }}">@unless($notification->read_at)<span class="badge" style="margin-right:6px">{{ $en ? 'NEW' : 'YENİ' }}</span>@endunless{{ $notification->data['message'] ?? '—' }}</b><br>
 <small class="muted">{{ $notification->created_at->format('d.m.Y H:i') }}</small>
 </div>
 @unless($notification->read_at)

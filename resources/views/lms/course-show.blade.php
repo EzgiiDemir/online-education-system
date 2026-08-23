@@ -16,7 +16,7 @@
         <div class="course-show-cover course-show-cover-accent"><span class="course-show-cover-initial">{{ mb_strtoupper(mb_substr($course->title, 0, 1)) }}</span></div>
         @endif
         <div class="course-show-hero-body">
-            <span class="status">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span>
+            <span class="badge">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span>
             <h1>{{ $course->title }}</h1>
             <div class="course-show-meta">
                 <span><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span>
@@ -27,7 +27,7 @@
                 <span>•</span>
                 <span>v{{ $course->version }}</span>
                 @if($course->certificate_enabled)<span>•</span><span><x-lucide name="graduation-cap" size="14" /> {{ $en ? 'Certificate' : 'Sertifikalı' }}</span>@endif
-                @if($course->category && $course->category !== 'optional')<span>•</span><span class="status">{{ ['required' => $en ? 'REQUIRED' : 'ZORUNLU', 'compliance' => $en ? 'COMPLIANCE' : 'UYUMLULUK', 'onboarding' => $en ? 'ONBOARDING' : 'ORYANTASYON', 'professional_development' => $en ? 'PROF. DEVELOPMENT' : 'MESLEKİ GELİŞİM'][$course->category] ?? $course->category }}</span>@endif
+                @if($course->category && $course->category !== 'optional')<span>•</span><span class="badge">{{ ['required' => $en ? 'REQUIRED' : 'ZORUNLU', 'compliance' => $en ? 'COMPLIANCE' : 'UYUMLULUK', 'onboarding' => $en ? 'ONBOARDING' : 'ORYANTASYON', 'professional_development' => $en ? 'PROF. DEVELOPMENT' : 'MESLEKİ GELİŞİM'][$course->category] ?? $course->category }}</span>@endif
             </div>
 
             @if($enrollment)
@@ -82,7 +82,7 @@
     <div class="card surface course-show-section">
         <h2>{{ $en ? 'Completion requirements' : 'Tamamlanma koşulları' }}</h2>
         <p class="muted">{{ $en ? 'You need to complete all required items below to earn your certificate.' : 'Sertifika kazanmak için aşağıdaki tüm zorunlu içerikleri tamamlamanız gerekir.' }}</p>
-        <div class="requirement-row"><span>{{ $en ? 'Materials & sessions' : 'Materyal ve seanslar' }}</span><span class="status">{{ $stats['completed'] }} / {{ $stats['total'] }}</span></div>
+        <div class="requirement-row"><span>{{ $en ? 'Materials & sessions' : 'Materyal ve seanslar' }}</span><span class="badge">{{ $stats['completed'] }} / {{ $stats['total'] }}</span></div>
     </div>
     @endif
 
@@ -98,7 +98,7 @@
                 <span>{{ $activity->title }} @unless($activity->is_required)<small class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</small>@endunless</span>
                 @if($enrollment && $activity->type !== 'live_session')
                     @php($activityDone = $enrollment->activityProgress->firstWhere('activity_id', $activity->id)?->completed)
-                    <span class="status">@if($activityDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
+                    <span class="badge">@if($activityDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
                 @endif
             </li>
             @endforeach
@@ -121,7 +121,7 @@
                 <span><x-lucide name="file-text" size="14" /> {{ $material->title }}</span>
                 @if($enrollment)
                     @php($materialDone = $enrollment->progress->firstWhere('material_id', $material->id)?->completed)
-                    <span class="status">@if($materialDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
+                    <span class="badge">@if($materialDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
                 @endif
             </li>
             @endforeach

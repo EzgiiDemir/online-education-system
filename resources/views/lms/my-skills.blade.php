@@ -6,7 +6,7 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 @forelse($skills as $skill)
 <article class="course-card surface" style="--course-accent:var(--course-accent-{{ $skill->id % 6 }});border-left:4px solid var(--course-accent)">
-<div class="course-card-top"><span class="status"><x-lucide name="award" size="14" /> {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
+<div class="course-card-top"><span class="badge"><x-lucide name="award" size="14" /> {{ $en ? 'SKILL' : 'YETKİNLİK' }}</span></div>
 <h2>{{ $skill->name }}</h2>
 <p class="muted">{{ $en ? 'Earned from:' : 'Kazanıldığı eğitim(ler):' }}</p>
 <ul class="curriculum-list">

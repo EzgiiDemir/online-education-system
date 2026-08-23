@@ -26,7 +26,7 @@
 <td>{{ $enrollment->user->department ?: '—' }}</td>
 <td>{{ $enrollment->course->title }}</td>
 <td class="col-secondary">{{ $enrollment->course->instructor->name }}</td>
-<td><span class="status">{{ ['enrolled'=>$en?'Enrolled':'Kayıtlı','in_progress'=>$en?'In progress':'Devam ediyor','completed'=>$en?'Completed':'Tamamlandı'][$enrollment->status] ?? $enrollment->status }}</span></td>
+<td><span class="badge">{{ ['enrolled'=>$en?'Enrolled':'Kayıtlı','in_progress'=>$en?'In progress':'Devam ediyor','completed'=>$en?'Completed':'Tamamlandı'][$enrollment->status] ?? $enrollment->status }}</span></td>
 <td>%{{ $enrollment->completionStats()['percent'] }}</td>
 <td class="col-secondary">{{ $enrollment->created_at->format('d.m.Y') }}</td>
 <td>{{ $enrollment->completed_at?->format('d.m.Y') ?: '—' }}</td>

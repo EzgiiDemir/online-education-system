@@ -6,7 +6,7 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 @forelse($paths as $path)
 <article class="course-card surface" style="--course-accent:var(--course-accent-{{ $path->id % 6 }});border-left:4px solid var(--course-accent)">
-<div class="course-card-top"><span class="status"><x-lucide name="map" size="14" /> {{ $path->courses_count }} {{ $en ? 'courses' : 'eğitim' }}</span></div>
+<div class="course-card-top"><span class="badge"><x-lucide name="map" size="14" /> {{ $path->courses_count }} {{ $en ? 'courses' : 'eğitim' }}</span></div>
 <h2><a href="{{ route('learning-paths.show', $path) }}">{{ $path->title }}</a></h2>
 <p class="muted">{{ $path->description }}</p>
 @auth

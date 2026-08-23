@@ -12,7 +12,7 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
 @forelse($team as $member)
 <article class="card management-card">
-<div class="course-card-top"><span class="status">{{ $member->department ?: ($en ? 'No department' : 'Departman yok') }}</span></div>
+<div class="course-card-top"><span class="badge">{{ $member->department ?: ($en ? 'No department' : 'Departman yok') }}</span></div>
 <h3>{{ $member->name }}</h3>
 <p class="muted">{{ $member->job_title ?: $member->email }}</p>
 <div class="course-meta">
@@ -34,7 +34,7 @@
 <div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'FOLLOW-UP' : 'TAKİP' }}</span><h2>{{ $en ? 'Training in progress' : 'Devam eden eğitimler' }}</h2></div></div>
 <div class="card">
 @foreach($incompleteEnrollments as $enrollment)
-<div class="requirement-row"><span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span><span class="status">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span></div>
+<div class="requirement-row"><span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span><span class="badge">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span></div>
 @endforeach
 </div>
 @endif

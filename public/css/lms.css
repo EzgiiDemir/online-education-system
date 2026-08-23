@@ -107,7 +107,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .course-card button,.course-card .button,.course-card .btn{width:100%}
 .completed-label{display:block;color:var(--success-dark);font-weight:700}
 .empty-state{padding:40px;text-align:center}
-.status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.03em;background:var(--brand-soft);color:var(--brand-dark)}
+.status,.badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.03em;background:var(--brand-soft);color:var(--brand-dark)}
 
 /* Buttons — flat, no hover animation. :hover rules below only pin the
    text/icon color so a generic a:hover rule can't bleed onto a <a class="button">
