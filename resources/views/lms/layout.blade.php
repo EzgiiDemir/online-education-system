@@ -11,7 +11,7 @@
 <div class="container-fluid">
 <a class="navbar-brand brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavCollapse" aria-controls="mainNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
-<div class="collapse navbar-collapse" id="mainNavCollapse">
+<div class="collapse navbar-collapse ms-auto justify-content-end" id="mainNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
 @auth @if(auth()->user()->role !== 'admin')<li class="nav-item"><a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>@endif @endauth
 </ul>

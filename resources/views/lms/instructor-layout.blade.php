@@ -9,7 +9,7 @@
 <div class="container-fluid">
 <a class="navbar-brand brand" href="{{ route('instructor.dashboard') }}">Arucad Campus <span>LMS</span></a>
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#instructorNavCollapse" aria-controls="instructorNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
-<div class="collapse navbar-collapse" id="instructorNavCollapse">
+<div class="collapse navbar-collapse ms-auto justify-content-end" id="instructorNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.dashboard') ? 'is-active' : '' }}" href="{{ route('instructor.dashboard') }}">{{ $en ? 'Overview' : 'Genel bakış' }}</a></li>
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'is-active' : '' }}" href="{{ route('instructor.courses.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>

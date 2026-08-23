@@ -9,7 +9,7 @@
 <div class="container-fluid">
 <a class="navbar-brand brand" href="{{ route('manager.dashboard') }}">Arucad Campus <span>LMS</span></a>
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#managerNavCollapse" aria-controls="managerNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
-<div class="collapse navbar-collapse" id="managerNavCollapse">
+<div class="collapse navbar-collapse ms-auto justify-content-end" id="managerNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('manager.dashboard') ? 'is-active' : '' }}" href="{{ route('manager.dashboard') }}">{{ $en ? 'Team overview' : 'Ekip genel bakış' }}</a></li>
 </ul>
