@@ -62,9 +62,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/sessions/{session}/recording', [LmsController::class, 'uploadRecording'])->name('sessions.recording');
     Route::get('/materials/{material}', [LmsController::class, 'materialView'])->name('materials.view');
     Route::post('/materials/{material}/heartbeat', [LmsController::class, 'materialHeartbeat'])->name('materials.heartbeat');
+    Route::post('/materials/{material}/duration', [LmsController::class, 'setMaterialDuration'])->name('materials.duration');
     Route::post('/materials/{material}/complete', [LmsController::class, 'completeMaterial'])->name('materials.complete');
     Route::get('/activities/{activity}', [LmsController::class, 'activityView'])->name('activities.view');
     Route::post('/activities/{activity}/heartbeat', [LmsController::class, 'activityHeartbeat'])->name('activities.heartbeat');
+    Route::post('/activities/{activity}/duration', [LmsController::class, 'setActivityDuration'])->name('activities.duration');
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::post('/activities/{activity}/quiz-attempts', [LmsController::class, 'submitQuizAttempt'])->name('activities.quiz-attempts.store');
     Route::post('/activities/{activity}/submissions', [LmsController::class, 'submitAssignment'])->name('activities.submissions.store');

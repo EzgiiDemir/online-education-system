@@ -16,13 +16,17 @@
 @else
 <div class="viewer-empty"><p class="muted" style="margin:0">Bu etkinlik için ayrı bir dosya bulunmuyor.</p></div>
 @endif
-@include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('activities.heartbeat', $activity), 'labelWatched' => 'Görüntülenme süresi'])
+@if($isVideo)
+@include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('activities.heartbeat', $activity), 'durationRoute' => route('activities.duration', $activity), 'labelWatched' => 'Görüntülenme süresi'])
+@else
+@include('lms.partials.document-review', ['estimatedMinutes' => $estimatedMinutes])
+@endif
 @if($progress->completed)
 <div class="viewer-done"><span class="badge" style="background:#eef1e9;color:var(--success-dark)"><x-lucide name="check" size="14" /> Tamamlandı</span></div>
 @else
 <div class="viewer-actions">
-<form method="post" action="{{ route('activities.complete', $activity) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" class="btn btn-primary" disabled>Tamamlandı olarak işaretle</button></form>
-<small class="muted">İçeriği görüntüledikçe süre otomatik birikir; yeterli süreye ulaşınca buton aktif olur.</small>
+<form method="post" action="{{ route('activities.complete', $activity) }}" id="complete-form">@csrf<button type="submit" id="complete-btn" class="btn btn-primary" @if($isVideo) disabled @endif>{{ $isVideo ? 'Tamamlandı olarak işaretle' : 'Okudum / İnceledim' }}</button></form>
+@if($isVideo)<small class="muted">İçeriği görüntüledikçe süre otomatik birikir; yeterli süreye ulaşınca buton aktif olur.</small>@endif
 </div>
 @endif
 </div>

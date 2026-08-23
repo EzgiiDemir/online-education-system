@@ -13,7 +13,27 @@ class WatchTimeIntegrityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_material_cannot_be_completed_without_any_watch_time(): void
+    public function test_video_material_cannot_be_completed_without_any_watch_time(): void
+    {
+        $course = Course::factory()->create(['status' => 'published']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Video', 'type' => 'video/mp4', 'path' => 'demo/video.mp4']);
+        $learner = User::factory()->create(['role' => 'learner']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->post(route('materials.complete', $material));
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('material_progress', ['material_id' => $material->id, 'completed' => true]);
+    }
+
+    /**
+     * A PDF/document has no meaningful "watch time" -- "tab was visible" is
+     * not a real signal that someone read it. Completion for these is a
+     * plain self-report ("Okudum / İncelendim"), not gated by any timer.
+     * See WatchTimeIntegrityTest's video-only tests for the anti-cheat gate.
+     */
+    public function test_pdf_material_completes_immediately_with_no_watch_time_required(): void
     {
         $course = Course::factory()->create(['status' => 'published']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
@@ -23,8 +43,8 @@ class WatchTimeIntegrityTest extends TestCase
 
         $response = $this->actingAs($learner)->post(route('materials.complete', $material));
 
-        $response->assertStatus(422);
-        $this->assertDatabaseMissing('material_progress', ['material_id' => $material->id, 'completed' => true]);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('material_progress', ['material_id' => $material->id, 'completed' => true]);
     }
 
     public function test_material_completion_requires_accrued_heartbeat_time(): void
@@ -80,6 +100,37 @@ class WatchTimeIntegrityTest extends TestCase
 
         $response->assertStatus(422);
         $this->assertDatabaseMissing('activity_progress', ['activity_id' => $activity->id, 'completed' => true]);
+    }
+
+    public function test_document_activity_completes_immediately_with_no_watch_time_required(): void
+    {
+        $course = Course::factory()->create(['status' => 'published']);
+        $section = $course->sections()->create(['title' => 'Bölüm 1']);
+        $activity = $section->activities()->create(['title' => 'El Kitabı', 'type' => 'document', 'is_required' => true]);
+        $learner = User::factory()->create(['role' => 'learner']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->post(route('activities.complete', $activity));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('activity_progress', ['activity_id' => $activity->id, 'completed' => true]);
+    }
+
+    public function test_video_duration_is_captured_once_from_the_file_and_cannot_be_shrunk_afterwards(): void
+    {
+        $course = Course::factory()->create(['status' => 'published']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Video', 'type' => 'video/mp4', 'path' => 'demo/video.mp4']);
+        $learner = User::factory()->create(['role' => 'learner']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $this->actingAs($learner)->postJson(route('materials.duration', $material), ['seconds' => 600]);
+        $this->assertSame(600, $material->fresh()->duration_seconds);
+
+        // A second, smaller report (e.g. a malicious replay trying to shrink
+        // the requirement) must be ignored once a value is already recorded.
+        $this->actingAs($learner)->postJson(route('materials.duration', $material), ['seconds' => 10]);
+        $this->assertSame(600, $material->fresh()->duration_seconds);
     }
 
     public function test_live_session_activities_are_not_self_completable(): void

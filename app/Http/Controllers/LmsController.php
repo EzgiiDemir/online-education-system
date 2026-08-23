@@ -20,6 +20,7 @@ use App\Models\SessionProgress;
 use App\Models\User;
 use App\Notifications\CoursePublished;
 use App\Notifications\LiveSessionScheduled;
+use App\Support\DocumentEstimator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -439,7 +440,7 @@ class LmsController extends Controller
         unset($data['poster'], $data['image']);
         $course = Course::create($data);
         foreach (User::where('role', 'learner')->get() as $user) {
-            $user->notify(new CoursePublished($course->title));
+            $user->notify(new CoursePublished($course));
         }
 
         return redirect()->route('instructor.courses.show', $course)->with('success', 'Eğitim planlandı ve yayınlandı.');
@@ -601,9 +602,11 @@ class LmsController extends Controller
     {
         $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
-        $required = $this->requiredWatchSeconds($material->duration_seconds);
+        $isVideo = str_starts_with($material->type, 'video/');
+        $required = $isVideo ? $this->requiredWatchSeconds($material->duration_seconds) : null;
+        $estimatedMinutes = $isVideo ? null : DocumentEstimator::estimateMinutes(storage_path('app/public/'.$material->path), $material->type);
 
-        return view('lms.material-view', ['material' => $material, 'progress' => $progress, 'required' => $required]);
+        return view('lms.material-view', ['material' => $material, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
     }
 
     public function materialHeartbeat(Material $material)
@@ -616,12 +619,32 @@ class LmsController extends Controller
         return response()->json(['watched_seconds' => $progress->watched_seconds, 'required_seconds' => $required, 'eligible' => $progress->watched_seconds >= $required]);
     }
 
+    /**
+     * The real duration of a video, read client-side from the file itself
+     * once its metadata loads, replacing the old model where an instructor
+     * had no way to enter it and every video fell back to a flat 20s
+     * requirement. First-write-wins: once set, later calls can't shrink it
+     * (the client-reported value is never trusted for anything that already
+     * has a value, same anti-cheat posture as the heartbeat mechanism).
+     */
+    public function setMaterialDuration(Request $r, Material $material)
+    {
+        Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        if (is_null($material->duration_seconds)) {
+            $material->update(['duration_seconds' => $r->validate(['seconds' => 'required|integer|min:1|max:86400'])['seconds']]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function completeMaterial(Material $material)
     {
         $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
-        $required = $this->requiredWatchSeconds($material->duration_seconds);
-        abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        if (str_starts_with($material->type, 'video/')) {
+            $required = $this->requiredWatchSeconds($material->duration_seconds);
+            abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        }
         $progress->update(['completed' => true, 'completed_at' => now()]);
         $this->checkAndCompleteEnrollment($enrollment);
 
@@ -652,9 +675,24 @@ class LmsController extends Controller
             return view('lms.assignment-view', compact('activity', 'progress', 'submissions', 'hasPassed', 'hasPendingSubmission'));
         }
 
-        $required = $this->requiredWatchSeconds($activity->duration_seconds);
+        $isVideo = $activity->type === 'video';
+        $required = $isVideo ? $this->requiredWatchSeconds($activity->duration_seconds) : null;
+        $estimatedMinutes = (! $isVideo && $activity->path) ? DocumentEstimator::estimateMinutes(storage_path('app/public/'.$activity->path), $this->activityFileMime($activity)) : null;
 
-        return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required]);
+        return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
+    }
+
+    /**
+     * Activities store a coarse type ('document', 'presentation', ...) rather
+     * than a MIME type, so map it to the MIME DocumentEstimator understands.
+     */
+    private function activityFileMime(Activity $activity): ?string
+    {
+        return match ($activity->type) {
+            'document' => 'application/pdf',
+            'presentation' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            default => null,
+        };
     }
 
     /**
@@ -732,13 +770,29 @@ class LmsController extends Controller
         return response()->json(['watched_seconds' => $progress->watched_seconds, 'required_seconds' => $required, 'eligible' => $progress->watched_seconds >= $required]);
     }
 
+    /**
+     * See setMaterialDuration() -- same first-write-wins auto-detection,
+     * for activities of type 'video'.
+     */
+    public function setActivityDuration(Request $r, Activity $activity)
+    {
+        Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        if (is_null($activity->duration_seconds)) {
+            $activity->update(['duration_seconds' => $r->validate(['seconds' => 'required|integer|min:1|max:86400'])['seconds']]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function completeActivity(Activity $activity)
     {
         abort_if(in_array($activity->type, ['live_session', 'quiz', 'assignment'], true), 422, 'Bu etkinlik türü bu şekilde tamamlanamaz.');
         $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
-        $required = $this->requiredWatchSeconds($activity->duration_seconds);
-        abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        if ($activity->type === 'video') {
+            $required = $this->requiredWatchSeconds($activity->duration_seconds);
+            abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        }
         $progress->update(['completed' => true, 'completed_at' => now()]);
         $this->checkAndCompleteEnrollment($enrollment);
 

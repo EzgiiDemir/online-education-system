@@ -1,4 +1,4 @@
-{{-- Expects: $progress, $required, $heartbeatRoute, $labelWatched --}}
+{{-- Expects: $progress, $required, $heartbeatRoute, $labelWatched, $durationRoute --}}
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-progress">
     <div class="viewer-progress-label"><span>{{ $labelWatched }}</span><span id="watched-pct">%{{ $required ? min(100, (int) round($progress->watched_seconds / $required * 100)) : 0 }}</span></div>
@@ -47,6 +47,23 @@
     }
     setInterval(tick, 5000);
     tick();
+
+    // The required-time gate only means anything if it's based on the
+    // video's real length. Read it once from the file itself instead of
+    // relying on anyone to have entered it by hand; the server only accepts
+    // this the first time (see setMaterialDuration/setActivityDuration), so
+    // a learner can't shrink an already-known duration by re-reporting one.
+    var player = document.getElementById('content-player');
+    if (player) {
+        player.addEventListener('loadedmetadata', function () {
+            if (!isFinite(player.duration) || player.duration <= 0) return;
+            fetch('{{ $durationRoute }}', {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': token, 'Content-Type': 'application/json', 'Accept': 'application/json'},
+                body: JSON.stringify({seconds: Math.round(player.duration)})
+            });
+        });
+    }
 })();
 </script>
 @endif

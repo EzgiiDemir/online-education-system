@@ -27,7 +27,7 @@ class CompletionTransparencyTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
         $course = Course::factory()->create(['status' => 'published']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
-        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'demo/slides.pdf', 'duration_seconds' => 100]);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Video', 'type' => 'video/mp4', 'path' => 'demo/video.mp4', 'duration_seconds' => 100]);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
 
         $response = $this->actingAs($learner)->get(route('materials.view', $material));
@@ -62,7 +62,7 @@ class CompletionTransparencyTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
         $course = Course::factory()->create(['status' => 'published']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
-        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'demo/slides.pdf', 'duration_seconds' => 20]);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Video', 'type' => 'video/mp4', 'path' => 'demo/video.mp4', 'duration_seconds' => 20]);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
         $enrollment->progress()->create(['material_id' => $material->id, 'watched_seconds' => 20, 'completed' => true, 'completed_at' => now()]);
 
@@ -71,5 +71,21 @@ class CompletionTransparencyTest extends TestCase
         $response->assertOk();
         $response->assertSee('Tamamlandı');
         $response->assertDontSee('Sekme arka plandayken geçen süre sayılmaz');
+    }
+
+    public function test_pdf_material_view_shows_estimated_reading_time_hint_instead_of_a_timer(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'demo/isg-baslangic-sunumu.pdf']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->get(route('materials.view', $material));
+
+        $response->assertOk();
+        $response->assertDontSee('Gerekli:');
+        $response->assertDontSee('Sekme arka plandayken geçen süre sayılmaz');
+        $response->assertSee('Okudum / İnceledim');
     }
 }
