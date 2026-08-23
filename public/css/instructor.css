@@ -13,14 +13,14 @@
 .sidebar-nav a:hover{background:var(--brand-soft);color:var(--brand-dark)}
 .sidebar-nav a.is-active{background:var(--brand-soft);color:var(--brand-dark)}
 .sidebar-nav a span{width:17px;text-align:center;color:var(--muted)}
-.sidebar-logout{margin-top:auto;padding-top:18px}
-.sidebar-logout button{width:100%;justify-content:flex-start}
 .instructor-main{flex:1;min-width:0;padding:42px clamp(24px,5vw,64px)}
-.instructor-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:34px;gap:18px}
+.instructor-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:34px;gap:18px}
 .instructor-header h1{font-size:32px;margin:6px 0 0}
+.instructor-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .instructor-main .card{background:var(--surface);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;box-shadow:0 10px 34px #10182812}
 .instructor-main button{width:auto}
 .instructor-main .tag{font-size:11px;letter-spacing:.08em}
 .instructor-main h2{margin-top:0}
 html[data-theme="dark"] .instructor-sidebar{background:rgba(20,22,26,.82)}
-@media(max-width:800px){.instructor-sidebar{width:78px;flex-basis:78px;padding:22px 9px}.sidebar-brand{font-size:0;margin:0 auto 30px}.sidebar-brand:after{content:'ACL';font-size:13px;color:var(--nav-text)}.sidebar-profile{justify-content:center;padding:8px}.sidebar-profile>div:last-child,.sidebar-label,.sidebar-nav a:not(:has(span)){display:none}.sidebar-nav a{justify-content:center}.sidebar-logout button{font-size:0;justify-content:center}.sidebar-logout button span{font-size:16px}.instructor-main{padding:28px 18px}.instructor-header h1{font-size:25px}.instructor-header .profile-name{display:none}}
+@media(max-width:800px){.instructor-sidebar{width:78px;flex-basis:78px;padding:22px 9px}.sidebar-brand{font-size:0;margin:0 auto 30px}.sidebar-brand:after{content:'ACL';font-size:13px;color:var(--nav-text)}.sidebar-profile{justify-content:center;padding:8px}.sidebar-profile>div:last-child,.sidebar-label,.sidebar-nav a:not(:has(span)){display:none}.sidebar-nav a{justify-content:center}.instructor-main{padding:28px 18px}.instructor-header h1{font-size:25px}.instructor-header .profile-name{display:none}}
+@media(max-width:480px){.instructor-sidebar{width:56px;flex-basis:56px;padding:16px 6px}.sidebar-avatar{width:32px;height:32px}.instructor-main{padding:20px 14px}.instructor-header{gap:10px}.instructor-header h1{font-size:20px}.instructor-header-actions{width:100%;justify-content:space-between}.profile-name{display:none}}

@@ -371,6 +371,22 @@ class LmsController extends Controller
         ));
     }
 
+    public function instructorCourses()
+    {
+        abort_unless(Auth::user()->role === 'instructor', 403);
+
+        $courses = Auth::user()->courses()
+            ->withCount([
+                'enrollments',
+                'enrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
+            ])
+            ->with('sessions')
+            ->latest()
+            ->get();
+
+        return view('lms.instructor-courses', compact('courses'));
+    }
+
     public function instructorProfile()
     {
         abort_unless(Auth::user()->isInstructor(), 403);

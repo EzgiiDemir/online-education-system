@@ -18,11 +18,11 @@ class CourseCreationWizardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_instructor_dashboard_renders_the_wizard_steps(): void
+    public function test_instructor_courses_page_renders_the_wizard_steps(): void
     {
         $instructor = User::factory()->create(['role' => 'instructor']);
 
-        $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+        $response = $this->actingAs($instructor)->get(route('instructor.courses.index'));
 
         $response->assertOk();
         $response->assertSee('1. Temel bilgiler');

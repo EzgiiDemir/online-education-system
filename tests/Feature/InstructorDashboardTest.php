@@ -83,7 +83,7 @@ class InstructorDashboardTest extends TestCase
         Enrollment::create(['user_id' => $completedLearner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
         Enrollment::create(['user_id' => $activeLearner->id, 'course_id' => $course->id, 'status' => 'enrolled']);
 
-        $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+        $response = $this->actingAs($instructor)->get(route('instructor.courses.index'));
 
         $response->assertOk();
         $response->assertSee('%50 tamamlama');

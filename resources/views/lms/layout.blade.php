@@ -88,11 +88,11 @@ document.addEventListener('click', function (e) {
     var input = widget.querySelector('[data-search-input]');
     var results = widget.querySelector('[data-search-results]');
     var groups = [
-        ['courses', {{ $en ? "'Courses'" : "'Eğitimler'" }}],
-        ['activities', {{ $en ? "'Activities'" : "'Etkinlikler'" }}],
-        ['materials', {{ $en ? "'Materials'" : "'Materyaller'" }}],
-        ['sessions', {{ $en ? "'Sessions'" : "'Seanslar'" }}],
-        ['instructors', {{ $en ? "'Instructors'" : "'Eğitmenler'" }}]
+        ['courses', {{ \Illuminate\Support\Js::from($en ? 'Courses' : 'Eğitimler') }}],
+        ['activities', {{ \Illuminate\Support\Js::from($en ? 'Activities' : 'Etkinlikler') }}],
+        ['materials', {{ \Illuminate\Support\Js::from($en ? 'Materials' : 'Materyaller') }}],
+        ['sessions', {{ \Illuminate\Support\Js::from($en ? 'Sessions' : 'Seanslar') }}],
+        ['instructors', {{ \Illuminate\Support\Js::from($en ? 'Instructors' : 'Eğitmenler') }}]
     ];
     var timer = null;
     var lastQuery = '';

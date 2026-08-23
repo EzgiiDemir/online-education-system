@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');
     Route::post('/learning-paths/{path}/enroll', [LmsController::class, 'enrollInPath'])->name('learning-paths.enroll');
     Route::get('/instructor', [LmsController::class, 'instructor'])->name('instructor.dashboard');
+    Route::get('/instructor/courses', [LmsController::class, 'instructorCourses'])->name('instructor.courses.index');
     Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
