@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Activities;
 use App\Filament\Resources\Activities\Pages\CreateActivity;
 use App\Filament\Resources\Activities\Pages\EditActivity;
 use App\Filament\Resources\Activities\Pages\ListActivities;
+use App\Filament\Resources\Activities\RelationManagers\QuizQuestionsRelationManager;
 use App\Filament\Resources\Activities\Schemas\ActivityForm;
 use App\Filament\Resources\Activities\Tables\ActivitiesTable;
 use App\Models\Activity;
@@ -37,7 +38,7 @@ class ActivityResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            QuizQuestionsRelationManager::class,
         ];
     }
 

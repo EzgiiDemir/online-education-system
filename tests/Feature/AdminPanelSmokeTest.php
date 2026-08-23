@@ -110,6 +110,35 @@ class AdminPanelSmokeTest extends TestCase
     }
 
     /**
+     * The quiz-question relation manager only appears for type === 'quiz'
+     * activities (canViewForRecord) -- the other edit-page smoke test above
+     * only ever exercises a 'video' activity, so it can't catch a rendering
+     * bug in the quiz question/option authoring UI. This is the one place
+     * that actually loads a quiz activity's edit page.
+     */
+    public function test_quiz_activity_edit_page_renders_the_quiz_questions_relation_manager(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create();
+        $section = $course->sections()->create(['title' => 'Bölüm 1']);
+        $quiz = $section->activities()->create(['title' => 'Değerlendirme Sınavı', 'type' => 'quiz', 'is_required' => true]);
+        $question = $quiz->quizQuestions()->create(['question' => 'Arucad Campus LMS nedir?', 'type' => 'single_choice', 'sort_order' => 1]);
+        $question->options()->createMany([
+            ['label' => 'Bir öğrenme yönetim sistemi', 'is_correct' => true, 'sort_order' => 1],
+            ['label' => 'Bir muhasebe programı', 'is_correct' => false, 'sort_order' => 2],
+        ]);
+
+        $response = $this->actingAs($admin)->get("/admin/activities/{$quiz->id}/edit");
+
+        // With only one relation manager registered on this record, Filament
+        // renders its table directly instead of a tab strip, so the $title
+        // label itself is not guaranteed to appear as visible text -- assert
+        // on the actual rendered question data instead.
+        $response->assertOk();
+        $response->assertSee('Arucad Campus LMS nedir?');
+    }
+
+    /**
      * Filament ships bundled Turkish translations for its own chrome, but the
      * admin panel's middleware stack never called App::setLocale() -- so the
      * session-based locale toggle that already worked for the public site had

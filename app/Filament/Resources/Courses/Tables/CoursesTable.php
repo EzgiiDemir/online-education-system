@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources\Courses\Tables;
 
+use App\Filament\Actions\ViewAuditLogAction;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -65,7 +69,11 @@ class CoursesTable
                 SelectFilter::make('instructor_id')->label('Eğitmen')->relationship('instructor', 'name')->searchable()->preload(),
             ])
             ->recordActions([
+                Action::make('preview')->label('Önizle')->icon(Heroicon::OutlinedEye)->color('gray')
+                    ->url(fn ($record) => route('courses.show', $record))->openUrlInNewTab(),
                 EditAction::make(),
+                ViewAuditLogAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
