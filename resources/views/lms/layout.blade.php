@@ -78,7 +78,7 @@
 </div>
 </div>
 </nav>
-<main class="page-shell container">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell container">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
 <script>
 document.addEventListener('click', function (e) {
     if (e.target.closest('[data-theme-toggle]')) {

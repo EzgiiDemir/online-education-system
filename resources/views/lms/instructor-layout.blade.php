@@ -23,7 +23,7 @@
 </div>
 </div>
 </div>
-</header>@if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>
+</header>@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
 </div>
 <script>
 document.addEventListener('click', function (e) {

@@ -11,14 +11,14 @@
 </form>
 
 @if($query !== '')
-<div class="tab-bar">
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'all']) }}" class="{{ $type === 'all' ? 'is-active' : '' }}">{{ $en ? 'All' : 'Tümü' }} <span class="tab-count">{{ $totalCount }}</span></a>
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'courses']) }}" class="{{ $type === 'courses' ? 'is-active' : '' }}">{{ $en ? 'Courses' : 'Eğitimler' }} <span class="tab-count">{{ $results['courses']->count() }}</span></a>
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'activities']) }}" class="{{ $type === 'activities' ? 'is-active' : '' }}">{{ $en ? 'Activities' : 'Etkinlikler' }} <span class="tab-count">{{ $results['activities']->count() }}</span></a>
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'materials']) }}" class="{{ $type === 'materials' ? 'is-active' : '' }}">{{ $en ? 'Materials' : 'Materyaller' }} <span class="tab-count">{{ $results['materials']->count() }}</span></a>
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'sessions']) }}" class="{{ $type === 'sessions' ? 'is-active' : '' }}">{{ $en ? 'Sessions' : 'Seanslar' }} <span class="tab-count">{{ $results['sessions']->count() }}</span></a>
-<a href="{{ route('search.index', ['q' => $query, 'type' => 'instructors']) }}" class="{{ $type === 'instructors' ? 'is-active' : '' }}">{{ $en ? 'Instructors' : 'Eğitmenler' }} <span class="tab-count">{{ $results['instructors']->count() }}</span></a>
-</div>
+<ul class="nav nav-tabs">
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'all']) }}" class="nav-link {{ $type === 'all' ? 'active' : '' }}">{{ $en ? 'All' : 'Tümü' }} <span class="tab-count">{{ $totalCount }}</span></a></li>
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'courses']) }}" class="nav-link {{ $type === 'courses' ? 'active' : '' }}">{{ $en ? 'Courses' : 'Eğitimler' }} <span class="tab-count">{{ $results['courses']->count() }}</span></a></li>
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'activities']) }}" class="nav-link {{ $type === 'activities' ? 'active' : '' }}">{{ $en ? 'Activities' : 'Etkinlikler' }} <span class="tab-count">{{ $results['activities']->count() }}</span></a></li>
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'materials']) }}" class="nav-link {{ $type === 'materials' ? 'active' : '' }}">{{ $en ? 'Materials' : 'Materyaller' }} <span class="tab-count">{{ $results['materials']->count() }}</span></a></li>
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'sessions']) }}" class="nav-link {{ $type === 'sessions' ? 'active' : '' }}">{{ $en ? 'Sessions' : 'Seanslar' }} <span class="tab-count">{{ $results['sessions']->count() }}</span></a></li>
+<li class="nav-item"><a href="{{ route('search.index', ['q' => $query, 'type' => 'instructors']) }}" class="nav-link {{ $type === 'instructors' ? 'active' : '' }}">{{ $en ? 'Instructors' : 'Eğitmenler' }} <span class="tab-count">{{ $results['instructors']->count() }}</span></a></li>
+</ul>
 
 @if($totalCount === 0)
 <div class="empty-state surface">{{ $en ? 'No results found. Try a different search term.' : 'Sonuç bulunamadı. Farklı bir arama terimi deneyin.' }}</div>
