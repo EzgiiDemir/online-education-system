@@ -4,7 +4,7 @@
 @php($en = session('locale', 'tr') === 'en')
 <div class="course-show">
     @if($newerVersion)
-    <div class="alert success" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div class="alert success" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">
     <span>{{ $en ? 'A newer version of this course is available (v'.$newerVersion->version.').' : 'Bu eğitimin daha yeni bir sürümü mevcut (v'.$newerVersion->version.').' }}</span>
     <a class="button secondary" href="{{ route('courses.show', $newerVersion) }}">{{ $en ? 'View v'.$newerVersion->version : 'v'.$newerVersion->version.'\'i görüntüle' }} <x-lucide name="arrow-right" size="14" /></a>
     </div>

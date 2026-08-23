@@ -46,7 +46,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .notif-trigger:hover{background:transparent}
 .notif-badge{position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;border-radius:999px;font-size:10px;font-weight:800;min-width:16px;height:16px;display:grid;place-items:center;padding:0 3px}
 .notif-dropdown{position:absolute!important;inset:auto 0 auto auto!important;top:calc(100% + 12px)!important;transform:none!important;width:320px;max-width:min(320px,calc(100vw - 24px));background:rgba(255,255,255,.9);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:18px;box-shadow:0 24px 48px #10182828;padding:8px;margin:0;animation:pop-in .15s var(--ease);max-height:420px;overflow:auto}
-.notif-dropdown .dropdown-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.notif-dropdown .dropdown-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;padding:10px 12px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .notif-mark-all{background:transparent;color:var(--brand);border:0;box-shadow:none;padding:0;font-size:11px;font-weight:650;width:auto}
 .notif-mark-all:hover{background:transparent;color:var(--brand)}
 .notif-item{margin:0}
@@ -198,7 +198,17 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .calendar-event-due{background:var(--accent)}
 .calendar-event-expiry{background:#b3402e}
 @media(max-width:800px){.calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr))}.calendar-cell{min-height:64px;padding:5px}.calendar-event{font-size:9px;padding:2px 4px}.calendar-dow{font-size:9px}}
-@media(max-width:480px){.calendar-legend,.calendar-grid{display:none}}
+@media(max-width:480px){.calendar-grid{gap:3px}.calendar-cell{min-height:44px;padding:3px;gap:2px;border-radius:8px}.calendar-day-num{font-size:10px}.calendar-dow{font-size:8px;padding:4px 0}.calendar-event{font-size:0;padding:0;width:7px;height:7px;min-height:0;border-radius:50%}.calendar-legend{gap:10px;font-size:10px}}
+
+/* Long titles next to a badge/button in a no-wrap flex row would otherwise
+   push content past the viewport edge on a phone -- let these rows wrap
+   (heading/title on its own line, action/badge below) instead of
+   overflowing horizontally. */
+@media(max-width:480px){
+  .section-heading,.requirement-row,.curriculum-list li,.path-course-item,.course-card-top,.course-meta,.pagination{flex-wrap:wrap;row-gap:6px}
+  .section-heading>*,.requirement-row>*,.curriculum-list li>*,.path-course-item>*{min-width:0}
+  .pagination{justify-content:center;text-align:center}
+}
 
 .report-filters{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:24px;padding:20px;background:var(--surface);border:1px solid var(--glass-border);border-radius:var(--radius)}
 .report-filters .field{min-width:150px;flex:1}
@@ -217,7 +227,17 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
 .tab-count{background:var(--brand-soft);color:var(--brand-dark);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700}
 .tab-bar a.is-active .tab-count{background:var(--brand);color:#fff}
 
-@media(max-width:900px){.nav-link{display:none}}
+.navbar-toggler{display:none;background:transparent;border:0;padding:6px;margin:0;color:var(--nav-text);box-shadow:none;cursor:pointer}
+.nav-links-collapse{display:none}
+@media(max-width:900px){
+  .nav-link{display:none}
+  .navbar-toggler{display:inline-flex;align-items:center}
+  .site-nav{flex-wrap:wrap;position:relative}
+  .nav-links-collapse.collapse:not(.show){display:none}
+  .nav-links-collapse.collapse.show,.nav-links-collapse.collapsing{display:block}
+  .nav-links-collapse{order:3;width:100%;background:var(--surface-solid);border-top:1px solid var(--line);margin-top:10px}
+  .nav-links-collapse .nav-link{display:block;padding:12px max(6vw,28px);color:var(--text-secondary)}
+}
 @media(max-width:700px){.home-greeting{flex-direction:column;align-items:stretch;text-align:center;padding:24px}.continue-card{min-width:auto}}
 
 .icon{display:inline-block;vertical-align:-3px;flex:none}
@@ -230,3 +250,4 @@ html[data-theme="dark"] .theme-icon-light{display:inline-block}
 .course-show-cover-initial{font-size:64px;font-weight:800;color:#fff;letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.15)}
 
 @media(max-width:700px){.hero{padding-top:6px;min-height:auto;flex-direction:column-reverse;text-align:center}.hero p{max-width:none}.hero-mark{width:140px;height:140px}.page-shell{padding:28px 18px}.profile-name{display:none}.site-nav{padding:10px 18px}.nav-actions{gap:10px}.nav-search input{width:110px}.nav-search-results{width:270px;right:0;left:auto}}
+@media(max-width:420px){.site-nav{padding:10px 14px;gap:10px}.brand{font-size:15px}.nav-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end}.nav-search{order:4;width:100%;margin-top:2px}.nav-search input{width:100%}.nav-lang{padding:2px}.nav-lang a{padding:6px 8px;font-size:11px}}

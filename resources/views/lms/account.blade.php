@@ -35,7 +35,7 @@
 <h2 style="margin-top:0">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</h2>
 @forelse($enrollments as $row)
 <div style="padding:14px 0;border-top:1px solid var(--line)">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>{{ $row['enrollment']->course->title }}</b><span class="status">{{ $row['stats']['percent'] }}%</span></div>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px"><b>{{ $row['enrollment']->course->title }}</b><span class="status">{{ $row['stats']['percent'] }}%</span></div>
 <div class="meter"><span style="width:{{ $row['stats']['percent'] }}%"></span></div>
 <small class="muted">{{ $row['stats']['completed'] }} / {{ $row['stats']['total'] }} {{ $en ? 'completed' : 'tamamlandı' }} · {{ $en ? 'Status:' : 'Durum:' }} {{ $row['enrollment']->status }}</small>
 @if($row['enrollment']->certificate)<div style="margin-top:8px"><a class="button secondary" href="{{ route('certificates.download', $row['enrollment']->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }}</a></div>@endif

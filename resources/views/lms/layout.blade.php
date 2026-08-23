@@ -19,6 +19,7 @@
 @auth @if(auth()->user()->role !== 'admin')<a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
 <a class="nav-link" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenim Yolları' }}</a>
 <div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLinksMenu" aria-controls="navLinksMenu" aria-expanded="false" aria-label="{{ $en ? 'Menu' : 'Menü' }}"><x-lucide name="menu" size="20" /></button>
 @auth
 @php($unreadNotifCount = auth()->user()->unreadNotifications->count())
 @php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
@@ -69,6 +70,10 @@
 @else
 <a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
 @endauth
+</div>
+<div class="collapse nav-links-collapse" id="navLinksMenu">
+@auth @if(auth()->user()->role !== 'admin')<a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a>@endif @endauth
+<a class="nav-link" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenim Yolları' }}</a>
 </div>
 </nav>
 <main class="page-shell">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert error">{{ session('error') }}</div>@endif @yield('content')</main>

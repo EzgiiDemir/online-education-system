@@ -18,13 +18,10 @@
 .classroom-page .chat-message{border-color:#e5e1da}
 .classroom-page .chat-form input{background:#fff;color:#23262b;border-color:#e5e1da}
 .classroom-page .control{background:rgba(255,255,255,.85);color:#40434c;border:1px solid #e5e1da;box-shadow:0 2px 6px #10182812;border-radius:14px}
-.classroom-page .control:before{color:#40434c}
 .classroom-page .control.primary{background:linear-gradient(180deg,#4d6787,#3a4e67);border-color:#3a4e67;color:#fff;box-shadow:0 4px 14px #4d678766}
-.classroom-page .control.primary:before{color:#fff}
-.classroom-page .control.record:before{color:#da8359}
-.classroom-page .control.leave{color:#b3402e}
+.classroom-page .control.record{color:#da8359;border-color:#da835955}
+.classroom-page .control.leave{background:#b3402e;border-color:#b3402e;color:#fff}
 .classroom-page .control:disabled{background:#f0eee9;color:#a8acbb;box-shadow:none}
-.classroom-page .control:hover:after{background:#23262b;color:#fff;border-radius:8px}
 .classroom-page .shared-file{color:#40434c;border-color:#e5e1da}
 .classroom-page .pre-join-toggles{display:flex;gap:18px;margin-top:6px}
 .classroom-page .pre-join-toggles label{display:flex;align-items:center;gap:6px;font-size:13px;color:#40434c;cursor:pointer}
