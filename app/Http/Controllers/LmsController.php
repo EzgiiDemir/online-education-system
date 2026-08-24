@@ -48,7 +48,7 @@ class LmsController extends Controller
      * rule in uploadRecording(), and avatars/posters use Laravel's `image`
      * rule (content-verified, not just extension) instead of this list.
      */
-    private const SAFE_UPLOAD_MIMES = 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,mp3,wav,jpg,jpeg,png,gif,txt,csv';
+    public const SAFE_UPLOAD_MIMES = 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,mp3,wav,jpg,jpeg,png,gif,txt,csv';
 
     public function __construct(private CompletionEngine $completion, private QuizService $quiz, private EnrollmentService $enrollments) {}
 
@@ -449,7 +449,7 @@ class LmsController extends Controller
     public function courseDetail(Course $course)
     {
         $this->authorize('view', $course);
-        $course->load(['instructor', 'sessions.materials', 'currentEnrollments.user', 'currentEnrollments.sessionProgress.session', 'sections.activities', 'runs']);
+        $course->load(['instructor', 'sessions.materials.versions.replacedBy', 'currentEnrollments.user', 'currentEnrollments.sessionProgress.session', 'sections.activities', 'runs']);
         // Roster/stats read currentEnrollments (one row per distinct learner,
         // their current cycle) rather than enrollments -- otherwise a
         // recertifying learner would show up twice in "Participants" and

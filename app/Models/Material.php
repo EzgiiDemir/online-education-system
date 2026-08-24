@@ -15,4 +15,9 @@ class Material extends Model
     {
         return $this->belongsTo(CourseSession::class, 'course_session_id');
     }
+
+    public function versions()
+    {
+        return $this->hasMany(MaterialVersion::class)->latest();
+    }
 }

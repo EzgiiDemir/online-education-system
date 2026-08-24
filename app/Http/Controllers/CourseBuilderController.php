@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Material;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Instructor-facing curriculum management (§15): add/edit/delete sections
@@ -112,11 +113,34 @@ class CourseBuilderController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * A replacement file doesn't overwrite history: the material's current
+     * path/type/title is snapshotted into material_versions BEFORE being
+     * swapped, so anyone who already has the old file's URL (or watched/
+     * completed it) can still reach exactly what they saw -- material_id
+     * itself never changes, so MaterialProgress is unaffected either way.
+     */
     public function updateMaterial(Request $r, Material $material)
     {
         $this->authorize('update', $material->session->course);
-        $data = $r->validate(['title' => 'required|string|max:255']);
-        $material->update($data);
+        $data = $r->validate([
+            'title' => 'required|string|max:255',
+            'file' => ['nullable', 'file', 'max:51200', LmsController::SAFE_UPLOAD_MIMES],
+        ]);
+
+        if ($r->hasFile('file')) {
+            $material->versions()->create([
+                'title' => $material->title,
+                'type' => $material->type,
+                'path' => $material->path,
+                'replaced_by' => Auth::id(),
+            ]);
+            $file = $data['file'];
+            $material->fill(['type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+        }
+
+        $material->title = $data['title'];
+        $material->save();
 
         return back()->with('success', 'Materyal güncellendi.');
     }

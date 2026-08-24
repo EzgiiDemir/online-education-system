@@ -7,8 +7,11 @@ use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
 use App\Models\Material;
+use App\Models\MaterialProgress;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -193,6 +196,62 @@ class CourseBuilderTest extends TestCase
         $this->actingAs($instructor)->post(route('builder.materials.update', $material), ['title' => 'Yeni Ad'])->assertRedirect();
 
         $this->assertDatabaseHas('materials', ['id' => $material->id, 'title' => 'Yeni Ad']);
+    }
+
+    /**
+     * P1 material versioning: replacing a material's file must not destroy
+     * the old one -- a snapshot of the pre-replacement path/title lands in
+     * material_versions, and the material row itself keeps material_id
+     * (and therefore any learner's MaterialProgress) unchanged.
+     */
+    public function test_replacing_a_materials_file_snapshots_the_old_one_as_a_version(): void
+    {
+        Storage::fake('public');
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'materials/old.pdf']);
+
+        $response = $this->actingAs($instructor)->post(route('builder.materials.update', $material), [
+            'title' => 'Slaytlar',
+            'file' => UploadedFile::fake()->create('new.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('material_versions', ['material_id' => $material->id, 'path' => 'materials/old.pdf', 'title' => 'Slaytlar', 'replaced_by' => $instructor->id]);
+        $material->refresh();
+        $this->assertNotSame('materials/old.pdf', $material->path);
+    }
+
+    public function test_a_learners_progress_survives_a_material_file_replacement(): void
+    {
+        Storage::fake('public');
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id, 'status' => 'published']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slaytlar', 'type' => 'application/pdf', 'path' => 'materials/old.pdf']);
+        $learner = User::factory()->create(['role' => 'learner']);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+        $progress = MaterialProgress::create(['enrollment_id' => $enrollment->id, 'material_id' => $material->id, 'completed' => true, 'completed_at' => now()]);
+
+        $this->actingAs($instructor)->post(route('builder.materials.update', $material), [
+            'title' => 'Slaytlar',
+            'file' => UploadedFile::fake()->create('new.pdf', 100, 'application/pdf'),
+        ]);
+
+        $this->assertDatabaseHas('material_progress', ['id' => $progress->id, 'material_id' => $material->id, 'completed' => 1]);
+    }
+
+    public function test_updating_a_materials_title_only_does_not_create_a_version(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Eski Ad', 'type' => 'application/pdf', 'path' => 'demo/x.pdf']);
+
+        $this->actingAs($instructor)->post(route('builder.materials.update', $material), ['title' => 'Yeni Ad']);
+
+        $this->assertSame(0, $material->versions()->count());
     }
 
     public function test_a_non_owning_instructor_cannot_rename_a_material(): void
