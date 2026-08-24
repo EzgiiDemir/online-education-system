@@ -377,7 +377,7 @@ class LmsController extends Controller
                 'currentEnrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
                 'currentEnrollments as new_enrollments_count' => fn ($q) => $q->where('created_at', '>=', now()->subDays(7)),
             ])
-            ->with('sessions')
+            ->with(['sessions.materials', 'sections'])
             ->latest()
             ->get();
 
@@ -387,8 +387,15 @@ class LmsController extends Controller
             ->orderBy('starts_at')
             ->first();
 
-        $incompleteLearnersCount = Enrollment::whereIn('course_id', $courseIds)->where('status', '!=', 'completed')->count();
-        $newEnrollmentsCount = Enrollment::whereIn('course_id', $courseIds)->where('created_at', '>=', now()->subDays(7))->count();
+        $todaySessions = CourseSession::whereIn('course_id', $courseIds)
+            ->whereBetween('starts_at', [now()->startOfDay(), now()->endOfDay()])
+            ->with('course')
+            ->orderBy('starts_at')
+            ->get();
+
+        $sessionsThisWeekCount = CourseSession::whereIn('course_id', $courseIds)
+            ->whereBetween('starts_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->count();
 
         // Past sessions (last 7 days) where nobody has been recorded as attended yet --
         // a concrete, actionable "go check this" list for the instructor.
@@ -399,8 +406,53 @@ class LmsController extends Controller
             ->orderByDesc('starts_at')
             ->get();
 
+        $pendingSubmissionsCount = AssignmentSubmission::whereHas('activity.section', fn ($q) => $q->whereIn('course_id', $courseIds))
+            ->whereNull('graded_at')
+            ->count();
+
+        // currentCycle(): a recertified enrollment's old cycle is already
+        // completed and must not double-count as "behind" here.
+        $studentsBehindCount = Enrollment::currentCycle()->whereIn('course_id', $courseIds)->where('status', '!=', 'completed')
+            ->with('course')->get()
+            ->filter(fn (Enrollment $e) => $e->course->isOverdueFor($e))
+            ->count();
+
+        $tomorrowSessionsCount = CourseSession::whereIn('course_id', $courseIds)
+            ->whereBetween('starts_at', [now()->addDay()->startOfDay(), now()->addDay()->endOfDay()])
+            ->count();
+
+        $coursesMissingContentCount = $courses->filter(
+            fn (Course $c) => $c->sections->isEmpty() && $c->sessions->every(fn (CourseSession $s) => $s->materials->isEmpty())
+        )->count();
+
+        // A single prioritised checklist rather than two overlapping lists
+        // (spec's "Attention Required" + "My Tasks" would otherwise show the
+        // same four numbers under two headings) -- each entry links straight
+        // to where the instructor can act on it.
+        $pendingTasks = collect([
+            $studentsBehindCount > 0 ? ['count' => $studentsBehindCount, 'label_tr' => 'öğrenci geride kaldı', 'label_en' => 'students are behind', 'href' => route('instructor.courses.index')] : null,
+            $pendingSubmissionsCount > 0 ? ['count' => $pendingSubmissionsCount, 'label_tr' => 'ödev değerlendirme bekliyor', 'label_en' => 'assignments waiting for grading', 'href' => route('instructor.courses.index')] : null,
+            $tomorrowSessionsCount > 0 ? ['count' => $tomorrowSessionsCount, 'label_tr' => 'canlı ders yarına planlandı', 'label_en' => 'live class scheduled for tomorrow', 'href' => route('calendar.index')] : null,
+            $coursesMissingContentCount > 0 ? ['count' => $coursesMissingContentCount, 'label_tr' => 'eğitimde henüz içerik yok', 'label_en' => 'courses have no content yet', 'href' => route('instructor.courses.index')] : null,
+        ])->filter()->values();
+
+        $recentActivity = collect()
+            ->merge(
+                Enrollment::whereIn('course_id', $courseIds)->where('created_at', '>=', now()->subDays(7))
+                    ->with('user', 'course')->latest()->limit(5)->get()
+                    ->map(fn (Enrollment $e) => ['at' => $e->created_at, 'text_tr' => $e->user->name.', '.$e->course->title.' eğitimine kaydoldu', 'text_en' => $e->user->name.' enrolled in '.$e->course->title])
+            )
+            ->merge(
+                AssignmentSubmission::whereHas('activity.section', fn ($q) => $q->whereIn('course_id', $courseIds))
+                    ->where('submitted_at', '>=', now()->subDays(7))
+                    ->with('enrollment.user', 'activity')->latest('submitted_at')->limit(5)->get()
+                    ->map(fn (AssignmentSubmission $s) => ['at' => $s->submitted_at, 'text_tr' => $s->enrollment->user->name.', '.$s->activity->title.' ödevini teslim etti', 'text_en' => $s->enrollment->user->name.' submitted '.$s->activity->title])
+            )
+            ->sortByDesc('at')->take(6)->values();
+
         return view('lms.instructor', compact(
-            'courses', 'upcomingSession', 'incompleteLearnersCount', 'newEnrollmentsCount', 'sessionsNeedingAttendanceReview'
+            'courses', 'upcomingSession', 'todaySessions', 'sessionsThisWeekCount',
+            'sessionsNeedingAttendanceReview', 'pendingTasks', 'recentActivity'
         ));
     }
 

@@ -160,7 +160,7 @@ class I18nAndA11yAuditTest extends TestCase
         $instructor = User::factory()->create(['role' => 'instructor']);
         $dashboardResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.dashboard'));
         $dashboardResponse->assertOk();
-        $dashboardResponse->assertSee("Today's actions");
+        $dashboardResponse->assertSee("Today's schedule");
 
         $profileResponse = $this->actingAs($instructor)->withSession(['locale' => 'en'])->get(route('instructor.profile'));
         $profileResponse->assertOk();
