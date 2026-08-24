@@ -31,6 +31,7 @@ class AdminPanelSmokeTest extends TestCase
         $paths = [
             '/admin',
             '/admin/activities',
+            '/admin/api-tokens',
             '/admin/audit-logs',
             '/admin/certificates',
             '/admin/course-runs',
@@ -44,6 +45,7 @@ class AdminPanelSmokeTest extends TestCase
             '/admin/scim-tokens',
             '/admin/skills',
             '/admin/users',
+            '/admin/webhook-subscriptions',
         ];
 
         foreach ($paths as $path) {
@@ -61,6 +63,7 @@ class AdminPanelSmokeTest extends TestCase
 
         $paths = [
             '/admin/activities/create',
+            '/admin/api-tokens/create',
             '/admin/course-runs/create',
             '/admin/course-sections/create',
             '/admin/course-sessions/create',
@@ -72,6 +75,7 @@ class AdminPanelSmokeTest extends TestCase
             '/admin/scim-tokens/create',
             '/admin/skills/create',
             '/admin/users/create',
+            '/admin/webhook-subscriptions/create',
         ];
 
         foreach ($paths as $path) {

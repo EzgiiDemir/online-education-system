@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\ScimUserController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,4 +17,14 @@ Route::prefix('scim/v2')->middleware(['scim.auth', 'throttle:scim'])->name('scim
     Route::put('/Users/{id}', [ScimUserController::class, 'update'])->name('users.update');
     Route::patch('/Users/{id}', [ScimUserController::class, 'patch'])->name('users.patch');
     Route::delete('/Users/{id}', [ScimUserController::class, 'destroy'])->name('users.destroy');
+});
+
+/**
+ * General read-only reporting API -- see CourseController's docblock for
+ * scope. Auth is ApiAuthenticate/ApiToken, a separate credential from the
+ * SCIM tokens above.
+ */
+Route::prefix('v1')->middleware(['api.auth', 'throttle:api'])->name('api.v1.')->group(function () {
+    Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+    Route::get('/enrollments', [EnrollmentController::class, 'index'])->name('enrollments.index');
 });

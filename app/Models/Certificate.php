@@ -58,5 +58,12 @@ class Certificate extends Model
     public function revoke(User $revoker, string $reason): void
     {
         $this->update(['revoked_at' => now(), 'revoked_reason' => $reason, 'revoked_by' => $revoker->id]);
+
+        app(\App\Services\WebhookDispatcher::class)->dispatch('certificate.revoked', [
+            'certificate_id' => $this->id,
+            'certificate_number' => $this->certificate_number,
+            'enrollment_id' => $this->enrollment_id,
+            'reason' => $reason,
+        ]);
     }
 }

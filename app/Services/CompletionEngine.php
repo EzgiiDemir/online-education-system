@@ -31,6 +31,8 @@ use Illuminate\Support\Str;
  */
 class CompletionEngine
 {
+    public function __construct(private WebhookDispatcher $webhooks = new WebhookDispatcher) {}
+
     /**
      * A video's completion threshold is 90% of its real, auto-detected
      * duration (min 10s so a very short clip is still watchable in full);
@@ -161,18 +163,42 @@ class CompletionEngine
      */
     public function evaluateEnrollment(Enrollment $enrollment): void
     {
+        // Already completed: re-running this must not refresh completed_at
+        // to "now" (it should stay the original completion date) or
+        // re-fire the webhooks below for an event that already happened.
+        if ($enrollment->status === 'completed') {
+            return;
+        }
+
         $stats = $enrollment->completionStats();
         if ($stats['total'] && $stats['completed'] >= $stats['total']) {
             $enrollment->update(['status' => 'completed', 'completed_at' => now()]);
+            $this->webhooks->dispatch('enrollment.completed', [
+                'enrollment_id' => $enrollment->id,
+                'user_id' => $enrollment->user_id,
+                'course_id' => $enrollment->course_id,
+                'completed_at' => $enrollment->completed_at->toIso8601String(),
+            ]);
+
             try {
-                Certificate::firstOrCreate(['enrollment_id' => $enrollment->id], [
+                $certificate = Certificate::create([
+                    'enrollment_id' => $enrollment->id,
                     'certificate_number' => 'CERT-'.strtoupper(Str::random(10)),
                     'issued_at' => now(),
+                ]);
+                $this->webhooks->dispatch('certificate.issued', [
+                    'certificate_id' => $certificate->id,
+                    'certificate_number' => $certificate->certificate_number,
+                    'enrollment_id' => $enrollment->id,
+                    'user_id' => $enrollment->user_id,
+                    'course_id' => $enrollment->course_id,
+                    'issued_at' => $certificate->issued_at->toIso8601String(),
                 ]);
             } catch (QueryException) {
                 // Lost the create race; a certificate for this enrollment
                 // already exists (that's the only thing this constraint
-                // guards), so there's nothing left to do.
+                // guards), so there's nothing left to do -- including no
+                // second certificate.issued dispatch.
             }
         }
     }

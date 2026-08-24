@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
  */
 class EnrollmentService
 {
+    public function __construct(private WebhookDispatcher $webhooks = new WebhookDispatcher) {}
+
     public function enroll(Course $course, User $user, bool $checkPrerequisites = true): Enrollment|WaitlistEntry
     {
         if ($checkPrerequisites) {
@@ -66,6 +68,12 @@ class EnrollmentService
         foreach ($course->sessions()->where('meeting_status', '!=', 'not_applicable')->get() as $session) {
             $user->notify(new LiveSessionScheduled($session));
         }
+        $this->webhooks->dispatch('enrollment.created', [
+            'enrollment_id' => $enrollment->id,
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'course_run_id' => $runId,
+        ]);
 
         return $enrollment;
     }

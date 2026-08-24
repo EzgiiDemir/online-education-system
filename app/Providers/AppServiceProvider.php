@@ -49,5 +49,7 @@ class AppServiceProvider extends ServiceProvider
         // using that provider, so an IP-based limit would let one noisy
         // integration exhaust the budget for every other token.
         RateLimiter::for('scim', fn ($request) => Limit::perMinute(60)->by($request->bearerToken() ?? $request->ip()));
+
+        RateLimiter::for('api', fn ($request) => Limit::perMinute(120)->by($request->bearerToken() ?? $request->ip()));
     }
 }

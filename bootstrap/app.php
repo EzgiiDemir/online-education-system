@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AddRequestIdToLogs;
+use App\Http\Middleware\ApiAuthenticate;
 use App\Http\Middleware\ScimAuthenticate;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Console\Scheduling\Schedule;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [AddRequestIdToLogs::class]);
         $middleware->web(append: [SetLocale::class]);
         $middleware->api(prepend: [AddRequestIdToLogs::class]);
-        $middleware->alias(['scim.auth' => ScimAuthenticate::class]);
+        $middleware->alias(['scim.auth' => ScimAuthenticate::class, 'api.auth' => ApiAuthenticate::class]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('app:send-training-reminders')->dailyAt('07:00');
