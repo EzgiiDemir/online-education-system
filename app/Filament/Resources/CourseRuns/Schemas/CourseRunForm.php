@@ -22,6 +22,7 @@ class CourseRunForm
                 DateTimePicker::make('starts_at')->label('Dönem başlangıcı'),
                 DateTimePicker::make('ends_at')->label('Dönem bitişi'),
                 Select::make('status')->label('Durum')->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'])->required()->default('draft')->helperText('Yalnızca "Kayıt açık" veya "Devam ediyor" durumundaki dönemler, öğrenci kayıt olduğunda otomatik atanır.'),
+                TextInput::make('max_seats')->label('Maksimum kontenjan')->numeric()->minValue(1)->helperText('Boş = sınırsız. Kontenjan dolunca yeni kayıtlar bekleme listesine alınır.'),
             ]);
     }
 }

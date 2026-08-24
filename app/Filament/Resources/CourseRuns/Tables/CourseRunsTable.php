@@ -29,6 +29,9 @@ class CourseRunsTable
                     ->label('Kod')
                     ->searchable(),
                 TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),
+                TextColumn::make('max_seats')->label('Kontenjan')->placeholder('Sınırsız'),
+                TextColumn::make('waitlist_entries_count')->label('Bekleme listesi')->counts('waitlistEntries')->badge()
+                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
                 TextColumn::make('status')
                     ->label('Durum')
                     ->badge()

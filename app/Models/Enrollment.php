@@ -28,6 +28,17 @@ class Enrollment extends Model
                 $enrollment->course_version = Course::find($enrollment->course_id)?->version ?? 1;
             }
         });
+
+        // A deleted enrollment (e.g. an admin removing someone, or a future
+        // learner-initiated cancellation) may have just freed the seat that
+        // was blocking the run's waitlist -- this is the only place that
+        // trigger is wired up, so it fires regardless of which code path
+        // did the deleting.
+        static::deleted(function (Enrollment $enrollment) {
+            if ($enrollment->course_run_id) {
+                $enrollment->run?->promoteNextFromWaitlist();
+            }
+        });
     }
 
     public function course()

@@ -72,6 +72,8 @@
                         @endforeach
                     </ul>
                 </div>
+                @elseif($isWaitlisted)
+                <span class="badge">{{ $en ? "You're on the waitlist" : 'Bekleme listesindesiniz' }}</span>
                 @else
                 <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
                 @endif

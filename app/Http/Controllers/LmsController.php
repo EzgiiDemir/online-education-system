@@ -9,6 +9,7 @@ use App\Models\AuditLog;
 use App\Models\Certificate;
 use App\Models\ClassMessage;
 use App\Models\Course;
+use App\Models\CourseRun;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningPath;
@@ -19,6 +20,7 @@ use App\Models\QuizAttempt;
 use App\Models\SessionAttendance;
 use App\Models\SessionProgress;
 use App\Models\User;
+use App\Models\WaitlistEntry;
 use App\Notifications\CoursePublished;
 use App\Notifications\LiveSessionScheduled;
 use App\Services\CompletionEngine;
@@ -134,7 +136,13 @@ class LmsController extends Controller
         $newerVersion = $course->versions()->where('status', 'published')->where('version', '>', $course->version)->first();
         $unmetPrerequisites = (Auth::check() && ! $enrollment) ? $course->unmetPrerequisitesFor(Auth::user()) : collect();
 
-        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion', 'unmetPrerequisites'));
+        $isWaitlisted = false;
+        if (Auth::check() && ! $enrollment) {
+            $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
+            $isWaitlisted = $openRun && WaitlistEntry::where('course_run_id', $openRun->id)->where('user_id', Auth::id())->exists();
+        }
+
+        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion', 'unmetPrerequisites', 'isWaitlisted'));
     }
 
     public function mySkills()
@@ -295,18 +303,49 @@ class LmsController extends Controller
     public function enroll(Course $course)
     {
         abort_unless($course->status === 'published', 404);
-        $this->enrollUserInCourse($course);
+        $result = $this->enrollUserInCourse($course);
+
+        if ($result instanceof WaitlistEntry) {
+            return redirect()->route('learning.index')->with('success', 'Bu eğitimin kontenjanı dolu. Bekleme listesine eklendiniz; bir kontenjan açıldığında bilgilendirileceksiniz.');
+        }
 
         return redirect()->route('learning.index')->with('success', 'Eğitime kaydınız oluşturuldu. Canlı ders bilgileri e-posta adresinize gönderildi.');
     }
 
-    private function enrollUserInCourse(Course $course): Enrollment
+    private function enrollUserInCourse(Course $course): Enrollment|WaitlistEntry
     {
         $unmet = $course->unmetPrerequisitesFor(Auth::user());
         abort_if($unmet->isNotEmpty(), 422, 'Bu eğitime kaydolmadan önce şu eğitim(ler)i tamamlamanız gerekiyor: '.$unmet->pluck('title')->implode(', ').'.');
 
         $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
-        $enrollment = Auth::user()->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $openRun?->id]);
+
+        $existing = Auth::user()->enrollments()->where('course_id', $course->id)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        // A capacity-limited run needs the "is there a seat" check and the
+        // enrollment insert to happen as one atomic unit -- otherwise two
+        // concurrent requests can both read "1 seat left" and both insert,
+        // overselling the run. lockForUpdate() on the run row (mirrors
+        // CompletionEngine's heartbeat/attendance locking) serializes them.
+        if ($openRun && $openRun->max_seats !== null) {
+            return DB::transaction(function () use ($course, $openRun) {
+                $run = CourseRun::whereKey($openRun->id)->lockForUpdate()->first();
+                if (! $run->hasOpenSeats()) {
+                    return WaitlistEntry::firstOrCreate(['course_run_id' => $run->id, 'user_id' => Auth::id()]);
+                }
+
+                return $this->createEnrollmentAndNotify($course, $run->id);
+            });
+        }
+
+        return $this->createEnrollmentAndNotify($course, $openRun?->id);
+    }
+
+    private function createEnrollmentAndNotify(Course $course, ?int $runId): Enrollment
+    {
+        $enrollment = Auth::user()->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $runId]);
         if ($enrollment->wasRecentlyCreated) {
             foreach ($course->sessions()->where('meeting_status', '!=', 'not_applicable')->get() as $session) {
                 Auth::user()->notify(new LiveSessionScheduled($session));
