@@ -85,6 +85,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar/sessions/{session}.ics', [LmsController::class, 'calendarSessionIcs'])->name('calendar.ics.session');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/completion', [ReportController::class, 'completion'])->name('reports.completion');
+    Route::get('/reports/completion/export', [ReportController::class, 'exportCompletion'])->name('reports.completion.export');
+    Route::get('/reports/attendance', [ReportController::class, 'attendance'])->name('reports.attendance');
+    Route::get('/reports/attendance/export', [ReportController::class, 'exportAttendance'])->name('reports.attendance.export');
+    Route::get('/reports/instructors', [ReportController::class, 'instructors'])->name('reports.instructors');
+    Route::get('/reports/instructors/export', [ReportController::class, 'exportInstructors'])->name('reports.instructors.export');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
