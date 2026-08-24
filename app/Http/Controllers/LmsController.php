@@ -205,8 +205,12 @@ class LmsController extends Controller
 
     public function calendarSessionIcs(CourseSession $session)
     {
+        // Either a learner enrolled in the course or the instructor teaching
+        // it -- the instructor calendar links to this same .ics download for
+        // their own sessions, and they're never "enrolled" in their own course.
         $enrolled = Auth::user()->enrollments()->where('course_id', $session->course_id)->exists();
-        abort_unless($enrolled, 403);
+        $teaches = Auth::user()->id === $session->course->instructor_id;
+        abort_unless($enrolled || $teaches, 403);
 
         $session->load('course');
         $start = $session->starts_at?->utc()->format('Ymd\\THis\\Z') ?? now()->utc()->format('Ymd\\THis\\Z');
@@ -470,6 +474,40 @@ class LmsController extends Controller
             ->get();
 
         return view('lms.instructor-courses', compact('courses'));
+    }
+
+    /**
+     * The learner-facing calendar() reads Auth::user()->enrollments(), so an
+     * instructor visiting it would see their own learning (if any), never
+     * their teaching schedule -- this is the instructor's own view over the
+     * same month-grid + agenda UI, sourced from the courses they teach.
+     */
+    public function instructorCalendar(Request $r)
+    {
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
+
+        $month = \Illuminate\Support\Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
+        $courses = Auth::user()->courses()->get();
+        $courseIds = $courses->pluck('id');
+
+        $events = collect();
+
+        CourseSession::whereIn('course_id', $courseIds)->whereNotNull('starts_at')->with('course')->get()->each(function ($session) use (&$events) {
+            $events->push(['date' => $session->starts_at->toDateString(), 'time' => $session->starts_at->format('H:i'), 'type' => 'session', 'title' => $session->title, 'url' => route('instructor.courses.show', $session->course).'#sessions', 'ics' => route('calendar.ics.session', $session)]);
+        });
+
+        $courses->whereNotNull('starts_at')->each(function ($course) use (&$events) {
+            $events->push(['date' => $course->starts_at->toDateString(), 'time' => null, 'type' => 'start', 'title' => $course->title, 'url' => route('instructor.courses.show', $course), 'ics' => null]);
+        });
+
+        $courses->whereNotNull('ends_at')->each(function ($course) use (&$events) {
+            $events->push(['date' => $course->ends_at->toDateString(), 'time' => null, 'type' => 'end', 'title' => $course->title, 'url' => route('instructor.courses.show', $course), 'ics' => null]);
+        });
+
+        $eventsByDate = $events->groupBy('date');
+        $upcoming = $events->filter(fn ($e) => $e['date'] >= now()->toDateString())->sortBy('date')->values();
+
+        return view('lms.instructor-calendar', compact('month', 'eventsByDate', 'upcoming'));
     }
 
     public function instructorProfile()
