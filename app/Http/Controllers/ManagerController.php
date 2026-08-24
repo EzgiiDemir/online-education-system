@@ -10,7 +10,7 @@ class ManagerController extends Controller
 {
     public function dashboard()
     {
-        abort_unless(Auth::user()->role === 'manager', 403);
+        abort_unless(Auth::user()->isManager(), 403);
 
         $team = Auth::user()->directReports()
             ->withCount([

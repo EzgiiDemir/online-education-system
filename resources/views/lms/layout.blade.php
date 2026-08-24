@@ -10,6 +10,7 @@
 <nav class="navbar navbar-expand-lg site-nav sticky-top">
 <div class="container-fluid">
 <a class="navbar-brand brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
+<x-workspace-switcher />
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavCollapse" aria-controls="mainNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
 <div class="collapse navbar-collapse ms-auto justify-content-end" id="mainNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">

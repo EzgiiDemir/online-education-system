@@ -227,14 +227,8 @@ class LmsController extends Controller
             return back()->withErrors(['email' => 'E-posta veya şifre hatalı.']);
         }
         $r->session()->regenerate();
-        if (Auth::user()->role === 'admin') {
-            return redirect('/admin');
-        }
-        if (Auth::user()->role === 'manager') {
-            return redirect()->route('manager.dashboard');
-        }
 
-        return redirect()->route(Auth::user()->isInstructor() ? 'instructor.dashboard' : 'lms.home');
+        return redirect(Auth::user()->defaultWorkspaceRoute());
     }
 
     public function logout(Request $r)
@@ -373,7 +367,7 @@ class LmsController extends Controller
         if (Auth::user()->role === 'admin') {
             return redirect('/admin');
         }
-        abort_unless(Auth::user()->role === 'instructor', 403);
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
 
         $courseIds = Auth::user()->courses()->pluck('id');
 
@@ -412,7 +406,7 @@ class LmsController extends Controller
 
     public function instructorCourses()
     {
-        abort_unless(Auth::user()->role === 'instructor', 403);
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
 
         $courses = Auth::user()->courses()
             ->withCount([

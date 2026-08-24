@@ -55,13 +55,7 @@ class EntraSsoController extends Controller
         $user = User::firstOrCreate(['email' => $email], ['name' => $profile->json('displayName') ?: $email, 'password' => Str::random(32), 'role' => 'learner']);
         Auth::login($user);
         $r->session()->regenerate();
-        if ($user->role === 'admin') {
-            return redirect('/admin');
-        }
-        if ($user->role === 'manager') {
-            return redirect()->route('manager.dashboard');
-        }
 
-        return redirect()->route($user->isInstructor() ? 'instructor.dashboard' : 'lms.home');
+        return redirect($user->defaultWorkspaceRoute());
     }
 }

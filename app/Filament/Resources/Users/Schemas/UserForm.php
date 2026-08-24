@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Role;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,7 +20,12 @@ class UserForm
                 Section::make('Kimlik bilgileri')->schema([
                     TextInput::make('name')->label('Ad soyad')->required()->maxLength(255),
                     TextInput::make('email')->label('E-posta')->email()->required()->unique(ignoreRecord: true)->maxLength(255),
-                    Select::make('role')->label('Rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi'])->default('learner')->required()->native(false),
+                    Select::make('role')->label('Birincil rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi'])->default('learner')->required()->native(false)
+                        ->helperText('Giriş yaptığında varsayılan olarak yönlendirileceği çalışma alanı.'),
+                    CheckboxList::make('extra_role_keys')->label('Ek roller')
+                        ->options(fn () => Role::orderBy('name')->pluck('name', 'key'))
+                        ->columns(2)
+                        ->helperText('Aynı kişi birden fazla çalışma alanına ihtiyaç duyuyorsa (ör. hem Eğitmen hem Yönetici) buradan ek rol verin -- birincil rolü tekrar seçmenize gerek yok, otomatik dahil edilir. Kullanıcı girişte üstteki çalışma alanı değiştiriciden diğerlerine geçebilir.'),
                     TextInput::make('password')->label('Şifre')->password()->revealable()
                         ->required(fn (string $operation): bool => $operation === 'create')
                         ->dehydrated(fn (?string $state): bool => filled($state))

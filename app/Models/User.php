@@ -22,12 +22,69 @@ class User extends Authenticatable implements FilamentUser
 
     public function isInstructor(): bool
     {
-        return in_array($this->role, ['instructor', 'admin'], true);
+        return $this->role === 'admin' || $this->hasRole('instructor');
     }
 
     public function isManager(): bool
     {
-        return $this->role === 'manager';
+        return $this->hasRole('manager');
+    }
+
+    /**
+     * The set of workspaces this user can switch into. users.role stays the
+     * single "primary" role that every existing role === 'x' check in the
+     * app reads (unchanged, so single-role behaviour never regresses) --
+     * this pivot is purely additive, for people who hold more than one role
+     * at once (see AGENTS/Faz 91 plan: workspace switcher).
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function hasRole(string $key): bool
+    {
+        return $this->role === $key || $this->roles->contains('key', $key);
+    }
+
+    public function hasAnyRole(array $keys): bool
+    {
+        foreach ($keys as $key) {
+            if ($this->hasRole($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Every workspace key this user can switch into, primary role first.
+     */
+    public function workspaces(): array
+    {
+        $keys = $this->roles->pluck('key')->all();
+        if (! in_array($this->role, $keys, true)) {
+            $keys[] = $this->role;
+        }
+        usort($keys, fn ($a, $b) => ($a === $this->role ? 0 : 1) <=> ($b === $this->role ? 0 : 1));
+
+        return $keys;
+    }
+
+    /**
+     * Where a fresh login (local or Entra) lands -- the one place this
+     * decision is made, so LmsController::login() and
+     * EntraSsoController::callback() can't silently drift apart.
+     */
+    public function defaultWorkspaceRoute(): string
+    {
+        return match (true) {
+            $this->role === 'admin' => '/admin',
+            $this->role === 'manager' => route('manager.dashboard'),
+            $this->isInstructor() => route('instructor.dashboard'),
+            default => route('lms.home'),
+        };
     }
 
     public function courses()
@@ -119,7 +176,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $panel->getId() === 'admin' && $this->role === 'admin' && ! $this->deactivated_at;
+        return $panel->getId() === 'admin' && $this->hasRole('admin') && ! $this->deactivated_at;
     }
 
     public function isDeactivated(): bool
