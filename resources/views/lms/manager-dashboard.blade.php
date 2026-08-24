@@ -3,7 +3,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-<div class="card metric-card"><span class="tag">{{ $en ? 'TEAM MEMBERS' : 'EKİP ÜYESİ' }}</span><strong>{{ $team->count() }}</strong><small>{{ $en ? 'Reporting to you' : 'Size bağlı çalışanlar' }}</small></div>
+<div class="card metric-card"><span class="tag">{{ $en ? 'TEAM MEMBERS' : 'EKİP ÜYESİ' }}</span><strong>{{ $team->count() }}</strong><small>{{ $en ? 'Reporting to you directly' : 'Size doğrudan bağlı çalışanlar' }}@if($allReports->count() > $team->count()) · {{ $allReports->count() }} {{ $en ? 'in your whole organization' : 'toplam organizasyonunuzda' }}@endif</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'IN PROGRESS' : 'DEVAM EDEN EĞİTİM' }}</span><strong>{{ $incompleteEnrollments->count() }}</strong><small>{{ $en ? 'Not yet completed' : 'Henüz tamamlanmamış kayıtlar' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'OVERDUE' : 'SÜRESİ GEÇEN' }}</span><strong style="{{ $overdueCount > 0 ? 'color:#b3402e' : '' }}">{{ $overdueCount }}</strong><small>{{ $en ? 'Past the due date' : 'Son tarihi geçmiş' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'CERTIFICATES EARNED' : 'KAZANILAN SERTİFİKA' }}</span><strong>{{ $certificatesCount }}</strong><small>{{ $en ? "Your team's total" : 'Ekibinizin toplamı' }}</small></div>
@@ -38,7 +38,7 @@
 @foreach($incompleteEnrollments as $enrollment)
 @php($overdue = $enrollment->course->isOverdueFor($enrollment))
 <li class="list-group-item requirement-row">
-<span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span>
+<span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}@unless($directIds->contains($enrollment->user_id)) <small class="muted">({{ $en ? 'sub-team' : 'alt ekip' }})</small>@endunless</span>
 <span>
 @if($overdue)
 <span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Overdue' : 'Süresi geçti' }}</span>

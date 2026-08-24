@@ -19,7 +19,13 @@ class ManagerController extends Controller
             ])
             ->get();
 
-        $teamIds = $team->pluck('id');
+        // Compliance visibility follows the whole reporting chain, not just
+        // direct reports -- a senior manager with sub-managers under them
+        // needs to see overdue/certificate posture across their entire
+        // organization, the same as someone with only ICs reporting to them.
+        $directIds = $team->pluck('id');
+        $allReports = Auth::user()->allReports();
+        $teamIds = $allReports->pluck('id');
 
         $incompleteEnrollments = Enrollment::whereIn('user_id', $teamIds)
             ->where('status', '!=', 'completed')
@@ -36,6 +42,6 @@ class ManagerController extends Controller
 
         $certificatesCount = Certificate::whereHas('enrollment', fn ($q) => $q->whereIn('user_id', $teamIds))->count();
 
-        return view('lms.manager-dashboard', compact('team', 'incompleteEnrollments', 'overdueCount', 'certificatesCount'));
+        return view('lms.manager-dashboard', compact('team', 'directIds', 'allReports', 'incompleteEnrollments', 'overdueCount', 'certificatesCount'));
     }
 }

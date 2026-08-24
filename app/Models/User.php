@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id', 'deactivated_at', 'notification_preferences'])]
+#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id', 'organization_unit_id', 'deactivated_at', 'notification_preferences'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -66,6 +66,37 @@ class User extends Authenticatable implements FilamentUser
     public function directReports()
     {
         return $this->hasMany(User::class, 'manager_id');
+    }
+
+    public function organizationUnit()
+    {
+        return $this->belongsTo(OrganizationUnit::class);
+    }
+
+    /**
+     * Every user anywhere below this one in the manager_id chain -- direct
+     * reports, their reports, and so on -- not just directReports().
+     * Breadth-first and cycle-safe (a corrupted manager_id chain, e.g. from
+     * a manual DB edit, can't hang this in an infinite loop) since a normal
+     * "who reports up to whom" org chart is always a tree in practice.
+     */
+    public function allReports(): \Illuminate\Support\Collection
+    {
+        $collected = collect();
+        $seenIds = collect([$this->id]);
+        $frontierIds = collect([$this->id]);
+
+        while ($frontierIds->isNotEmpty()) {
+            $batch = User::whereIn('manager_id', $frontierIds)->get()->reject(fn (User $u) => $seenIds->contains($u->id));
+            if ($batch->isEmpty()) {
+                break;
+            }
+            $collected = $collected->merge($batch);
+            $seenIds = $seenIds->merge($batch->pluck('id'));
+            $frontierIds = $batch->pluck('id');
+        }
+
+        return $collected->values();
     }
 
     /**

@@ -28,6 +28,7 @@ class UserForm
                     TextInput::make('department')->label('Departman'),
                     TextInput::make('job_title')->label('Unvan'),
                     Select::make('manager_id')->label('Bağlı olduğu yönetici')->relationship('manager', 'name', fn ($query) => $query->where('role', 'manager'))->searchable()->native(false)->helperText('Bu kişi hangi yöneticinin ekibinde görünsün.'),
+                    Select::make('organization_unit_id')->label('Organizasyon birimi')->relationship('organizationUnit', 'name')->searchable()->preload()->native(false),
                     FileUpload::make('avatar_path')->label('Fotoğraf')->image()->disk('public')->directory('avatars')->imageEditor(),
                     Textarea::make('bio')->label('Kısa biyografi')->columnSpanFull(),
                 ])->columns(2),

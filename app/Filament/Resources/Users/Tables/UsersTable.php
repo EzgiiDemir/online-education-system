@@ -39,6 +39,7 @@ class UsersTable
                     })
                     ->searchable(),
                 TextColumn::make('manager.name')->label('Yöneticisi')->placeholder('—')->toggleable(),
+                TextColumn::make('organizationUnit.name')->label('Organizasyon birimi')->placeholder('—')->toggleable(),
                 TextColumn::make('enrollments_count')->label('Kayıtlar')->counts('enrollments')->badge(),
                 TextColumn::make('courses_count')->label('Verdiği kurslar')->counts('courses')->badge()->toggleable(),
                 TextColumn::make('created_at')
@@ -48,6 +49,7 @@ class UsersTable
             ])
             ->filters([
                 SelectFilter::make('role')->label('Rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi']),
+                SelectFilter::make('organization_unit_id')->label('Organizasyon birimi')->relationship('organizationUnit', 'name')->searchable()->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),
