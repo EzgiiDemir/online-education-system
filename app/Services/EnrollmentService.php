@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
  * The one place an Enrollment gets created, whether the learner enrolled
  * themselves (LmsController::enroll) or an admin assigned the course to
  * them (Filament's course roster "Toplu ata" action) -- both need the same
- * capacity/waitlist handling, so it lives here once instead of drifting
- * apart across two call sites.
+ * capacity/waitlist/recertification handling, so it lives here once
+ * instead of drifting apart across two call sites.
  */
 class EnrollmentService
 {
@@ -26,9 +26,13 @@ class EnrollmentService
             abort_if($unmet->isNotEmpty(), 422, 'Bu eğitime kaydolmadan önce şu eğitim(ler)i tamamlamanız gerekiyor: '.$unmet->pluck('title')->implode(', ').'.');
         }
 
-        $existing = $user->enrollments()->where('course_id', $course->id)->first();
-        if ($existing) {
-            return $existing;
+        // A stale current cycle (completed, certificate expired) doesn't
+        // block a new one -- that's the whole point of recertification.
+        // Anything else (still in progress, or completed with nothing to
+        // expire) is the same "already enrolled, no-op" behavior as before.
+        $current = $user->currentEnrollmentFor($course->id);
+        if ($current && ! $current->isStale()) {
+            return $current;
         }
 
         $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
@@ -54,11 +58,13 @@ class EnrollmentService
 
     private function createEnrollmentAndNotify(Course $course, ?int $runId, User $user): Enrollment
     {
-        $enrollment = $user->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $runId]);
-        if ($enrollment->wasRecentlyCreated) {
-            foreach ($course->sessions()->where('meeting_status', '!=', 'not_applicable')->get() as $session) {
-                $user->notify(new LiveSessionScheduled($session));
-            }
+        // Plain create(), not firstOrCreate(): the caller has already
+        // established (via currentEnrollmentFor()/isStale()) that a fresh
+        // cycle is what's needed here, so every call always inserts a new
+        // row and always sends the live-session invites for it.
+        $enrollment = $user->enrollments()->create(['course_id' => $course->id, 'course_run_id' => $runId]);
+        foreach ($course->sessions()->where('meeting_status', '!=', 'not_applicable')->get() as $session) {
+            $user->notify(new LiveSessionScheduled($session));
         }
 
         return $enrollment;

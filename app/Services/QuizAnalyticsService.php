@@ -17,12 +17,15 @@ class QuizAnalyticsService
 {
     public function summarize(Activity $activity): array
     {
-        $attempts = $activity->quizAttempts;
+        $attempts = $activity->quizAttempts()->with('enrollment')->get();
         $totalAttempts = $attempts->count();
 
         return [
             'total_attempts' => $totalAttempts,
-            'unique_learners' => $attempts->pluck('enrollment_id')->unique()->count(),
+            // By user_id, not enrollment_id: a learner who retakes this
+            // quiz in a recertification cycle gets a new enrollment_id, but
+            // is still one person, not two "unique learners".
+            'unique_learners' => $attempts->pluck('enrollment.user_id')->unique()->count(),
             'pass_rate' => $totalAttempts ? (int) round($attempts->where('passed', true)->count() / $totalAttempts * 100) : null,
             'average_score' => $totalAttempts ? (int) round($attempts->avg('score')) : null,
             'per_question' => $this->perQuestionStats($activity, $attempts),

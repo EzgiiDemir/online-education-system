@@ -32,7 +32,11 @@ class ComplianceDashboard extends Page
 
     private function mandatoryEnrollments(): Collection
     {
-        return Enrollment::whereHas('course', fn ($q) => $q->whereIn('category', ['required', 'compliance']))
+        // currentCycle(): a recertified enrollment must count once here, or
+        // it inflates both the raw totals and the org-wide completion rate
+        // every time anyone recertifies.
+        return Enrollment::currentCycle()
+            ->whereHas('course', fn ($q) => $q->whereIn('category', ['required', 'compliance']))
             ->with('course')
             ->get();
     }
@@ -66,11 +70,11 @@ class ComplianceDashboard extends Page
     public function getCourseBreakdown(): Collection
     {
         return Course::whereIn('category', ['required', 'compliance'])
-            ->with('enrollments')
+            ->with('currentEnrollments')
             ->orderBy('title')
             ->get()
             ->map(function (Course $course) {
-                $enrollments = $course->enrollments;
+                $enrollments = $course->currentEnrollments;
                 $total = $enrollments->count();
                 $completed = $enrollments->where('status', 'completed')->count();
 

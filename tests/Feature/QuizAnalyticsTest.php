@@ -86,6 +86,27 @@ class QuizAnalyticsTest extends TestCase
     }
 
     /**
+     * P1 recertification: a learner who retakes this quiz in a new
+     * recertification cycle gets a fresh enrollment_id, but is still one
+     * person -- unique_learners must dedupe by user, not enrollment row.
+     */
+    public function test_unique_learners_dedupes_a_learner_who_recertified(): void
+    {
+        $activity = $this->makeQuiz();
+        $q1 = $activity->quizQuestions[0];
+        $learner = User::factory()->create(['role' => 'learner']);
+        $firstCycle = Enrollment::create(['user_id' => $learner->id, 'course_id' => $activity->section->course_id, 'status' => 'completed', 'completed_at' => now()->subYear()]);
+        $secondCycle = Enrollment::create(['user_id' => $learner->id, 'course_id' => $activity->section->course_id]);
+        QuizAttempt::create(['activity_id' => $activity->id, 'enrollment_id' => $firstCycle->id, 'score' => 100, 'passed' => true, 'answers' => [$q1->id => [1]], 'submitted_at' => now()->subYear()]);
+        QuizAttempt::create(['activity_id' => $activity->id, 'enrollment_id' => $secondCycle->id, 'score' => 100, 'passed' => true, 'answers' => [$q1->id => [1]], 'submitted_at' => now()]);
+
+        $summary = app(QuizAnalyticsService::class)->summarize($activity);
+
+        $this->assertSame(2, $summary['total_attempts']);
+        $this->assertSame(1, $summary['unique_learners']);
+    }
+
+    /**
      * With pool_size active, not every attempt answers every question in the
      * bank -- the per-question denominator has to be "times this question
      * was actually drawn", not the total attempt count, or a question that

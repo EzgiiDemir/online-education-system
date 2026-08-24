@@ -64,10 +64,17 @@ class EnrollmentsRelationManager extends RelationManager
                     ->icon(Heroicon::OutlinedUserPlus)
                     ->color('gray')
                     ->schema([
+                        // Excludes only users whose current cycle is still
+                        // active (not stale) -- someone whose certificate
+                        // has expired is exactly who this action should be
+                        // able to re-assign, not someone the picker hides.
                         Select::make('user_ids')->label('Katılımcılar')
-                            ->options(fn () => User::whereNull('deactivated_at')
-                                ->whereNotIn('id', $this->getOwnerRecord()->enrollments()->pluck('user_id'))
-                                ->pluck('name', 'id'))
+                            ->options(function () {
+                                $course = $this->getOwnerRecord();
+                                $activeUserIds = $course->currentEnrollments()->get()->reject->isStale()->pluck('user_id');
+
+                                return User::whereNull('deactivated_at')->whereNotIn('id', $activeUserIds)->pluck('name', 'id');
+                            })
                             ->multiple()
                             ->searchable()
                             ->required(),

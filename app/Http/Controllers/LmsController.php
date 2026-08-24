@@ -68,7 +68,12 @@ class LmsController extends Controller
         $todaySessions = collect();
 
         if (Auth::check()) {
-            $enrolledCourseIds = Auth::user()->enrollments()->pluck('course_id');
+            // A stale (recertification-due) current cycle shouldn't hide the
+            // catalog's "Enroll now" button -- it's meaningfully the same as
+            // not being enrolled at all right now.
+            $enrolledCourseIds = Auth::user()->enrollments()->currentCycle()->get()
+                ->reject(fn (Enrollment $e) => $e->isStale())
+                ->pluck('course_id');
 
             $activeEnrollments = Auth::user()->enrollments()
                 ->with('course')
@@ -120,9 +125,11 @@ class LmsController extends Controller
         $enrollment = null;
         $stats = null;
         $continueUrl = null;
+        $needsRecertification = false;
         if (Auth::check()) {
-            $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->with('progress', 'activityProgress', 'certificate')->first();
+            $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->with('progress', 'activityProgress', 'certificate')->currentCycle()->first();
             if ($enrollment) {
+                $needsRecertification = $enrollment->isStale();
                 $stats = $enrollment->completionStats();
                 $nextItem = $enrollment->nextIncompleteItem();
                 $continueUrl = match ($nextItem['type'] ?? null) {
@@ -134,15 +141,19 @@ class LmsController extends Controller
         }
 
         $newerVersion = $course->versions()->where('status', 'published')->where('version', '>', $course->version)->first();
-        $unmetPrerequisites = (Auth::check() && ! $enrollment) ? $course->unmetPrerequisitesFor(Auth::user()) : collect();
+        // No enrollment, or the current one is stale and due for a fresh
+        // cycle -- either way, this is "someone who can (re-)enroll", so the
+        // prerequisite/waitlist checks below apply the same as a first-timer.
+        $canEnroll = Auth::check() && (! $enrollment || $needsRecertification);
+        $unmetPrerequisites = $canEnroll ? $course->unmetPrerequisitesFor(Auth::user()) : collect();
 
         $isWaitlisted = false;
-        if (Auth::check() && ! $enrollment) {
+        if ($canEnroll) {
             $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
             $isWaitlisted = $openRun && WaitlistEntry::where('course_run_id', $openRun->id)->where('user_id', Auth::id())->exists();
         }
 
-        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion', 'unmetPrerequisites', 'isWaitlisted'));
+        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion', 'unmetPrerequisites', 'isWaitlisted', 'needsRecertification'));
     }
 
     public function mySkills()
@@ -325,7 +336,7 @@ class LmsController extends Controller
         if (Auth::check()) {
             foreach ($paths as $path) {
                 $courseIds = $path->courses->pluck('id');
-                $completedCount = Auth::user()->enrollments()->whereIn('course_id', $courseIds)->where('status', 'completed')->count();
+                $completedCount = Auth::user()->enrollments()->currentCycle()->whereIn('course_id', $courseIds)->where('status', 'completed')->count();
                 $progress[$path->id] = $courseIds->isEmpty() ? 0 : (int) round($completedCount / $courseIds->count() * 100);
             }
         }
@@ -338,8 +349,11 @@ class LmsController extends Controller
         abort_unless($path->status === 'published', 404);
         $path->load('courses.instructor');
 
-        $enrolledCourseIds = Auth::check() ? Auth::user()->enrollments()->pluck('course_id') : collect();
-        $completedCourseIds = Auth::check() ? Auth::user()->enrollments()->where('status', 'completed')->pluck('course_id') : collect();
+        $currentCycles = Auth::check() ? Auth::user()->enrollments()->currentCycle()->get() : collect();
+        // A stale (recertification-due) cycle counts as neither "enrolled"
+        // nor "completed" here -- same reasoning as home()'s catalog badge.
+        $enrolledCourseIds = $currentCycles->reject(fn (Enrollment $e) => $e->isStale())->pluck('course_id');
+        $completedCourseIds = $currentCycles->filter(fn (Enrollment $e) => $e->status === 'completed' && ! $e->isStale())->pluck('course_id');
 
         return view('lms.learning-path-show', compact('path', 'enrolledCourseIds', 'completedCourseIds'));
     }
@@ -365,9 +379,9 @@ class LmsController extends Controller
 
         $courses = Auth::user()->courses()
             ->withCount([
-                'enrollments',
-                'enrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
-                'enrollments as new_enrollments_count' => fn ($q) => $q->where('created_at', '>=', now()->subDays(7)),
+                'currentEnrollments as enrollments_count',
+                'currentEnrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
+                'currentEnrollments as new_enrollments_count' => fn ($q) => $q->where('created_at', '>=', now()->subDays(7)),
             ])
             ->with('sessions')
             ->latest()
@@ -402,8 +416,8 @@ class LmsController extends Controller
 
         $courses = Auth::user()->courses()
             ->withCount([
-                'enrollments',
-                'enrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
+                'currentEnrollments as enrollments_count',
+                'currentEnrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
             ])
             ->with('sessions')
             ->latest()
@@ -435,14 +449,18 @@ class LmsController extends Controller
     public function courseDetail(Course $course)
     {
         $this->authorize('view', $course);
-        $course->load(['instructor', 'sessions.materials', 'enrollments.user', 'enrollments.sessionProgress.session', 'sections.activities', 'runs']);
-        $stats = ['enrollments' => $course->enrollments->count(), 'completed' => $course->enrollments->where('status', 'completed')->count(), 'sessions' => $course->sessions->count(), 'attendance_minutes' => (int) DB::table('session_attendance')->whereIn('course_session_id', $course->sessions->pluck('id'))->sum('duration_seconds') / 60, 'recordings' => $course->sessions->whereNotNull('recording_path')->count()];
+        $course->load(['instructor', 'sessions.materials', 'currentEnrollments.user', 'currentEnrollments.sessionProgress.session', 'sections.activities', 'runs']);
+        // Roster/stats read currentEnrollments (one row per distinct learner,
+        // their current cycle) rather than enrollments -- otherwise a
+        // recertifying learner would show up twice in "Participants" and
+        // inflate the enrollment/completed counts.
+        $stats = ['enrollments' => $course->currentEnrollments->count(), 'completed' => $course->currentEnrollments->where('status', 'completed')->count(), 'sessions' => $course->sessions->count(), 'attendance_minutes' => (int) DB::table('session_attendance')->whereIn('course_session_id', $course->sessions->pluck('id'))->sum('duration_seconds') / 60, 'recordings' => $course->sessions->whereNotNull('recording_path')->count()];
         // Separate, dedicated paginated query for the participant list card only.
-        // $course->enrollments (the full eager-loaded collection above) must stay
-        // intact and unpaginated: the per-run participant counts and the
-        // per-session attendance-marking roll below both need every enrollment,
-        // not just one page of them.
-        $participants = $course->enrollments()->with(['user', 'sessionProgress.session'])->latest()->paginate(15, ['*'], 'participants_page');
+        // $course->currentEnrollments (the full eager-loaded collection above)
+        // must stay intact and unpaginated: the per-run participant counts and
+        // the per-session attendance-marking roll below both need every
+        // current enrollment, not just one page of them.
+        $participants = $course->currentEnrollments()->with(['user', 'sessionProgress.session'])->latest()->paginate(15, ['*'], 'participants_page');
 
         return view('lms.course-detail', compact('course', 'stats', 'participants'));
     }
@@ -533,7 +551,7 @@ class LmsController extends Controller
             Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
         }
         if ($course->delivery_type === 'online') {
-            foreach ($course->enrollments()->with('user')->get() as $enrollment) {
+            foreach ($course->currentEnrollments()->with('user')->get() as $enrollment) {
                 $enrollment->user->notify(new LiveSessionScheduled($session));
             }
         }
@@ -553,7 +571,7 @@ class LmsController extends Controller
 
     public function startSession(CourseSession $session)
     {
-        $enrollment = Auth::user()->enrollments()->where('course_id', $session->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($session->course_id);
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now()]);
 
         return back()->with('success', 'Seans başlangıcı kaydedildi.');
@@ -570,7 +588,7 @@ class LmsController extends Controller
     public function completeSession(CourseSession $session)
     {
         abort_if($session->meeting_status === 'not_applicable', 422, 'Yüz yüze seanslarda katılım yalnızca eğitmen tarafından işaretlenebilir.');
-        $enrollment = Auth::user()->enrollments()->where('course_id', $session->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($session->course_id);
         $attended = SessionAttendance::where('course_session_id', $session->id)->where('user_id', Auth::id())->value('duration_seconds') ?? 0;
         $required = $this->completion->requiredSessionSeconds($session);
         abort_unless($attended >= $required, 422, 'Seansı tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
@@ -590,7 +608,7 @@ class LmsController extends Controller
     {
         $this->authorize('update', $session->course);
         $data = $r->validate(['user_id' => 'required|exists:users,id']);
-        $enrollment = Enrollment::where('course_id', $session->course_id)->where('user_id', $data['user_id'])->firstOrFail();
+        $enrollment = Enrollment::currentFor($data['user_id'], $session->course_id) ?? abort(404);
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now(), 'completed_at' => now()]);
         $this->completion->evaluateEnrollment($enrollment);
 
@@ -676,7 +694,7 @@ class LmsController extends Controller
 
     public function materialView(Material $material)
     {
-        $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($material->session->course_id);
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         $isVideo = str_starts_with($material->type, 'video/');
         $required = $isVideo ? $this->completion->requiredWatchSeconds($material->duration_seconds) : null;
@@ -687,7 +705,7 @@ class LmsController extends Controller
 
     public function materialHeartbeat(Material $material)
     {
-        $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($material->session->course_id);
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         $this->completion->accrueHeartbeat($progress);
         $required = $this->completion->requiredWatchSeconds($material->duration_seconds);
@@ -705,7 +723,7 @@ class LmsController extends Controller
      */
     public function setMaterialDuration(Request $r, Material $material)
     {
-        Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        Auth::user()->currentEnrollmentForOrFail($material->session->course_id);
         if (is_null($material->duration_seconds)) {
             $material->update(['duration_seconds' => $r->validate(['seconds' => 'required|integer|min:1|max:86400'])['seconds']]);
         }
@@ -715,7 +733,7 @@ class LmsController extends Controller
 
     public function completeMaterial(Material $material)
     {
-        $enrollment = Auth::user()->enrollments()->where('course_id', $material->session->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($material->session->course_id);
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         if (str_starts_with($material->type, 'video/')) {
             $required = $this->completion->requiredWatchSeconds($material->duration_seconds);
@@ -729,7 +747,7 @@ class LmsController extends Controller
     public function activityView(Activity $activity)
     {
         abort_if($activity->type === 'live_session', 422, 'Canlı oturum etkinlikleri katılım kaydından otomatik izlenir.');
-        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
 
         if ($activity->type === 'quiz') {
@@ -782,7 +800,7 @@ class LmsController extends Controller
     public function submitAssignment(Request $r, Activity $activity)
     {
         abort_unless($activity->type === 'assignment', 404);
-        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
 
         $alreadyPassed = AssignmentSubmission::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)
             ->whereNotNull('graded_at')->where('score', '>=', $activity->pass_score ?? 0)->exists();
@@ -867,7 +885,7 @@ class LmsController extends Controller
     public function activityHeartbeat(Activity $activity)
     {
         abort_if(in_array($activity->type, ['live_session', 'quiz', 'assignment'], true), 422, 'Bu etkinlik türü izleme süresiyle takip edilmez.');
-        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         $this->completion->accrueHeartbeat($progress);
         $required = $this->completion->requiredWatchSeconds($activity->duration_seconds);
@@ -881,7 +899,7 @@ class LmsController extends Controller
      */
     public function setActivityDuration(Request $r, Activity $activity)
     {
-        Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
         if (is_null($activity->duration_seconds)) {
             $activity->update(['duration_seconds' => $r->validate(['seconds' => 'required|integer|min:1|max:86400'])['seconds']]);
         }
@@ -892,7 +910,7 @@ class LmsController extends Controller
     public function completeActivity(Activity $activity)
     {
         abort_if(in_array($activity->type, ['live_session', 'quiz', 'assignment'], true), 422, 'Bu etkinlik türü bu şekilde tamamlanamaz.');
-        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         if ($activity->type === 'video') {
             $required = $this->completion->requiredWatchSeconds($activity->duration_seconds);
@@ -912,7 +930,7 @@ class LmsController extends Controller
     public function submitQuizAttempt(Request $r, Activity $activity)
     {
         abort_unless($activity->type === 'quiz', 404);
-        $enrollment = Auth::user()->enrollments()->where('course_id', $activity->section->course_id)->firstOrFail();
+        $enrollment = Auth::user()->currentEnrollmentForOrFail($activity->section->course_id);
 
         $previousAttempts = QuizAttempt::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)->get();
         abort_if($previousAttempts->contains('passed', true), 422, 'Bu sınavı zaten geçtiniz.');

@@ -40,6 +40,24 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Enrollment::class);
     }
 
+    /**
+     * The current cycle of this user's relationship with a course -- see
+     * Enrollment::currentFor(). Every controller action that records
+     * progress against "the" enrollment for a course must resolve it
+     * through here (or currentEnrollmentForOrFail()), never a bare
+     * ->where('course_id', ...)->first(), now that recertification means
+     * more than one row can exist for the same course over time.
+     */
+    public function currentEnrollmentFor(int $courseId): ?Enrollment
+    {
+        return Enrollment::currentFor($this->id, $courseId);
+    }
+
+    public function currentEnrollmentForOrFail(int $courseId): Enrollment
+    {
+        return $this->currentEnrollmentFor($courseId) ?? abort(404);
+    }
+
     public function manager()
     {
         return $this->belongsTo(User::class, 'manager_id');

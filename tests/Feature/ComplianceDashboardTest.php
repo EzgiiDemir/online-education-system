@@ -50,6 +50,26 @@ class ComplianceDashboardTest extends TestCase
         $this->assertSame(1, $metrics['total']);
     }
 
+    /**
+     * P1 recertification: a learner with two Enrollment rows for the same
+     * course (a recertified cycle) must count once in "total", not twice --
+     * otherwise the org-wide completion rate permanently drifts every time
+     * anyone recertifies.
+     */
+    public function test_metrics_count_a_recertified_learner_only_once(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create(['category' => 'compliance']);
+        $learner = User::factory()->create();
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()->subYear()]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
+
+        $metrics = Livewire::actingAs($admin)->test(ComplianceDashboard::class)->instance()->getMetrics();
+
+        $this->assertSame(1, $metrics['total']);
+        $this->assertSame(1, $metrics['completed']);
+    }
+
     public function test_metrics_count_overdue_completed_and_exempt_correctly(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

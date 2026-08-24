@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Courses\Pages\EditCourse;
 use App\Filament\Resources\Courses\RelationManagers\EnrollmentsRelationManager;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
@@ -72,6 +73,28 @@ class TrainingAssignmentTest extends TestCase
         ])->callTableAction('bulkAssign', data: ['user_ids' => [$learner->id]]);
 
         $this->assertSame(1, Enrollment::where('user_id', $learner->id)->where('course_id', $course->id)->count());
+    }
+
+    /**
+     * P1 recertification: a learner whose current cycle is stale (completed,
+     * certificate expired) must still appear in the bulk-assign picker --
+     * they're exactly who an admin would want to re-assign -- and get a
+     * fresh cycle, not be silently excluded as "already enrolled".
+     */
+    public function test_bulk_assign_can_re_assign_a_learner_whose_certificate_has_expired(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create(['status' => 'published', 'recertification_period_days' => 30]);
+        $learner = User::factory()->create(['role' => 'learner']);
+        $oldEnrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()->subDays(40)]);
+        Certificate::create(['enrollment_id' => $oldEnrollment->id, 'certificate_number' => 'CERT-BULK1', 'issued_at' => now()->subDays(40)]);
+
+        Livewire::actingAs($admin)->test(EnrollmentsRelationManager::class, [
+            'ownerRecord' => $course,
+            'pageClass' => EditCourse::class,
+        ])->callTableAction('bulkAssign', data: ['user_ids' => [$learner->id]]);
+
+        $this->assertSame(2, Enrollment::where('user_id', $learner->id)->where('course_id', $course->id)->count());
     }
 
     public function test_bulk_assign_waitlists_when_the_runs_capacity_is_already_full(): void

@@ -11,6 +11,14 @@ class Enrollment extends Model
 
     protected $guarded = [];
 
+    // Mirrors the DB column default so a freshly-instantiated (not yet
+    // reloaded) model reflects 'enrolled' immediately -- SQLite/MySQL don't
+    // populate column defaults back onto the in-memory model after create()
+    // (see Course::$attributes for the same issue with `version`). Without
+    // this, EnrollmentService::enroll() would hand back a new cycle whose
+    // ->status is null until the caller happens to ->fresh() it.
+    protected $attributes = ['status' => 'enrolled'];
+
     protected $casts = ['completed_at' => 'datetime', 'exempted_at' => 'datetime'];
 
     /**
@@ -84,6 +92,50 @@ class Enrollment extends Model
     public function unexempt(): void
     {
         $this->update(['exempted_at' => null, 'exemption_reason' => null, 'exempted_by' => null]);
+    }
+
+    /**
+     * True once this cycle is "done" in a way that should let the learner
+     * start a fresh one: completed AND its certificate has expired
+     * (recertification due). A completed enrollment with no certificate,
+     * or a certificate with no recertification_period_days, never goes
+     * stale -- there's nothing to recertify against, so it stays the
+     * learner's one and only cycle forever, exactly like before this
+     * feature existed.
+     */
+    public function isStale(): bool
+    {
+        return $this->status === 'completed' && $this->certificate && $this->certificate->isExpired();
+    }
+
+    /**
+     * The most recent enrollment row for a given (user, course) pair --
+     * "current" regardless of whether it's still in progress or long since
+     * completed. Safe by construction: EnrollmentService::enroll() only
+     * ever starts a new cycle once the previous one is both completed and
+     * isStale(), so at most one non-stale cycle exists at a time and the
+     * highest id is always the right one to act on.
+     */
+    public static function currentFor(int $userId, int $courseId): ?self
+    {
+        return static::where('user_id', $userId)->where('course_id', $courseId)->latest('id')->first();
+    }
+
+    /**
+     * Restricts a query to exactly one row per (user_id, course_id) pair --
+     * whichever has the highest id, i.e. the current cycle as defined by
+     * currentFor() above. Use this anywhere a roster/stats view lists or
+     * counts "how many learners/enrollments", so a recertifying learner's
+     * old, superseded cycle doesn't count twice.
+     */
+    public function scopeCurrentCycle($query)
+    {
+        return $query->where('enrollments.id', function ($sub) {
+            $sub->selectRaw('MAX(e2.id)')
+                ->from('enrollments as e2')
+                ->whereColumn('e2.user_id', 'enrollments.user_id')
+                ->whereColumn('e2.course_id', 'enrollments.course_id');
+        });
     }
 
     public function sessionProgress()

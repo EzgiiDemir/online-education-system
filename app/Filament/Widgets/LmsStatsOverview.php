@@ -14,8 +14,11 @@ class LmsStatsOverview extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $totalEnrollments = Enrollment::count();
-        $completedEnrollments = Enrollment::where('status', 'completed')->count();
+        // currentCycle(): a recertified enrollment (2+ rows for the same
+        // user+course) must count once here, or the completion rate would
+        // permanently drift upward every time anyone recertifies.
+        $totalEnrollments = Enrollment::currentCycle()->count();
+        $completedEnrollments = Enrollment::currentCycle()->where('status', 'completed')->count();
         $completionRate = $totalEnrollments ? round($completedEnrollments / $totalEnrollments * 100) : 0;
         $upcomingSessions = CourseSession::where('starts_at', '>=', now())->count();
 

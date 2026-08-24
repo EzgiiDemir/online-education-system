@@ -46,7 +46,12 @@ class LearningPath extends Model
             return false;
         }
 
+        // currentCycle() matters here: without it, a recertified course
+        // (two completed rows for the same course) would inflate this count
+        // past $earlierRequiredCourseIds->count() even if a *different*
+        // required course was never completed at all.
         $completedCount = $user->enrollments()
+            ->currentCycle()
             ->whereIn('course_id', $earlierRequiredCourseIds)
             ->where('status', 'completed')
             ->count();

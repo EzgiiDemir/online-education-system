@@ -34,6 +34,18 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    /**
+     * Exactly one row per distinct learner -- their current cycle (see
+     * Enrollment::scopeCurrentCycle()) -- instead of every historical row.
+     * Rosters, participant counts, and completion-rate stats should read
+     * this, not enrollments(), so a recertifying learner is one person on
+     * the roster and one line in the completion rate, not two.
+     */
+    public function currentEnrollments()
+    {
+        return $this->hasMany(Enrollment::class)->currentCycle();
+    }
+
     public function runs()
     {
         return $this->hasMany(CourseRun::class);

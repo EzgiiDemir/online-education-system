@@ -52,7 +52,12 @@
                 </p>
                 @endif
             </div>
-            @if($enrollment->status === 'completed')
+            @if($needsRecertification)
+                <span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Recertification required' : 'Yeniden sertifikalandırma gerekiyor' }}</span>
+                @auth
+                <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary">{{ $en ? 'Retake course' : 'Eğitimi yeniden al' }} <x-lucide name="arrow-right" size="14" /></button></form>
+                @endauth
+            @elseif($enrollment->status === 'completed')
                 @if($enrollment->certificate?->isRevoked())<span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Certificate revoked' : 'Sertifika iptal edildi' }}</span>
                 @elseif($enrollment->certificate)<a class="btn btn-primary" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="btn btn-outline-secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
             @elseif($continueUrl)

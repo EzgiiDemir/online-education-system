@@ -70,6 +70,31 @@ class LearningPathTest extends TestCase
         $response->assertDontSee('Kilitli');
     }
 
+    /**
+     * P1 recertification: two completed Enrollment rows for the SAME
+     * earlier course (a recertification cycle) must still count as one
+     * completed course, not two -- otherwise a learner who recertified
+     * once in an earlier course could satisfy the count threshold here
+     * while a genuinely different required course was never completed.
+     */
+    public function test_a_recertified_earlier_course_does_not_inflate_the_completed_count(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $path = LearningPath::create(['title' => 'Onboarding', 'status' => 'published', 'is_sequential' => true]);
+        $first = Course::factory()->create(['status' => 'published']);
+        $second = Course::factory()->create(['status' => 'published']);
+        $third = Course::factory()->create(['status' => 'published']);
+        $path->courses()->attach($first, ['sort_order' => 1, 'is_required' => true]);
+        $path->courses()->attach($second, ['sort_order' => 2, 'is_required' => true]);
+        $path->courses()->attach($third, ['sort_order' => 3, 'is_required' => true]);
+        // Two completed cycles of $first (recertified once), but $second was
+        // never completed at all.
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $first->id, 'status' => 'completed', 'completed_at' => now()->subYear()]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $first->id, 'status' => 'completed', 'completed_at' => now()]);
+
+        $this->assertTrue($path->isLockedFor($third, $learner));
+    }
+
     public function test_non_sequential_path_never_locks_courses(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
