@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
+    Route::post('/instructor/courses/{course}', [LmsController::class, 'updateCourse'])->name('instructor.courses.update');
     Route::post('/instructor/courses/{course}/sessions', [LmsController::class, 'addSession'])->name('instructor.sessions.store');
     Route::post('/instructor/courses/{course}/sections', [CourseBuilderController::class, 'storeSection'])->name('builder.sections.store');
     Route::post('/instructor/sections/{section}', [CourseBuilderController::class, 'updateSection'])->name('builder.sections.update');

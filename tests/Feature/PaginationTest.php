@@ -82,7 +82,7 @@ class PaginationTest extends TestCase
         $response = $this->actingAs($instructor)->get(route('instructor.courses.show', $course));
 
         $response->assertOk();
-        $response->assertSee('Katılımcılar (17)');
+        $response->assertSee('Öğrenciler (17)');
         $response->assertSee('Sayfa 1 / 2');
 
         $page2 = $this->actingAs($instructor)->get(route('instructor.courses.show', $course).'?participants_page=2');

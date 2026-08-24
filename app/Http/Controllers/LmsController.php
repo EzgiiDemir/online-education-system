@@ -495,7 +495,7 @@ class LmsController extends Controller
     public function courseDetail(Course $course)
     {
         $this->authorize('view', $course);
-        $course->load(['instructor', 'sessions.materials.versions.replacedBy', 'currentEnrollments.user', 'currentEnrollments.sessionProgress.session', 'sections.activities', 'runs']);
+        $course->load(['instructor', 'sessions.materials.versions.replacedBy', 'currentEnrollments.user', 'currentEnrollments.sessionProgress.session', 'sections.activities.quizQuestions', 'sections.activities.quizAttempts', 'sections.activities.assignmentSubmissions', 'runs']);
         // Roster/stats read currentEnrollments (one row per distinct learner,
         // their current cycle) rather than enrollments -- otherwise a
         // recertifying learner would show up twice in "Participants" and
@@ -506,9 +506,66 @@ class LmsController extends Controller
         // must stay intact and unpaginated: the per-run participant counts and
         // the per-session attendance-marking roll below both need every
         // current enrollment, not just one page of them.
-        $participants = $course->currentEnrollments()->with(['user', 'sessionProgress.session'])->latest()->paginate(15, ['*'], 'participants_page');
+        $participants = $course->currentEnrollments()
+            ->with(['user', 'sessionProgress.session', 'activityProgress', 'progress'])
+            ->withAvg('quizAttempts', 'score')
+            ->withCount('assignmentSubmissions')
+            ->latest()->paginate(15, ['*'], 'participants_page');
 
-        return view('lms.course-detail', compact('course', 'stats', 'participants'));
+        // Attached as pseudo-attributes rather than a parallel array so the
+        // Students tab can keep using $participants exactly like the old
+        // Blade did -- completionStats() and the timestamp collections are
+        // already loaded in memory, no extra queries per row.
+        $participants->getCollection()->transform(function (Enrollment $enrollment) {
+            $lastActivityAt = collect([
+                $enrollment->activityProgress->max('updated_at'),
+                $enrollment->progress->max('updated_at'),
+                $enrollment->sessionProgress->max('updated_at'),
+            ])->filter()->max();
+            $enrollment->setAttribute('last_activity_at', $lastActivityAt);
+            $enrollment->setAttribute('completion_percent', $enrollment->completionStats()['percent']);
+
+            return $enrollment;
+        });
+
+        $assessableActivities = $course->sections->flatMap->activities->whereIn('type', ['quiz', 'assignment']);
+
+        // A plain, defensible checklist rather than invented percentages --
+        // "70% ready" would need a scoring formula nothing else in the app
+        // has a basis for, but "has at least one X" is a fact the instructor
+        // can act on directly.
+        $courseHealth = [
+            'content' => $course->sections->contains(fn ($s) => $s->activities->isNotEmpty()) || $course->sessions->contains(fn ($s) => $s->materials->isNotEmpty()),
+            'assessment' => $assessableActivities->isNotEmpty(),
+            'schedule' => $course->delivery_type !== 'online' || $course->sessions->isNotEmpty(),
+        ];
+
+        return view('lms.course-detail', compact('course', 'stats', 'participants', 'assessableActivities', 'courseHealth'));
+    }
+
+    /**
+     * Instructor-side course settings -- until now, only the admin panel
+     * could edit a course after its initial storeCourse() creation, which
+     * meant an instructor had to ask an admin to fix a typo in their own
+     * course description. CoursePolicy::update() already allows this (admin
+     * or the owning instructor), so this just gives that permission a form.
+     */
+    public function updateCourse(Request $r, Course $course)
+    {
+        $this->authorize('update', $course);
+        $data = $r->validate(['title' => 'required', 'description' => 'nullable', 'delivery_type' => 'required|in:online,offline', 'language' => 'required|in:tr,en', 'status' => 'required|in:draft,published,completed', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'guest_instructor_name' => 'nullable', 'guest_instructor_email' => 'nullable|email', 'guest_instructor_bio' => 'nullable', 'certificate_enabled' => 'nullable|boolean', 'sdg_goals' => 'nullable|array', 'poster' => 'nullable|image|max:5120', 'image' => 'nullable|image|max:5120']);
+        $data['certificate_enabled'] = $r->boolean('certificate_enabled');
+        $data['sdg_goals'] = $r->input('sdg_goals', []);
+        if ($r->hasFile('poster')) {
+            $data['poster_path'] = $r->file('poster')->store('course-posters', 'public');
+        }
+        if ($r->hasFile('image')) {
+            $data['image_path'] = $r->file('image')->store('course-images', 'public');
+        }
+        unset($data['poster'], $data['image']);
+        $course->update($data);
+
+        return redirect()->route('instructor.courses.show', $course)->with('success', 'Eğitim ayarları kaydedildi.');
     }
 
     /**

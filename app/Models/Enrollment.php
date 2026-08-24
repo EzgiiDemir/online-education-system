@@ -148,6 +148,16 @@ class Enrollment extends Model
         return $this->hasMany(ActivityProgress::class);
     }
 
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function assignmentSubmissions()
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
+
     /**
      * Tek bir yerden hesaplanan ilerleme özeti; sertifika tetikleme mantığı
      * (LmsController::checkAndCompleteEnrollment) ve hesap/panel görünümleri
