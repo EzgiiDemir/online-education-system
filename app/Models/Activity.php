@@ -32,4 +32,14 @@ class Activity extends Model
     {
         return $this->hasMany(AssignmentSubmission::class);
     }
+
+    public function rubricCriteria()
+    {
+        return $this->hasMany(RubricCriterion::class)->orderBy('sort_order');
+    }
+
+    public function hasRubric(): bool
+    {
+        return $this->rubricCriteria()->exists();
+    }
 }

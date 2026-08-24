@@ -18,11 +18,26 @@
 </div>
 @if($submission->isGraded())
 <p class="muted">{{ $en ? 'Graded:' : 'Değerlendirildi:' }} %{{ $submission->score }} · {{ $submission->grader->name }} — {{ $submission->graded_at->format('d.m.Y H:i') }}</p>
+@if($submission->rubric_scores)
+<ul class="muted" style="margin:0 0 10px;padding-left:18px">
+@foreach($activity->rubricCriteria as $criterion)
+<li>{{ $criterion->label }}: {{ $submission->rubric_scores[$criterion->id] ?? 0 }} / {{ $criterion->max_points }}</li>
+@endforeach
+</ul>
+@endif
 @if($submission->feedback)<p class="muted"><b>{{ $en ? 'Feedback:' : 'Geri bildirim:' }}</b> {{ $submission->feedback }}</p>@endif
 @else
 <form method="post" action="{{ route('instructor.submissions.grade', $submission) }}" class="d-flex gap-2 align-items-end flex-wrap">
 @csrf
+@if($activity->rubricCriteria->isNotEmpty())
+<div style="width:100%;display:flex;flex-wrap:wrap;gap:12px">
+@foreach($activity->rubricCriteria as $criterion)
+<div style="width:160px"><label class="form-label">{{ $criterion->label }} (0-{{ $criterion->max_points }})</label><input type="number" name="rubric_scores[{{ $criterion->id }}]" min="0" max="{{ $criterion->max_points }}" required class="form-control"></div>
+@endforeach
+</div>
+@else
 <div style="width:100px"><label class="form-label">{{ $en ? 'Score (0-100)' : 'Puan (0-100)' }}</label><input type="number" name="score" min="0" max="100" required class="form-control"></div>
+@endif
 <div style="flex:1;min-width:200px"><label class="form-label">{{ $en ? 'Feedback' : 'Geri bildirim' }}</label><input type="text" name="feedback" class="form-control"></div>
 <button type="submit" class="btn btn-primary">{{ $en ? 'Grade' : 'Değerlendir' }}</button>
 </form>

@@ -11,7 +11,7 @@ class AssignmentSubmission extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['submitted_at' => 'datetime', 'graded_at' => 'datetime'];
+    protected $casts = ['submitted_at' => 'datetime', 'graded_at' => 'datetime', 'rubric_scores' => 'array'];
 
     public function activity()
     {

@@ -816,21 +816,47 @@ class LmsController extends Controller
         $course = $activity->section->course;
         $this->authorize('view', $course);
 
+        $activity->load('rubricCriteria');
         $submissions = AssignmentSubmission::where('activity_id', $activity->id)->with('enrollment.user', 'grader')->orderByDesc('submitted_at')->get();
 
         return view('lms.assignment-submissions', compact('activity', 'course', 'submissions'));
     }
 
+    /**
+     * With a rubric attached, the score is derived from per-criterion
+     * points rather than typed in directly -- but it still lands in the
+     * same `score` column every pass/fail check elsewhere already reads,
+     * so grading with vs. without a rubric is invisible to the rest of the
+     * app. Points are clamped server-side to each criterion's max_points;
+     * the client only ever supplies which points it's awarding, never the
+     * resulting percentage, matching the app's usual anti-cheat posture.
+     */
     public function gradeAssignment(Request $r, AssignmentSubmission $submission)
     {
         $activity = $submission->activity;
         $course = $activity->section->course;
         $this->authorize('view', $course);
 
-        $data = $r->validate(['score' => 'required|integer|min:0|max:100', 'feedback' => 'nullable|string|max:4000']);
-        $submission->update(['score' => $data['score'], 'feedback' => $data['feedback'] ?? null, 'graded_by' => Auth::id(), 'graded_at' => now()]);
+        if ($activity->hasRubric()) {
+            $data = $r->validate(['rubric_scores' => 'required|array', 'rubric_scores.*' => 'required|integer|min:0', 'feedback' => 'nullable|string|max:4000']);
+            $earned = 0;
+            $possible = 0;
+            $rubricScores = [];
+            foreach ($activity->rubricCriteria as $criterion) {
+                $points = min((int) ($data['rubric_scores'][$criterion->id] ?? 0), $criterion->max_points);
+                $rubricScores[$criterion->id] = $points;
+                $earned += $points;
+                $possible += $criterion->max_points;
+            }
+            $score = $possible ? (int) round($earned / $possible * 100) : 0;
+            $submission->update(['score' => $score, 'rubric_scores' => $rubricScores, 'feedback' => $data['feedback'] ?? null, 'graded_by' => Auth::id(), 'graded_at' => now()]);
+        } else {
+            $data = $r->validate(['score' => 'required|integer|min:0|max:100', 'feedback' => 'nullable|string|max:4000']);
+            $score = $data['score'];
+            $submission->update(['score' => $score, 'feedback' => $data['feedback'] ?? null, 'graded_by' => Auth::id(), 'graded_at' => now()]);
+        }
 
-        if ($data['score'] >= ($activity->pass_score ?? 0)) {
+        if ($score >= ($activity->pass_score ?? 0)) {
             $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $submission->enrollment_id, 'activity_id' => $activity->id]);
             $this->completion->completeActivityProgress($progress, $submission->enrollment);
         }

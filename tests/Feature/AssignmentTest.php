@@ -7,6 +7,7 @@ use App\Models\AssignmentSubmission;
 use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
+use App\Models\RubricCriterion;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -165,6 +166,95 @@ class AssignmentTest extends TestCase
         $learner = $this->enroll($activity);
 
         $this->actingAs($learner)->post(route('activities.heartbeat', $activity))->assertStatus(422);
+    }
+
+    /**
+     * P1 rubric grading: a rubric is opt-in per activity (RubricCriteria
+     * RelationManager rows). It's just a structured way of arriving at the
+     * same 0-100 `score` column everything else already reads -- these
+     * tests focus on that derivation and on the plain-score path staying
+     * exactly as it was for an activity with no rubric.
+     */
+    public function test_grading_with_a_rubric_computes_the_score_from_criteria_points(): void
+    {
+        $activity = $this->makeAssignment(['pass_score' => 60]);
+        $content = RubricCriterion::create(['activity_id' => $activity->id, 'label' => 'İçerik', 'max_points' => 60, 'sort_order' => 1]);
+        $clarity = RubricCriterion::create(['activity_id' => $activity->id, 'label' => 'Anlaşılırlık', 'max_points' => 40, 'sort_order' => 2]);
+        $learner = $this->enroll($activity);
+        $this->actingAs($learner)->post(route('activities.submissions.store', $activity), ['content' => 'Cevap']);
+        $submission = AssignmentSubmission::where('activity_id', $activity->id)->first();
+        $instructor = $activity->section->course->instructor;
+
+        $response = $this->actingAs($instructor)->post(route('instructor.submissions.grade', $submission), [
+            'rubric_scores' => [$content->id => 45, $clarity->id => 30],
+        ]);
+
+        $response->assertRedirect();
+        // (45 + 30) / (60 + 40) * 100 = 75
+        $this->assertDatabaseHas('assignment_submissions', ['id' => $submission->id, 'score' => 75]);
+        $this->assertSame([45, 30], array_values($submission->fresh()->rubric_scores));
+    }
+
+    public function test_rubric_points_are_clamped_to_each_criterions_max_server_side(): void
+    {
+        $activity = $this->makeAssignment(['pass_score' => 60]);
+        $criterion = RubricCriterion::create(['activity_id' => $activity->id, 'label' => 'İçerik', 'max_points' => 20]);
+        $learner = $this->enroll($activity);
+        $this->actingAs($learner)->post(route('activities.submissions.store', $activity), ['content' => 'Cevap']);
+        $submission = AssignmentSubmission::where('activity_id', $activity->id)->first();
+        $instructor = $activity->section->course->instructor;
+
+        $this->actingAs($instructor)->post(route('instructor.submissions.grade', $submission), [
+            'rubric_scores' => [$criterion->id => 999],
+        ]);
+
+        $this->assertDatabaseHas('assignment_submissions', ['id' => $submission->id, 'score' => 100]);
+        $this->assertSame(20, $submission->fresh()->rubric_scores[$criterion->id]);
+    }
+
+    public function test_a_rubric_graded_passing_score_still_marks_the_activity_complete(): void
+    {
+        $activity = $this->makeAssignment(['pass_score' => 60]);
+        $criterion = RubricCriterion::create(['activity_id' => $activity->id, 'label' => 'İçerik', 'max_points' => 100]);
+        $learner = $this->enroll($activity);
+        $this->actingAs($learner)->post(route('activities.submissions.store', $activity), ['content' => 'Cevap']);
+        $submission = AssignmentSubmission::where('activity_id', $activity->id)->first();
+        $instructor = $activity->section->course->instructor;
+
+        $this->actingAs($instructor)->post(route('instructor.submissions.grade', $submission), ['rubric_scores' => [$criterion->id => 80]]);
+
+        $enrollment = $learner->enrollments()->first();
+        $this->assertSame('completed', $enrollment->fresh()->status);
+    }
+
+    public function test_an_activity_without_a_rubric_grades_with_a_plain_score_and_no_breakdown(): void
+    {
+        $activity = $this->makeAssignment(['pass_score' => 60]);
+        $learner = $this->enroll($activity);
+        $this->actingAs($learner)->post(route('activities.submissions.store', $activity), ['content' => 'Cevap']);
+        $submission = AssignmentSubmission::where('activity_id', $activity->id)->first();
+        $instructor = $activity->section->course->instructor;
+
+        $this->actingAs($instructor)->post(route('instructor.submissions.grade', $submission), ['score' => 85]);
+
+        $submission->refresh();
+        $this->assertSame(85, $submission->score);
+        $this->assertNull($submission->rubric_scores);
+    }
+
+    public function test_grading_queue_page_shows_rubric_inputs_when_a_rubric_exists(): void
+    {
+        $activity = $this->makeAssignment();
+        RubricCriterion::create(['activity_id' => $activity->id, 'label' => 'Yaratıcılık', 'max_points' => 50]);
+        $learner = User::factory()->create(['role' => 'learner']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $activity->section->course_id]);
+        $this->actingAs($learner)->post(route('activities.submissions.store', $activity), ['content' => 'Cevap']);
+        $instructor = $activity->section->course->instructor;
+
+        $response = $this->actingAs($instructor)->get(route('instructor.activities.submissions', $activity));
+
+        $response->assertOk();
+        $response->assertSee('Yaratıcılık');
     }
 
     public function test_grading_queue_page_lists_submissions_for_the_owning_instructor(): void

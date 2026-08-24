@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Activities\Pages\EditActivity;
 use App\Filament\Resources\Activities\RelationManagers\QuizQuestionsRelationManager;
+use App\Filament\Resources\Activities\RelationManagers\RubricCriteriaRelationManager;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
@@ -149,6 +150,26 @@ class AdminPanelSmokeTest extends TestCase
             'ownerRecord' => $quiz,
             'pageClass' => EditActivity::class,
         ])->assertCanSeeTableRecords([$question]);
+    }
+
+    /**
+     * Same lazy-loading caveat as the quiz relation manager above -- and the
+     * rubric criteria manager only appears for type === 'assignment'.
+     */
+    public function test_assignment_activity_edit_page_renders_the_rubric_criteria_relation_manager(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create();
+        $section = $course->sections()->create(['title' => 'Bölüm 1']);
+        $assignment = $section->activities()->create(['title' => 'Dönem Ödevi', 'type' => 'assignment', 'submission_type' => 'text', 'is_required' => true]);
+        $criterion = $assignment->rubricCriteria()->create(['label' => 'İçerik kalitesi', 'max_points' => 50, 'sort_order' => 1]);
+
+        $this->actingAs($admin)->get("/admin/activities/{$assignment->id}/edit")->assertOk();
+
+        Livewire::actingAs($admin)->test(RubricCriteriaRelationManager::class, [
+            'ownerRecord' => $assignment,
+            'pageClass' => EditActivity::class,
+        ])->assertCanSeeTableRecords([$criterion]);
     }
 
     /**

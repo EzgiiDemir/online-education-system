@@ -6,6 +6,7 @@ use App\Filament\Resources\Activities\Pages\CreateActivity;
 use App\Filament\Resources\Activities\Pages\EditActivity;
 use App\Filament\Resources\Activities\Pages\ListActivities;
 use App\Filament\Resources\Activities\RelationManagers\QuizQuestionsRelationManager;
+use App\Filament\Resources\Activities\RelationManagers\RubricCriteriaRelationManager;
 use App\Filament\Resources\Activities\Schemas\ActivityForm;
 use App\Filament\Resources\Activities\Tables\ActivitiesTable;
 use App\Models\Activity;
@@ -39,6 +40,7 @@ class ActivityResource extends Resource
     {
         return [
             QuizQuestionsRelationManager::class,
+            RubricCriteriaRelationManager::class,
         ];
     }
 
