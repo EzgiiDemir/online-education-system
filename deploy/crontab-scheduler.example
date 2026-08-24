@@ -1,0 +1,11 @@
+# Laravel's official recommended way to run the scheduler on a traditional
+# VPS: one cron entry that fires every minute and lets the framework decide
+# what actually needs to run (here: the daily app:send-training-reminders
+# job registered in bootstrap/app.php). Install with `crontab -e` as the
+# deploy user (e.g. www-data), or drop into /etc/cron.d/ as its own file.
+#
+# On a Procfile-based platform (Heroku/Railway/Render), use the "scheduler"
+# process from ./Procfile (`php artisan schedule:work`) instead -- those
+# platforms don't give you cron access.
+
+* * * * * cd /var/www/arucad-campus-lms && php artisan schedule:run >> /dev/null 2>&1

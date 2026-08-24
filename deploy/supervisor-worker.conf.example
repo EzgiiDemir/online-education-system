@@ -1,0 +1,22 @@
+; Example Supervisor program definition for the queue worker on a
+; traditional VPS (no Procfile support). Copy to
+; /etc/supervisor/conf.d/arucad-worker.conf, adjust the paths/user, then:
+;   supervisorctl reread && supervisorctl update && supervisorctl start arucad-worker:*
+;
+; numprocs=2 runs two worker processes in parallel -- raise this if the
+; queue backs up under load (e.g. many courses publishing to thousands of
+; learners at once), lower it to 1 for a small single-instructor deployment.
+
+[program:arucad-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/arucad-campus-lms/artisan queue:work --tries=3 --backoff=30 --max-time=3600 --sleep=3
+directory=/var/www/arucad-campus-lms
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/arucad-campus-lms/storage/logs/worker.log
+stopwaitsecs=3600
