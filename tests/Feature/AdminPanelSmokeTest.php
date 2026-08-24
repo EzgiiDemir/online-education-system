@@ -31,6 +31,7 @@ class AdminPanelSmokeTest extends TestCase
         $paths = [
             '/admin',
             '/admin/activities',
+            '/admin/add-user',
             '/admin/api-tokens',
             '/admin/audit-logs',
             '/admin/certificates',
