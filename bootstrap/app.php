@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('app:send-training-reminders')->dailyAt('07:00');
+        $schedule->command('app:purge-expired-recordings')->dailyAt('03:00');
         // A frequent, trivial heartbeat so the admin System Health page can
         // show "is the scheduler process actually running right now" --
         // the daily reminder job alone would show a stale, misleading

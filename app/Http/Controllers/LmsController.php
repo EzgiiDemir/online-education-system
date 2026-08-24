@@ -668,7 +668,7 @@ class LmsController extends Controller
         $this->authorize('update', $session->course);
         $r->validate(['recording' => 'required|file|mimes:webm,mp4|max:512000']);
         $path = $r->file('recording')->store('recordings', 'public');
-        $session->update(['recording_path' => $path]);
+        $session->update(['recording_path' => $path, 'recording_expires_at' => now()->addDays(CourseSession::RECORDING_RETENTION_DAYS)]);
 
         return response()->json(['ok' => true, 'path' => asset('storage/'.$path)]);
     }
