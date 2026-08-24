@@ -578,7 +578,76 @@ class LmsController extends Controller
             'schedule' => $course->delivery_type !== 'online' || $course->sessions->isNotEmpty(),
         ];
 
-        return view('lms.course-detail', compact('course', 'stats', 'participants', 'assessableActivities', 'courseHealth'));
+        $analytics = $this->buildCourseAnalytics($course, $assessableActivities);
+
+        return view('lms.course-detail', compact('course', 'stats', 'participants', 'assessableActivities', 'courseHealth', 'analytics'));
+    }
+
+    /**
+     * "Content performance" (spec §13) is the point of this: not just how
+     * students are doing, but which specific video/quiz/document is where
+     * they're getting stuck -- a course-wide completion percentage can look
+     * fine while one video is quietly losing half the class.
+     */
+    private function buildCourseAnalytics(Course $course, \Illuminate\Support\Collection $assessableActivities): array
+    {
+        $enrollmentIds = $course->currentEnrollments->pluck('id');
+        $total = $enrollmentIds->count();
+
+        $completionPercents = $course->currentEnrollments->map(fn (Enrollment $e) => $e->completionStats()['percent']);
+        $funnel = [
+            'started' => $completionPercents->filter(fn ($p) => $p > 0)->count(),
+            'halfway' => $completionPercents->filter(fn ($p) => $p >= 50)->count(),
+            'completed' => $course->currentEnrollments->where('status', 'completed')->count(),
+        ];
+
+        $quizActivities = $assessableActivities->where('type', 'quiz');
+        $quizAttempts = $quizActivities->flatMap->quizAttempts;
+        $attemptGroups = $quizAttempts->groupBy(fn ($a) => $a->enrollment_id.'-'.$a->activity_id);
+        $quizStats = [
+            'avg_score' => $quizAttempts->isNotEmpty() ? (int) round($quizAttempts->avg('score')) : null,
+            'pass_rate' => $quizAttempts->isNotEmpty() ? (int) round($quizAttempts->where('passed', true)->count() / $quizAttempts->count() * 100) : null,
+            'avg_attempts' => $attemptGroups->isNotEmpty() ? round($quizAttempts->count() / $attemptGroups->count(), 1) : null,
+        ];
+
+        $assignmentActivities = $assessableActivities->where('type', 'assignment');
+        $submissions = $assignmentActivities->flatMap->assignmentSubmissions;
+        $gradedSubmissions = $submissions->whereNotNull('score');
+        $assignmentStats = [
+            'submitted' => $submissions->count(),
+            'pending' => $submissions->whereNull('graded_at')->count(),
+            'avg_score' => $gradedSubmissions->isNotEmpty() ? (int) round($gradedSubmissions->avg('score')) : null,
+        ];
+
+        $sessionAttendanceRates = $total ? $course->sessions->map(function (CourseSession $session) use ($course, $total) {
+            $attended = $course->currentEnrollments->flatMap->sessionProgress->where('course_session_id', $session->id)->whereNotNull('completed_at')->count();
+
+            return $attended / $total * 100;
+        }) : collect();
+        $avgAttendance = $sessionAttendanceRates->isNotEmpty() ? (int) round($sessionAttendanceRates->avg()) : null;
+
+        $materials = $course->sessions->flatMap->materials;
+        $materialCompletions = $materials->isEmpty() ? collect() : MaterialProgress::whereIn('material_id', $materials->pluck('id'))
+            ->whereIn('enrollment_id', $enrollmentIds)->where('completed', true)
+            ->selectRaw('material_id, count(*) as cnt')->groupBy('material_id')->pluck('cnt', 'material_id');
+        $nonQuizActivities = $assessableActivities->isEmpty() && $course->sections->flatMap->activities->isEmpty()
+            ? collect()
+            : $course->sections->flatMap->activities->where('type', '!=', 'quiz');
+        $activityCompletions = $nonQuizActivities->isEmpty() ? collect() : ActivityProgress::whereIn('activity_id', $nonQuizActivities->pluck('id'))
+            ->whereIn('enrollment_id', $enrollmentIds)->where('completed', true)
+            ->selectRaw('activity_id, count(*) as cnt')->groupBy('activity_id')->pluck('cnt', 'activity_id');
+
+        $contentPerformance = collect()
+            ->concat($materials->map(fn ($m) => ['title' => $m->title, 'rate' => $total ? (int) round(($materialCompletions[$m->id] ?? 0) / $total * 100) : 0]))
+            ->concat($nonQuizActivities->map(fn ($a) => ['title' => $a->title, 'rate' => $total ? (int) round(($activityCompletions[$a->id] ?? 0) / $total * 100) : 0]))
+            ->concat($quizActivities->map(function ($quiz) {
+                $attempts = $quiz->quizAttempts;
+
+                return $attempts->isEmpty() ? null : ['title' => $quiz->title, 'rate' => (int) round($attempts->avg('score'))];
+            })->filter())
+            ->sortByDesc('rate')->values();
+
+        return compact('funnel', 'quizStats', 'assignmentStats', 'avgAttendance', 'contentPerformance', 'total');
     }
 
     /**

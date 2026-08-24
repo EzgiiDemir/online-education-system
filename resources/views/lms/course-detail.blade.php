@@ -13,6 +13,7 @@
 <li class="nav-item"><a class="nav-link" href="#students" data-tab="students">{{ $en ? 'Students' : 'Öğrenciler' }} <span class="tab-count">{{ $course->currentEnrollments->count() }}</span></a></li>
 <li class="nav-item"><a class="nav-link" href="#sessions" data-tab="sessions">{{ $en ? 'Sessions' : 'Seanslar' }}</a></li>
 <li class="nav-item"><a class="nav-link" href="#assessments" data-tab="assessments">{{ $en ? 'Assessments' : 'Değerlendirmeler' }}</a></li>
+<li class="nav-item"><a class="nav-link" href="#analytics" data-tab="analytics">{{ $en ? 'Analytics' : 'Analitik' }}</a></li>
 <li class="nav-item"><a class="nav-link" href="#settings" data-tab="settings">{{ $en ? 'Settings' : 'Ayarlar' }}</a></li>
 <li class="nav-item" style="margin-left:auto"><a class="nav-link" href="{{ route('instructor.courses.log', $course) }}"><x-lucide name="clipboard-list" size="14" /> {{ $en ? 'Activity log' : 'İşlem kaydı' }}</a></li>
 </ul>
@@ -32,6 +33,7 @@
 <button type="button" class="btn btn-outline-secondary" data-tab-jump="curriculum">{{ $en ? 'Add content' : 'İçerik ekle' }}</button>
 <button type="button" class="btn btn-outline-secondary" data-tab-jump="sessions">{{ $en ? 'Schedule session' : 'Seans planla' }}</button>
 <button type="button" class="btn btn-outline-secondary" data-tab-jump="students">{{ $en ? 'View students' : 'Öğrencileri gör' }}</button>
+<button type="button" class="btn btn-outline-secondary" data-tab-jump="analytics">{{ $en ? 'View analytics' : 'Analitiği gör' }}</button>
 </div>
 </div>
 </div>
@@ -148,6 +150,57 @@
 @endif
 </span>
 @if($activity->type === 'assignment')<a class="text-link" href="{{ route('instructor.activities.submissions', $activity) }}">{{ $en ? 'Submissions →' : 'Teslimler →' }}</a>@endif
+</li>
+@endforeach
+</ul>
+@endif
+</div>
+</div>
+
+{{-- ============ ANALYTICS ============ --}}
+<div data-tab-panel="analytics" hidden>
+<div class="row row-cols-1 row-cols-md-3 g-4 mt-1">
+<div class="card metric-card"><span class="tag">{{ $en ? 'STARTED' : 'BAŞLADI' }}</span><strong>{{ $analytics['funnel']['started'] }}</strong><small class="muted">/ {{ $analytics['total'] }}</small></div>
+<div class="card metric-card"><span class="tag">{{ $en ? '50%+' : '%50+' }}</span><strong>{{ $analytics['funnel']['halfway'] }}</strong><small class="muted">/ {{ $analytics['total'] }}</small></div>
+<div class="card metric-card"><span class="tag">{{ $en ? 'COMPLETED' : 'TAMAMLADI' }}</span><strong>{{ $analytics['funnel']['completed'] }}</strong><small class="muted">/ {{ $analytics['total'] }}</small></div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4 mt-1">
+<div class="card">
+<h3 style="margin-top:0">{{ $en ? 'Quiz' : 'Quiz' }}</h3>
+<ul class="list-group list-group-flush">
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Average score' : 'Ortalama puan' }}</span><b>{{ $analytics['quizStats']['avg_score'] !== null ? '%'.$analytics['quizStats']['avg_score'] : '—' }}</b></li>
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Pass rate' : 'Geçme oranı' }}</span><b>{{ $analytics['quizStats']['pass_rate'] !== null ? '%'.$analytics['quizStats']['pass_rate'] : '—' }}</b></li>
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Average attempts' : 'Ortalama deneme' }}</span><b>{{ $analytics['quizStats']['avg_attempts'] ?? '—' }}</b></li>
+</ul>
+</div>
+<div class="card">
+<h3 style="margin-top:0">{{ $en ? 'Assignments' : 'Ödevler' }}</h3>
+<ul class="list-group list-group-flush">
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Submitted' : 'Teslim edilen' }}</span><b>{{ $analytics['assignmentStats']['submitted'] }}</b></li>
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Pending' : 'Bekleyen' }}</span><b>{{ $analytics['assignmentStats']['pending'] }}</b></li>
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Average score' : 'Ortalama puan' }}</span><b>{{ $analytics['assignmentStats']['avg_score'] !== null ? '%'.$analytics['assignmentStats']['avg_score'] : '—' }}</b></li>
+</ul>
+</div>
+<div class="card">
+<h3 style="margin-top:0">{{ $en ? 'Attendance' : 'Yoklama' }}</h3>
+<ul class="list-group list-group-flush">
+<li class="list-group-item requirement-row"><span>{{ $en ? 'Average attendance' : 'Ortalama katılım' }}</span><b>{{ $analytics['avgAttendance'] !== null ? '%'.$analytics['avgAttendance'] : '—' }}</b></li>
+</ul>
+</div>
+</div>
+
+<div class="card" style="margin-top:20px">
+<h2>{{ $en ? 'Content performance' : 'İçerik performansı' }}</h2>
+<p class="muted" style="margin-top:-8px">{{ $en ? 'Not just how students are doing -- which specific piece of content is where they get stuck.' : 'Sadece öğrencilerin durumu değil -- hangi içerikte takıldıkları.' }}</p>
+@if($analytics['contentPerformance']->isEmpty())
+<p class="muted">{{ $en ? 'No content completion data yet.' : 'Henüz içerik tamamlama verisi yok.' }}</p>
+@else
+<ul class="list-group list-group-flush">
+@foreach($analytics['contentPerformance'] as $item)
+<li class="list-group-item requirement-row">
+<span>{{ $item['title'] }}</span>
+<span>{{ $item['rate'] < 60 ? '⚠ ' : '' }}%{{ $item['rate'] }}</span>
 </li>
 @endforeach
 </ul>
