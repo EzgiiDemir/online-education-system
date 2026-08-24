@@ -66,6 +66,7 @@ class LmsController extends Controller
         $continueLearning = null;
         $requiredIncomplete = collect();
         $todaySessions = collect();
+        $upcomingDeadlines = collect();
 
         if (Auth::check()) {
             // A stale (recertification-due) current cycle shouldn't hide the
@@ -100,7 +101,26 @@ class LmsController extends Controller
                     ->orderBy('starts_at')
                     ->get();
             }
+
+            // "2 days left" style urgency (spec §30) -- distinct from
+            // $requiredIncomplete's completion-percent cards above: this is
+            // about deadline pressure, not progress, and only lists
+            // enrollments that actually have a due date at all.
+            $upcomingDeadlines = $activeEnrollments
+                ->map(fn ($e) => ['enrollment' => $e, 'due' => $e->course->dueDateFor($e)])
+                ->filter(fn ($row) => $row['due'] && $row['due']->isFuture())
+                ->sortBy(fn ($row) => $row['due'])
+                ->take(5)
+                ->values();
         }
+
+        // A simple, explainable heuristic (most-enrolled published courses
+        // the learner hasn't joined yet) rather than a fabricated ML
+        // recommendation this app has no interaction data to actually back.
+        $recommended = Auth::check()
+            ? Course::where('status', 'published')->whereNotIn('id', $enrolledCourseIds)
+                ->withCount('enrollments')->orderByDesc('enrollments_count')->take(3)->get()
+            : collect();
 
         $continueUrl = null;
         if ($continueLearning) {
@@ -112,7 +132,7 @@ class LmsController extends Controller
             };
         }
 
-        return view('lms.home', compact('courses', 'enrolledCourseIds', 'continueLearning', 'continueUrl', 'requiredIncomplete', 'todaySessions'));
+        return view('lms.home', compact('courses', 'enrolledCourseIds', 'continueLearning', 'continueUrl', 'requiredIncomplete', 'todaySessions', 'upcomingDeadlines', 'recommended'));
     }
 
     public function courseShow(Course $course)

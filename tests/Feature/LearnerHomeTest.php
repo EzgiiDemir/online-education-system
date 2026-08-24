@@ -82,6 +82,62 @@ class LearnerHomeTest extends TestCase
         $response->assertDontSee('Bugünün canlı dersleri');
     }
 
+    /**
+     * Faz 98 (spec §30): distinct from the completion-percent "Onboarding
+     * tasks" cards above -- this is deadline pressure ("2 days left"), only
+     * for enrollments whose course actually has a due_days window.
+     */
+    public function test_an_enrollment_with_a_due_date_shows_days_left(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published', 'due_days' => 3, 'title' => 'Son Tarihli Eğitim']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'created_at' => now()]);
+
+        $response = $this->actingAs($learner)->get('/');
+
+        $response->assertOk();
+        $response->assertSee('Yaklaşan görevler');
+        $response->assertSee('Son Tarihli Eğitim');
+        $response->assertSee('3 gün kaldı');
+    }
+
+    public function test_an_enrollment_without_a_due_date_does_not_appear_in_deadlines(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published', 'due_days' => null]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->get('/');
+
+        $response->assertOk();
+        $response->assertDontSee('Yaklaşan görevler');
+    }
+
+    public function test_recommended_courses_exclude_ones_the_learner_is_already_enrolled_in(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $enrolledCourse = Course::factory()->create(['status' => 'published', 'title' => 'Zaten Kayıtlı']);
+        $popularCourse = Course::factory()->create(['status' => 'published', 'title' => 'Popüler Eğitim']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $enrolledCourse->id]);
+        User::factory()->count(3)->create(['role' => 'learner'])->each(fn ($u) => Enrollment::create(['user_id' => $u->id, 'course_id' => $popularCourse->id]));
+
+        $response = $this->actingAs($learner)->get('/');
+
+        $response->assertOk();
+        $response->assertSee('Sizin için önerilenler');
+        $response->assertSee('Popüler Eğitim');
+
+        // "Zaten Kayıtlı" is still on the page in the main catalog below (as
+        // an already-enrolled card), so this checks the recommended block
+        // itself -- the slice between its heading and the catalog heading
+        // right after it -- rather than the whole page.
+        $content = $response->getContent();
+        $start = mb_strpos($content, 'Sizin için önerilenler');
+        $end = mb_strpos($content, 'KATALOG', $start);
+        $recommendedSection = mb_substr($content, $start, $end - $start);
+        $this->assertStringNotContainsString('Zaten Kayıtlı', $recommendedSection);
+    }
+
     public function test_continue_learning_links_to_the_next_incomplete_material(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);

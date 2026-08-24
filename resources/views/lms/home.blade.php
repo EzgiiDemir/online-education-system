@@ -38,7 +38,29 @@
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'ONBOARDING' : 'ORYANTASYON' }}</span><h2>{{ $en ? 'Onboarding tasks' : 'Oryantasyon görevleri' }}</h2></div></div>
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-5">@foreach($requiredIncomplete as $row)<div class="today-card surface"><span class="badge">{{ $row['stats']['percent'] }}%</span><h3>{{ $row['enrollment']->course->title }}</h3><div class="meter"><span style="width:{{ $row['stats']['percent'] }}%"></span></div><small class="muted">{{ $row['stats']['completed'] }} / {{ $row['stats']['total'] }} {{ $en ? 'completed' : 'tamamlandı' }}</small></div>@endforeach</div>
 @endif
+@if($upcomingDeadlines->isNotEmpty())
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'DEADLINES' : 'SON TARİHLER' }}</span><h2>{{ $en ? 'Coming up' : 'Yaklaşan görevler' }}</h2></div></div>
+<div class="card surface mb-5">
+<ul class="list-group list-group-flush">
+@foreach($upcomingDeadlines as $row)
+@php($daysLeft = (int) ceil(now()->diffInHours($row['due']) / 24))
+<li class="list-group-item requirement-row">
+<span><a href="{{ route('courses.show', $row['enrollment']->course) }}">{{ $row['enrollment']->course->title }}</a></span>
+<span class="badge" style="{{ $daysLeft <= 2 ? 'background:#fbe9e4;color:#b3402e' : '' }}">{{ $en ? $daysLeft.' day'.($daysLeft === 1 ? '' : 's').' left' : $daysLeft.' gün kaldı' }}</span>
+</li>
+@endforeach
+</ul>
+</div>
+@endif
 @endauth
+@if($recommended->isNotEmpty())
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'FOR YOU' : 'SİZİN İÇİN' }}</span><h2>{{ $en ? 'Recommended for you' : 'Sizin için önerilenler' }}</h2></div></div>
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+@foreach($recommended as $course)
+<article class="course-card surface"><div class="course-card-top"><span class="badge">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span></div><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 90) }}</p></article>
+@endforeach
+</div>
+@endif
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'CATALOG' : 'KATALOG' }}</span><h2>{{ $en ? 'Upcoming courses' : 'Yaklaşan eğitimler' }}</h2></div><span class="muted">{{ $courses->total() }} {{ $en ? 'published courses' : 'yayınlanmış eğitim' }}</span></div>
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">@forelse($courses as $course)<article class="course-card surface" style="--course-accent:var(--course-accent-{{ $course->id % 6 }});border-left:4px solid var(--course-accent)"><div class="course-card-top"><span class="badge">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span><span class="muted">{{ strtoupper($course->language ?? 'tr') }}</span></div><h3><a href="{{ route('courses.show', $course) }}">{{ $course->title }}</a></h3><p class="muted">{{ $course->description }}</p><div class="course-meta"><span><x-lucide name="user" size="14" /> {{ $course->instructor->name }}</span><span>•</span><span>{{ $course->sessions->count() }} {{ $en ? 'sessions' : 'seans' }}</span></div>@auth @if(!$enrolledCourseIds->contains($course->id))<form method="post" action="{{ route('courses.enroll',$course) }}">@csrf<button type="submit">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>@else<span class="completed-label"><x-lucide name="check" size="14" /> {{ $en ? 'Enrolled' : 'Kayıtlısınız' }}</span>@endif @else<a class="btn btn-primary" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>@endauth</article>@empty<div class="empty-state surface">{{ $en ? 'No published courses yet.' : 'Henüz yayınlanmış eğitim yok.' }}</div>@endforelse</div>
 {{ $courses->links('lms.partials.pagination') }}
