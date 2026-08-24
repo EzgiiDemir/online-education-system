@@ -92,7 +92,7 @@ class Course extends Model
 
     public function isOverdueFor(Enrollment $enrollment): bool
     {
-        if ($enrollment->status === 'completed') {
+        if ($enrollment->status === 'completed' || $enrollment->isExempt()) {
             return false;
         }
         $due = $this->dueDateFor($enrollment);

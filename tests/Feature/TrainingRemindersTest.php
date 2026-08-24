@@ -48,6 +48,20 @@ class TrainingRemindersTest extends TestCase
         Notification::assertNotSentTo($learner, TrainingDueSoon::class);
     }
 
+    public function test_no_due_soon_reminder_for_an_exempted_enrollment(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->create(['role' => 'admin']);
+        $learner = User::factory()->create();
+        $course = Course::factory()->create(['due_days' => 7]);
+        $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'created_at' => now()]);
+        $enrollment->exempt($admin, 'Muaf.');
+
+        $this->artisan('app:send-training-reminders');
+
+        Notification::assertNotSentTo($learner, TrainingDueSoon::class);
+    }
+
     public function test_no_due_soon_reminder_for_a_completed_enrollment(): void
     {
         Notification::fake();

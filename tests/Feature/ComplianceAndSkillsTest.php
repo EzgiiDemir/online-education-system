@@ -52,6 +52,22 @@ class ComplianceAndSkillsTest extends TestCase
         $this->assertFalse($course->isOverdueFor($enrollment));
     }
 
+    /**
+     * P1 exemption/waiver: a course past its due date is normally overdue,
+     * but an exempted enrollment must not be -- exemption exists precisely
+     * to stop the overdue/reminder machinery from chasing training that
+     * genuinely no longer applies to that person.
+     */
+    public function test_an_exempted_enrollment_is_never_flagged_overdue(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $course = Course::factory()->create(['due_days' => 5]);
+        $enrollment = Enrollment::create(['user_id' => User::factory()->create()->id, 'course_id' => $course->id, 'created_at' => now()->subDays(10)]);
+        $enrollment->exempt($admin, 'Rol değişikliği nedeniyle gerekli değil.');
+
+        $this->assertFalse($course->isOverdueFor($enrollment));
+    }
+
     public function test_certificate_expiry_is_computed_from_the_courses_recertification_period(): void
     {
         $course = Course::factory()->create(['recertification_period_days' => 365]);

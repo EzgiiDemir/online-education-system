@@ -11,7 +11,7 @@ class Enrollment extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['completed_at' => 'datetime'];
+    protected $casts = ['completed_at' => 'datetime', 'exempted_at' => 'datetime'];
 
     /**
      * Snapshots which course version a learner enrolled under, once, at
@@ -53,6 +53,26 @@ class Enrollment extends Model
     public function certificate()
     {
         return $this->hasOne(Certificate::class);
+    }
+
+    public function exemptedBy()
+    {
+        return $this->belongsTo(User::class, 'exempted_by');
+    }
+
+    public function isExempt(): bool
+    {
+        return $this->exempted_at !== null;
+    }
+
+    public function exempt(User $actor, string $reason): void
+    {
+        $this->update(['exempted_at' => now(), 'exemption_reason' => $reason, 'exempted_by' => $actor->id]);
+    }
+
+    public function unexempt(): void
+    {
+        $this->update(['exempted_at' => null, 'exemption_reason' => null, 'exempted_by' => null]);
     }
 
     public function sessionProgress()

@@ -41,6 +41,7 @@ class SendTrainingReminders extends Command
         $target = today()->addDays(self::DUE_SOON_DAYS);
 
         Enrollment::where('status', '!=', 'completed')
+            ->whereNull('exempted_at')
             ->whereHas('course', fn ($q) => $q->whereNotNull('due_days'))
             ->with(['course', 'user'])
             ->each(function (Enrollment $enrollment) use (&$sent, $target) {

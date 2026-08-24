@@ -23,6 +23,7 @@ class ManagerController extends Controller
 
         $incompleteEnrollments = Enrollment::whereIn('user_id', $teamIds)
             ->where('status', '!=', 'completed')
+            ->whereNull('exempted_at')
             ->with(['user', 'course'])
             ->latest()
             ->get()

@@ -93,6 +93,21 @@ class ManagerRoleTest extends TestCase
         $response->assertDontSee('Süresi geçti');
     }
 
+    public function test_an_exempted_enrollment_does_not_appear_in_the_follow_up_list_or_count_as_overdue(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['status' => 'published', 'due_days' => 5, 'title' => 'Muaf Eğitimi']);
+        $enrollment = Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'enrolled', 'created_at' => now()->subDays(10)]);
+        $enrollment->exempt($admin, 'Rol değişikliği.');
+
+        $response = $this->actingAs($manager)->get(route('manager.dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('Muaf Eğitimi');
+    }
+
     public function test_non_manager_cannot_access_the_manager_dashboard(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
