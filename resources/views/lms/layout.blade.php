@@ -13,7 +13,7 @@
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavCollapse" aria-controls="mainNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
 <div class="collapse navbar-collapse ms-auto justify-content-end" id="mainNavCollapse">
 <ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
-@auth @if(auth()->user()->role !== 'admin')<li class="nav-item"><a class="nav-link" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>@endif @endauth
+@auth @if(auth()->user()->role !== 'admin')<li class="nav-item"><a class="nav-link {{ request()->routeIs('learning.index') ? 'is-active' : '' }}" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li><li class="nav-item"><a class="nav-link {{ request()->routeIs('learning-paths.*') ? 'is-active' : '' }}" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenme Yolları' }}</a></li>@endif @endauth
 </ul>
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>

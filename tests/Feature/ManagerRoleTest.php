@@ -108,6 +108,41 @@ class ManagerRoleTest extends TestCase
         $response->assertDontSee('Muaf Eğitimi');
     }
 
+    /**
+     * A stale (recertification-due) cycle is still status === 'completed',
+     * so it never trips Course::isOverdueFor() -- without a dedicated signal
+     * a manager has no way to see that a report is coasting on an expired
+     * certificate. See ManagerController::dashboard()'s $recertificationDue.
+     */
+    public function test_manager_sees_a_recertification_due_entry_for_an_expired_certificate(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['status' => 'published', 'title' => 'Yangın Güvenliği', 'recertification_period_days' => 365]);
+        $enrollment = Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()->subDays(400)]);
+        Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-MGR-STALE', 'issued_at' => now()->subDays(400)]);
+
+        $response = $this->actingAs($manager)->get(route('manager.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('YENİDEN SERTİFİKA GEREKİYOR');
+        $response->assertSee('Yangın Güvenliği');
+    }
+
+    public function test_manager_does_not_see_a_recertification_due_entry_for_a_valid_certificate(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['status' => 'published', 'title' => 'Geçerli Sertifika Eğitimi', 'recertification_period_days' => 365]);
+        $enrollment = Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()->subDays(10)]);
+        Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-MGR-VALID', 'issued_at' => now()->subDays(10)]);
+
+        $response = $this->actingAs($manager)->get(route('manager.dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('Geçerli Sertifika Eğitimi');
+    }
+
     public function test_non_manager_cannot_access_the_manager_dashboard(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);

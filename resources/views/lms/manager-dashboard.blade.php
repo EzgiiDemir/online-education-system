@@ -2,12 +2,27 @@
 @section('page-title','Ekip genel bakış')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
-<div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
+<div class="row row-cols-1 row-cols-md-5 g-4 mb-5">
 <div class="card metric-card"><span class="tag">{{ $en ? 'TEAM MEMBERS' : 'EKİP ÜYESİ' }}</span><strong>{{ $team->count() }}</strong><small>{{ $en ? 'Reporting to you directly' : 'Size doğrudan bağlı çalışanlar' }}@if($allReports->count() > $team->count()) · {{ $allReports->count() }} {{ $en ? 'in your whole organization' : 'toplam organizasyonunuzda' }}@endif</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'IN PROGRESS' : 'DEVAM EDEN EĞİTİM' }}</span><strong>{{ $incompleteEnrollments->count() }}</strong><small>{{ $en ? 'Not yet completed' : 'Henüz tamamlanmamış kayıtlar' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'OVERDUE' : 'SÜRESİ GEÇEN' }}</span><strong style="{{ $overdueCount > 0 ? 'color:#b3402e' : '' }}">{{ $overdueCount }}</strong><small>{{ $en ? 'Past the due date' : 'Son tarihi geçmiş' }}</small></div>
+<div class="card metric-card"><span class="tag">{{ $en ? 'RECERTIFICATION DUE' : 'YENİDEN SERTİFİKA GEREKİYOR' }}</span><strong style="{{ $recertificationDue->count() > 0 ? 'color:#b3402e' : '' }}">{{ $recertificationDue->count() }}</strong><small>{{ $en ? 'Certificate expired, not yet retaken' : 'Sertifikası süresi doldu, henüz yenilenmedi' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'CERTIFICATES EARNED' : 'KAZANILAN SERTİFİKA' }}</span><strong>{{ $certificatesCount }}</strong><small>{{ $en ? "Your team's total" : 'Ekibinizin toplamı' }}</small></div>
 </div>
+
+@if($recertificationDue->isNotEmpty())
+<div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'COMPLIANCE' : 'UYUMLULUK' }}</span><h2>{{ $en ? 'Recertification needed' : 'Yeniden sertifikalandırma gerekiyor' }}</h2></div></div>
+<div class="card mb-5">
+<ul class="list-group list-group-flush">
+@foreach($recertificationDue as $enrollment)
+<li class="list-group-item requirement-row">
+<span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}@unless($directIds->contains($enrollment->user_id)) <small class="muted">({{ $en ? 'sub-team' : 'alt ekip' }})</small>@endunless</span>
+<span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Expired '.$enrollment->certificate->expiresAt()->format('d.m.Y') : $enrollment->certificate->expiresAt()->format('d.m.Y').' tarihinde süresi doldu' }}</span>
+</li>
+@endforeach
+</ul>
+</div>
+@endif
 
 <div class="section-heading instructor-section-heading"><div><span class="eyebrow">{{ $en ? 'TEAM' : 'EKİP' }}</span><h2>{{ $en ? 'Team members' : 'Ekip üyeleri' }}</h2></div></div>
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">

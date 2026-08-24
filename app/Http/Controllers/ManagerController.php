@@ -42,6 +42,17 @@ class ManagerController extends Controller
 
         $certificatesCount = Certificate::whereHas('enrollment', fn ($q) => $q->whereIn('user_id', $teamIds))->count();
 
-        return view('lms.manager-dashboard', compact('team', 'directIds', 'allReports', 'incompleteEnrollments', 'overdueCount', 'certificatesCount'));
+        // Distinct from $overdueCount: a stale (recertification-due) cycle is
+        // still status === 'completed', so isOverdueFor() never flags it --
+        // without this, a manager has no way to see who is coasting on an
+        // expired certificate.
+        $recertificationDue = Enrollment::currentCycle()
+            ->whereIn('user_id', $teamIds)
+            ->where('status', 'completed')
+            ->with(['user', 'course', 'certificate'])
+            ->get()
+            ->filter(fn (Enrollment $enrollment) => $enrollment->isStale());
+
+        return view('lms.manager-dashboard', compact('team', 'directIds', 'allReports', 'incompleteEnrollments', 'overdueCount', 'certificatesCount', 'recertificationDue'));
     }
 }
