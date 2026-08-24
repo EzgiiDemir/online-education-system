@@ -42,7 +42,7 @@ class ManagerRoleTest extends TestCase
         $response = $this->actingAs($manager)->get(route('manager.dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Devam eden eğitimler');
+        $response->assertSee('Eğitim Takibi');
         $response->assertSee($course->title);
     }
 

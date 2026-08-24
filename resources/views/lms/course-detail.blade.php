@@ -293,32 +293,6 @@
         setupSortable(list, function(){ return '/instructor/sections/' + list.dataset.sectionId + '/activities/reorder'; }, 'activityId');
     });
 })();
-(function(){
-    var tabs = document.getElementById('course-workspace-tabs');
-    if (!tabs) return;
-    var links = tabs.querySelectorAll('[data-tab]');
-    var panels = document.querySelectorAll('[data-tab-panel]');
-    function activate(name){
-        if (!name) return;
-        links.forEach(function(l){ l.classList.toggle('is-active', l.dataset.tab === name); });
-        panels.forEach(function(p){ p.hidden = p.dataset.tabPanel !== name; });
-    }
-    tabs.addEventListener('click', function(e){
-        var link = e.target.closest('[data-tab]');
-        if (!link) return;
-        e.preventDefault();
-        activate(link.dataset.tab);
-        history.replaceState(null, '', '#' + link.dataset.tab);
-    });
-    document.querySelectorAll('[data-tab-jump]').forEach(function(btn){
-        btn.addEventListener('click', function(){
-            activate(btn.dataset.tabJump);
-            history.replaceState(null, '', '#' + btn.dataset.tabJump);
-        });
-    });
-    var initial = window.location.hash ? window.location.hash.slice(1) : 'overview';
-    if (!document.querySelector('[data-tab-panel="' + initial + '"]')) initial = 'overview';
-    activate(initial);
-})();
 </script>
+<x-workspace-tab-script id="course-workspace-tabs" />
 @endsection
