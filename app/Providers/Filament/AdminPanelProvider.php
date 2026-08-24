@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\LmsStatsOverview;
+use App\Http\Middleware\AddRequestIdToLogs;
 use App\Http\Middleware\SetLocale;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -69,6 +70,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->middleware([
+                AddRequestIdToLogs::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
