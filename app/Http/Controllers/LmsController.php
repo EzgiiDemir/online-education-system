@@ -789,7 +789,7 @@ class LmsController extends Controller
     {
         abort_unless($activity->type === 'assignment', 404);
         $course = $activity->section->course;
-        abort_unless(Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id, 403);
+        $this->authorize('view', $course);
 
         $submissions = AssignmentSubmission::where('activity_id', $activity->id)->with('enrollment.user', 'grader')->orderByDesc('submitted_at')->get();
 
@@ -800,7 +800,7 @@ class LmsController extends Controller
     {
         $activity = $submission->activity;
         $course = $activity->section->course;
-        abort_unless(Auth::user()->role === 'admin' || Auth::id() === $course->instructor_id, 403);
+        $this->authorize('view', $course);
 
         $data = $r->validate(['score' => 'required|integer|min:0|max:100', 'feedback' => 'nullable|string|max:4000']);
         $submission->update(['score' => $data['score'], 'feedback' => $data['feedback'] ?? null, 'graded_by' => Auth::id(), 'graded_at' => now()]);
