@@ -43,5 +43,11 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('quiz-attempts', fn ($request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
 
         RateLimiter::for('submissions', fn ($request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
+
+        // Keyed by the bearer token itself (not IP) -- a real IdP syncs
+        // from a small, fixed set of egress IPs shared across every tenant
+        // using that provider, so an IP-based limit would let one noisy
+        // integration exhaust the budget for every other token.
+        RateLimiter::for('scim', fn ($request) => Limit::perMinute(60)->by($request->bearerToken() ?? $request->ip()));
     }
 }
