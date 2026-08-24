@@ -62,7 +62,19 @@
             @endif
             @else
                 @auth
+                @if($unmetPrerequisites->isNotEmpty())
+                <div class="due-warning is-overdue" style="text-align:left">
+                    <x-lucide name="triangle-alert" size="14" />
+                    {{ $en ? 'You must first complete:' : 'Önce şunu tamamlamanız gerekiyor:' }}
+                    <ul style="margin:6px 0 0;padding-left:18px">
+                        @foreach($unmetPrerequisites as $prerequisite)
+                        <li><a href="{{ route('courses.show', $prerequisite) }}">{{ $prerequisite->title }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+                @else
                 <form method="post" action="{{ route('courses.enroll', $course) }}"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-primary">{{ $en ? 'Enroll now' : 'Eğitime kayıt ol' }} <x-lucide name="arrow-right" size="14" /></button></form>
+                @endif
                 @else
                 <a class="btn btn-primary" href="{{ route('login') }}">{{ $en ? 'Sign in to enroll' : 'Kayıt olmak için giriş yapın' }} <x-lucide name="arrow-right" size="14" /></a>
                 @endauth

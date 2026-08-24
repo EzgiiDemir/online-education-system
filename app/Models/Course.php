@@ -54,6 +54,37 @@ class Course extends Model
         return $this->belongsToMany(LearningPath::class, 'learning_path_course')->withPivot(['sort_order', 'is_required']);
     }
 
+    /**
+     * Courses that must be completed before a learner can enroll in this
+     * one (e.g. "Fundamentals" before "Advanced").
+     */
+    public function prerequisites()
+    {
+        return $this->belongsToMany(Course::class, 'course_prerequisites', 'course_id', 'prerequisite_course_id');
+    }
+
+    /**
+     * The inverse: courses that list this one as a prerequisite.
+     */
+    public function dependents()
+    {
+        return $this->belongsToMany(Course::class, 'course_prerequisites', 'prerequisite_course_id', 'course_id');
+    }
+
+    /**
+     * Only checks direct prerequisites, not a transitive chain -- if A
+     * requires B and B requires C, finishing C alone doesn't unlock A; the
+     * learner has to actually complete B, which is the more defensible
+     * reading of "prerequisite" anyway (B's own prerequisite check already
+     * enforces the chain when the learner tries to enroll in B).
+     */
+    public function unmetPrerequisitesFor(User $user): \Illuminate\Support\Collection
+    {
+        $completedCourseIds = $user->enrollments()->where('status', 'completed')->pluck('course_id');
+
+        return $this->prerequisites()->get()->reject(fn (Course $course) => $completedCourseIds->contains($course->id));
+    }
+
     public function dueDateFor(Enrollment $enrollment): ?\Illuminate\Support\Carbon
     {
         return $this->due_days ? $enrollment->created_at->copy()->addDays($this->due_days) : null;

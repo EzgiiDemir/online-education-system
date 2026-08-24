@@ -57,6 +57,47 @@ class EnrollmentTest extends TestCase
         $this->assertDatabaseMissing('enrollments', ['user_id' => $learner->id, 'course_id' => $course->id]);
     }
 
+    public function test_enrollment_is_blocked_when_a_prerequisite_is_not_yet_completed(): void
+    {
+        $fundamentals = Course::factory()->create(['status' => 'published', 'title' => 'Temel Güvenlik']);
+        $advanced = Course::factory()->create(['status' => 'published', 'title' => 'İleri Güvenlik']);
+        $advanced->prerequisites()->attach($fundamentals);
+        $learner = User::factory()->create(['role' => 'learner']);
+
+        $response = $this->actingAs($learner)->post(route('courses.enroll', $advanced));
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('enrollments', ['user_id' => $learner->id, 'course_id' => $advanced->id]);
+    }
+
+    public function test_enrollment_succeeds_once_the_prerequisite_is_completed(): void
+    {
+        $fundamentals = Course::factory()->create(['status' => 'published']);
+        $advanced = Course::factory()->create(['status' => 'published']);
+        $advanced->prerequisites()->attach($fundamentals);
+        $learner = User::factory()->create(['role' => 'learner']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $fundamentals->id, 'status' => 'completed']);
+
+        $response = $this->actingAs($learner)->post(route('courses.enroll', $advanced));
+
+        $response->assertRedirect(route('learning.index'));
+        $this->assertDatabaseHas('enrollments', ['user_id' => $learner->id, 'course_id' => $advanced->id]);
+    }
+
+    public function test_the_course_page_shows_which_prerequisite_is_still_missing(): void
+    {
+        $fundamentals = Course::factory()->create(['status' => 'published', 'title' => 'Temel Güvenlik']);
+        $advanced = Course::factory()->create(['status' => 'published']);
+        $advanced->prerequisites()->attach($fundamentals);
+        $learner = User::factory()->create(['role' => 'learner']);
+
+        $response = $this->actingAs($learner)->get(route('courses.show', $advanced));
+
+        $response->assertOk();
+        $response->assertSee('Temel Güvenlik');
+        $response->assertDontSee('Eğitime kayıt ol');
+    }
+
     public function test_completing_every_material_completes_enrollment_and_issues_certificate(): void
     {
         $course = Course::factory()->create(['status' => 'published']);

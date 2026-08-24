@@ -35,6 +35,10 @@ class CourseForm
                     Select::make('skills')->label('Kazandırdığı yetkinlikler')->relationship('skills', 'name')->multiple()->searchable()->preload()->createOptionForm([
                         TextInput::make('name')->label('Yetkinlik adı')->required()->unique(),
                     ]),
+                    Select::make('prerequisites')->label('Ön koşul eğitimler')->columnSpanFull()
+                        ->relationship('prerequisites', 'title', modifyQueryUsing: fn ($query, $record) => $record ? $query->whereKeyNot($record->id) : $query)
+                        ->multiple()->searchable()->preload()
+                        ->helperText('Bu eğitime kayıt olmadan önce öğrencinin tamamlamış olması gereken eğitimler.'),
                 ])->columns(2),
                 Section::make('Misafir eğitimci')->description('Kurum dışından katkı sunan eğitmen')->schema([
                     TextInput::make('guest_instructor_name')->label('Ad soyad'), TextInput::make('guest_instructor_email')->label('E-posta')->email(), Textarea::make('guest_instructor_bio')->label('Kısa biyografi')->columnSpanFull(),

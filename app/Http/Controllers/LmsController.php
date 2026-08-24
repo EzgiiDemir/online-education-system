@@ -131,8 +131,9 @@ class LmsController extends Controller
         }
 
         $newerVersion = $course->versions()->where('status', 'published')->where('version', '>', $course->version)->first();
+        $unmetPrerequisites = (Auth::check() && ! $enrollment) ? $course->unmetPrerequisitesFor(Auth::user()) : collect();
 
-        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion'));
+        return view('lms.course-show', compact('course', 'enrollment', 'stats', 'continueUrl', 'newerVersion', 'unmetPrerequisites'));
     }
 
     public function mySkills()
@@ -300,6 +301,9 @@ class LmsController extends Controller
 
     private function enrollUserInCourse(Course $course): Enrollment
     {
+        $unmet = $course->unmetPrerequisitesFor(Auth::user());
+        abort_if($unmet->isNotEmpty(), 422, 'Bu eğitime kaydolmadan önce şu eğitim(ler)i tamamlamanız gerekiyor: '.$unmet->pluck('title')->implode(', ').'.');
+
         $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
         $enrollment = Auth::user()->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $openRun?->id]);
         if ($enrollment->wasRecentlyCreated) {
