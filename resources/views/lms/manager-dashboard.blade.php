@@ -2,9 +2,10 @@
 @section('page-title','Ekip genel bakış')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
-<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+<div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
 <div class="card metric-card"><span class="tag">{{ $en ? 'TEAM MEMBERS' : 'EKİP ÜYESİ' }}</span><strong>{{ $team->count() }}</strong><small>{{ $en ? 'Reporting to you' : 'Size bağlı çalışanlar' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'IN PROGRESS' : 'DEVAM EDEN EĞİTİM' }}</span><strong>{{ $incompleteEnrollments->count() }}</strong><small>{{ $en ? 'Not yet completed' : 'Henüz tamamlanmamış kayıtlar' }}</small></div>
+<div class="card metric-card"><span class="tag">{{ $en ? 'OVERDUE' : 'SÜRESİ GEÇEN' }}</span><strong style="{{ $overdueCount > 0 ? 'color:#b3402e' : '' }}">{{ $overdueCount }}</strong><small>{{ $en ? 'Past the due date' : 'Son tarihi geçmiş' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'CERTIFICATES EARNED' : 'KAZANILAN SERTİFİKA' }}</span><strong>{{ $certificatesCount }}</strong><small>{{ $en ? "Your team's total" : 'Ekibinizin toplamı' }}</small></div>
 </div>
 
@@ -35,7 +36,16 @@
 <div class="card">
 <ul class="list-group list-group-flush">
 @foreach($incompleteEnrollments as $enrollment)
-<li class="list-group-item requirement-row"><span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span><span class="badge">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span></li>
+@php($overdue = $enrollment->course->isOverdueFor($enrollment))
+<li class="list-group-item requirement-row">
+<span><b>{{ $enrollment->user->name }}</b> — {{ $enrollment->course->title }}</span>
+<span>
+@if($overdue)
+<span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Overdue' : 'Süresi geçti' }}</span>
+@endif
+<span class="badge">{{ ['enrolled' => $en ? 'Enrolled' : 'Kayıtlı', 'in_progress' => $en ? 'In progress' : 'Devam ediyor'][$enrollment->status] ?? $enrollment->status }}</span>
+</span>
+</li>
 @endforeach
 </ul>
 </div>

@@ -25,10 +25,16 @@ class ManagerController extends Controller
             ->where('status', '!=', 'completed')
             ->with(['user', 'course'])
             ->latest()
-            ->get();
+            ->get()
+            // Overdue rows surface first -- the whole point of this list is
+            // for a manager to know who needs a nudge, and burying that
+            // under enrollments that are still on track defeats it.
+            ->sortByDesc(fn (Enrollment $enrollment) => $enrollment->course->isOverdueFor($enrollment));
+
+        $overdueCount = $incompleteEnrollments->filter(fn (Enrollment $enrollment) => $enrollment->course->isOverdueFor($enrollment))->count();
 
         $certificatesCount = Certificate::whereHas('enrollment', fn ($q) => $q->whereIn('user_id', $teamIds))->count();
 
-        return view('lms.manager-dashboard', compact('team', 'incompleteEnrollments', 'certificatesCount'));
+        return view('lms.manager-dashboard', compact('team', 'incompleteEnrollments', 'overdueCount', 'certificatesCount'));
     }
 }

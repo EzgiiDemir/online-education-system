@@ -60,6 +60,39 @@ class ManagerRoleTest extends TestCase
         $response->assertSee('KAZANILAN SERTİFİKA');
     }
 
+    /**
+     * P1 richer manager dashboard: Course::isOverdueFor() already existed
+     * (driving the reminder-email scheduler) but nothing surfaced it to a
+     * manager -- a report could be silently overdue on required training
+     * and the only visible signal was an email the manager never sees.
+     */
+    public function test_manager_sees_an_overdue_badge_for_a_report_past_the_due_date(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['status' => 'published', 'due_days' => 7]);
+        Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'enrolled', 'created_at' => now()->subDays(10)]);
+
+        $response = $this->actingAs($manager)->get(route('manager.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Süresi geçti');
+        $response->assertSee('SÜRESİ GEÇEN');
+    }
+
+    public function test_manager_does_not_see_an_overdue_badge_for_a_report_within_the_due_window(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['status' => 'published', 'due_days' => 30]);
+        Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'enrolled', 'created_at' => now()->subDays(5)]);
+
+        $response = $this->actingAs($manager)->get(route('manager.dashboard'));
+
+        $response->assertOk();
+        $response->assertDontSee('Süresi geçti');
+    }
+
     public function test_non_manager_cannot_access_the_manager_dashboard(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
