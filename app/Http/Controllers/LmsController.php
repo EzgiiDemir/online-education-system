@@ -680,7 +680,7 @@ class LmsController extends Controller
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         $isVideo = str_starts_with($material->type, 'video/');
         $required = $isVideo ? $this->completion->requiredWatchSeconds($material->duration_seconds) : null;
-        $estimatedMinutes = $isVideo ? null : DocumentEstimator::estimateMinutes(storage_path('app/public/'.$material->path), $material->type);
+        $estimatedMinutes = $isVideo ? null : DocumentEstimator::estimateMinutes('public', $material->path, $material->type);
 
         return view('lms.material-view', ['material' => $material, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
     }
@@ -757,7 +757,7 @@ class LmsController extends Controller
 
         $isVideo = $activity->type === 'video';
         $required = $isVideo ? $this->completion->requiredWatchSeconds($activity->duration_seconds) : null;
-        $estimatedMinutes = (! $isVideo && $activity->path) ? DocumentEstimator::estimateMinutes(storage_path('app/public/'.$activity->path), $this->activityFileMime($activity)) : null;
+        $estimatedMinutes = (! $isVideo && $activity->path) ? DocumentEstimator::estimateMinutes('public', $activity->path, $this->activityFileMime($activity)) : null;
 
         return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
     }

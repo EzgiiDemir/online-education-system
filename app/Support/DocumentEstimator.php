@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Storage;
+
 class DocumentEstimator
 {
     private const MINUTES_PER_UNIT = 1.5;
@@ -10,9 +12,25 @@ class DocumentEstimator
      * Rough "estimated reading time" for a document, shown to the learner as
      * a hint only — it never gates completion. Returns null when the file
      * type isn't one we know how to estimate (the UI just omits the hint).
+     *
+     * Takes a disk + relative path rather than an absolute filesystem path
+     * so this keeps working if the 'public' disk is ever pointed at S3
+     * instead of local storage -- $path resolves via Storage::disk()
+     * instead of a hardcoded storage_path('app/public/...'). Both
+     * page-counting strategies below still need real bytes on local disk
+     * (PharData can't read a zip from a stream), so a disk that has no
+     * local filesystem path (a true cloud disk) just skips the hint
+     * entirely rather than erroring -- consistent with every other
+     * "can't estimate this one" case here.
      */
-    public static function estimateMinutes(string $absolutePath, ?string $mime): ?int
+    public static function estimateMinutes(string $disk, string $path, ?string $mime): ?int
     {
+        try {
+            $absolutePath = Storage::disk($disk)->path($path);
+        } catch (\Throwable) {
+            return null;
+        }
+
         if (! is_file($absolutePath)) {
             return null;
         }
