@@ -75,6 +75,31 @@ class CertificateLifecycleTest extends TestCase
         $response->assertOk();
     }
 
+    /**
+     * The QR code lets a physical printout be verified by scanning rather
+     * than typing in the URL -- P1 §15. Only ext-gd/ext-imagick-free SVG
+     * output is available in this environment (see QrCodeGenerator), and
+     * DomPDF needs an explicit pixel size on the <svg> tag itself or it
+     * renders oversized; this locks both of those in.
+     */
+    public function test_the_downloaded_pdf_embeds_a_qr_code_pointing_at_the_verify_url(): void
+    {
+        $certificate = $this->makeCertificate();
+        $owner = $certificate->enrollment->user;
+
+        $html = view('lms.certificate', [
+            'certificate' => $certificate,
+            'enrollment' => $certificate->enrollment->load('user', 'course'),
+        ])->render();
+
+        $this->assertStringContainsString('<svg width="100" height="100"', $html);
+        $this->assertStringContainsString(route('certificates.verify', $certificate->certificate_number), $html);
+
+        $response = $this->actingAs($owner)->get(route('certificates.download', $certificate));
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
     public function test_the_public_verify_page_flags_a_revoked_certificate(): void
     {
         $certificate = $this->makeCertificate();
