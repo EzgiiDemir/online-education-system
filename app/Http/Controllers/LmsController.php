@@ -33,6 +33,20 @@ use Illuminate\Support\Str;
 
 class LmsController extends Controller
 {
+    /**
+     * Whitelist for learner/instructor-uploaded files (course materials,
+     * class-shared files, assignment submissions). Laravel's `mimes` rule
+     * checks the file's actually-detected content type against this list,
+     * not just its extension -- a `.pdf` that's really an HTML/script
+     * payload fails validation instead of landing on the public disk to be
+     * served (and potentially executed in a browser) as whatever a learner
+     * or instructor later clicks on. Deliberately excludes svg/html/js and
+     * anything executable; recordings have their own stricter webm/mp4-only
+     * rule in uploadRecording(), and avatars/posters use Laravel's `image`
+     * rule (content-verified, not just extension) instead of this list.
+     */
+    private const SAFE_UPLOAD_MIMES = 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,mp3,wav,jpg,jpeg,png,gif,txt,csv';
+
     public function __construct(private CompletionEngine $completion) {}
 
     public function loginForm()
@@ -505,7 +519,7 @@ class LmsController extends Controller
     public function addSession(Request $r, Course $course)
     {
         $this->authorize('update', $course);
-        $data = $r->validate(['title' => 'required', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'material' => 'nullable|file|max:51200']);
+        $data = $r->validate(['title' => 'required', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'material' => ['nullable', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
         $file = $r->file('material');
         unset($data['material']);
         $session = $course->sessions()->create(array_merge($data, ['room_key' => $course->delivery_type === 'online' ? Str::lower(Str::random(24)) : null, 'meeting_status' => $course->delivery_type === 'online' ? 'scheduled' : 'not_applicable']));
@@ -590,7 +604,7 @@ class LmsController extends Controller
     public function shareClassFile(Request $r, CourseSession $session)
     {
         $this->authorize('update', $session->course);
-        $r->validate(['file' => 'required|file|max:51200']);
+        $r->validate(['file' => ['required', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
         $file = $r->file('file');
         Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
 
@@ -766,7 +780,7 @@ class LmsController extends Controller
         $submission = ['activity_id' => $activity->id, 'enrollment_id' => $enrollment->id, 'submitted_at' => now()];
 
         if ($activity->submission_type === 'file') {
-            $data = $r->validate(['file' => 'required|file|max:20480']);
+            $data = $r->validate(['file' => ['required', 'file', 'max:20480', self::SAFE_UPLOAD_MIMES]]);
             $submission['file_path'] = $data['file']->store('assignment-submissions', 'public');
         } elseif ($activity->submission_type === 'url') {
             $data = $r->validate(['content' => 'required|url']);
