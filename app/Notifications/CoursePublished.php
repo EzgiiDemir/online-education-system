@@ -16,7 +16,7 @@ class CoursePublished extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return $notifiable->wantsNotification('course_published') ? ['mail', 'database'] : [];
     }
 
     public function toMail($notifiable): MailMessage

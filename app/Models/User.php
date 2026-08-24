@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id', 'deactivated_at'])]
+#[Fillable(['name', 'email', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id', 'deactivated_at', 'notification_preferences'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -79,6 +79,29 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * The notification types a user is allowed to opt out of, keyed by the
+     * preference name checked in each Notification class's via(). Live
+     * session invites aren't listed here -- they're tied to a session the
+     * learner is already enrolled in (with a calendar attachment), not a
+     * promotional/reminder ping, so they stay non-optional.
+     */
+    public const OPTIONAL_NOTIFICATION_TYPES = [
+        'training_due_soon' => 'Eğitim son tarihi hatırlatmaları',
+        'certificate_expiring_soon' => 'Sertifika süre sonu hatırlatmaları',
+        'course_published' => 'Yeni eğitim yayınlandı bildirimleri',
+    ];
+
+    /**
+     * Defaults to true (send it) whenever the key is missing -- covers both
+     * a user who's never opened the preferences form at all, and a
+     * hypothetical future notification type added after they last saved it.
+     */
+    public function wantsNotification(string $type): bool
+    {
+        return (bool) ($this->notification_preferences[$type] ?? true);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -88,6 +111,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_preferences' => 'array',
         ];
     }
 }

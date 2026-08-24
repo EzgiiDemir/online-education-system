@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::post('/account/notification-preferences', [AccountController::class, 'updateNotificationPreferences'])->name('account.notification-preferences.update');
     Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
 });
 Route::middleware('auth')->group(function () {

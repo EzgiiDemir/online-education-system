@@ -19,6 +19,18 @@
 @if($user->department)<p style="margin:4px 0"><b>{{ $en ? 'Department:' : 'Departman:' }}</b> {{ $user->department }}</p>@endif
 @if($user->job_title)<p style="margin:4px 0"><b>{{ $en ? 'Job title:' : 'Unvan:' }}</b> {{ $user->job_title }}</p>@endif
 <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+<h2 style="margin:0 0 12px;font-size:16px">{{ $en ? 'Email notifications' : 'E-posta bildirimleri' }}</h2>
+<form method="post" action="{{ route('account.notification-preferences.update') }}">
+@csrf
+@foreach(\App\Models\User::OPTIONAL_NOTIFICATION_TYPES as $type => $label)
+<div class="form-check" style="margin-bottom:8px">
+<input class="form-check-input" type="checkbox" name="preferences[]" value="{{ $type }}" id="pref-{{ $type }}" {{ $user->wantsNotification($type) ? 'checked' : '' }}>
+<label class="form-check-label" for="pref-{{ $type }}" style="font-size:14px">{{ $label }}</label>
+</div>
+@endforeach
+<button type="submit" class="btn btn-outline-secondary" style="width:100%;margin-top:10px">{{ $en ? 'Save preferences' : 'Tercihleri kaydet' }}</button>
+</form>
+<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
 <button type="button" class="button-danger" style="width:100%" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">{{ $en ? 'Delete my account' : 'Hesabımı sil' }}</button>
 </div>
 </div>

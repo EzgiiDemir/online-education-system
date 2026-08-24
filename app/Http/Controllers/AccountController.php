@@ -21,6 +21,23 @@ class AccountController extends Controller
         return view('lms.account', compact('user', 'enrollments', 'courses'));
     }
 
+    public function updateNotificationPreferences(Request $r)
+    {
+        $data = $r->validate([
+            'preferences' => 'array',
+            'preferences.*' => 'string|in:'.implode(',', array_keys(User::OPTIONAL_NOTIFICATION_TYPES)),
+        ]);
+        $enabled = $data['preferences'] ?? [];
+
+        $preferences = collect(User::OPTIONAL_NOTIFICATION_TYPES)->keys()
+            ->mapWithKeys(fn ($type) => [$type => in_array($type, $enabled, true)])
+            ->all();
+
+        Auth::user()->update(['notification_preferences' => $preferences]);
+
+        return back()->with('success', 'Bildirim tercihleri güncellendi.');
+    }
+
     /**
      * Anonymizes rather than deletes: enrollments.user_id and several other
      * foreign keys cascadeOnDelete, so a real $user->delete() would take

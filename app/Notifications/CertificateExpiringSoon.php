@@ -16,7 +16,7 @@ class CertificateExpiringSoon extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return $notifiable->wantsNotification('certificate_expiring_soon') ? ['mail', 'database'] : [];
     }
 
     public function toMail($notifiable): MailMessage
