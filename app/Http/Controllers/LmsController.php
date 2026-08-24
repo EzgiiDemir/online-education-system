@@ -882,6 +882,12 @@ class LmsController extends Controller
         if ($activity->max_attempts) {
             abort_if($previousAttempts->count() >= $activity->max_attempts, 422, 'İzin verilen deneme hakkınız kalmadı.');
         }
+        // Guards against a double-click/double-submit creating two attempt
+        // rows (and burning two of a limited attempt budget) for what the
+        // learner experienced as one submission -- not a rate limit on
+        // genuine retries, just a few-second debounce.
+        $lastAttemptAt = $previousAttempts->max('submitted_at');
+        abort_if($lastAttemptAt && $lastAttemptAt->diffInSeconds(now()) < 3, 429, 'Lütfen birkaç saniye bekleyip tekrar deneyin.');
 
         $questions = $activity->quizQuestions()->with('options')->get();
         abort_if($questions->isEmpty(), 422, 'Bu sınavda henüz soru yok.');

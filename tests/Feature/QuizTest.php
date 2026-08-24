@@ -186,6 +186,30 @@ class QuizTest extends TestCase
         $this->assertSame(1, \App\Models\QuizAttempt::where('activity_id', $activity->id)->count());
     }
 
+    /**
+     * A double-click or a network retry firing the same submit twice must
+     * not burn two attempts from a limited budget for what the learner
+     * experienced as one action -- distinct from max_attempts/already-passed
+     * (tested above), which both fire before this debounce would ever be
+     * reached. Here neither of those applies: attempts remain and the first
+     * one failed, so without the debounce a second immediate POST would
+     * legitimately create attempt #2.
+     */
+    public function test_an_immediate_resubmission_is_rejected_as_a_likely_double_click(): void
+    {
+        $activity = $this->makeQuiz(['pass_score' => 70, 'max_attempts' => 5]);
+        $learner = $this->enroll($activity);
+        $q1 = $activity->quizQuestions[0];
+        $wrongQ1 = $q1->options->firstWhere('is_correct', false)->id;
+        $payload = ['answers' => [$q1->id => $wrongQ1, $activity->quizQuestions[1]->id => []]];
+
+        $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), $payload);
+        $second = $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), $payload);
+
+        $second->assertStatus(429);
+        $this->assertSame(1, \App\Models\QuizAttempt::where('activity_id', $activity->id)->count());
+    }
+
     public function test_a_learner_not_enrolled_in_the_course_cannot_submit_an_attempt(): void
     {
         $activity = $this->makeQuiz();
