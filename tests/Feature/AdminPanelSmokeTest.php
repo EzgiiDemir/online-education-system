@@ -28,6 +28,7 @@ class AdminPanelSmokeTest extends TestCase
             '/admin',
             '/admin/activities',
             '/admin/audit-logs',
+            '/admin/certificates',
             '/admin/course-runs',
             '/admin/course-sections',
             '/admin/course-sessions',

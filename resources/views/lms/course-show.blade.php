@@ -53,7 +53,8 @@
                 @endif
             </div>
             @if($enrollment->status === 'completed')
-                @if($enrollment->certificate)<a class="btn btn-primary" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="btn btn-outline-secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
+                @if($enrollment->certificate?->isRevoked())<span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Certificate revoked' : 'Sertifika iptal edildi' }}</span>
+                @elseif($enrollment->certificate)<a class="btn btn-primary" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }} <x-lucide name="arrow-right" size="14" /></a> <a class="btn btn-outline-secondary" href="{{ route('certificates.verify', $enrollment->certificate->certificate_number) }}">{{ $en ? 'Verify' : 'Doğrula' }}</a>@endif
             @elseif($continueUrl)
                 <a class="btn btn-primary" href="{{ $continueUrl }}">{{ $en ? 'Continue learning' : 'Öğrenmeye devam et' }} <x-lucide name="arrow-right" size="14" /></a>
             @else
