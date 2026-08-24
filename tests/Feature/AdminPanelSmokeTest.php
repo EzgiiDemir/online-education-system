@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Activities\Pages\EditActivity;
+use App\Filament\Resources\Activities\RelationManagers\QuizQuestionsRelationManager;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Material;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AdminPanelSmokeTest extends TestCase
@@ -136,7 +139,16 @@ class AdminPanelSmokeTest extends TestCase
         // label itself is not guaranteed to appear as visible text -- assert
         // on the actual rendered question data instead.
         $response->assertOk();
-        $response->assertSee('Arucad Campus LMS nedir?');
+
+        // The relation manager's table itself is lazy-loaded (Filament mounts
+        // it behind an x-intersect placeholder, "Yükleniyor..."), so its rows
+        // never appear in this plain GET's HTML regardless of whether the
+        // manager works -- that has to be exercised as its own Livewire
+        // component instead.
+        Livewire::actingAs($admin)->test(QuizQuestionsRelationManager::class, [
+            'ownerRecord' => $quiz,
+            'pageClass' => EditActivity::class,
+        ])->assertCanSeeTableRecords([$question]);
     }
 
     /**

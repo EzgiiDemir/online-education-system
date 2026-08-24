@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\QuizOption;
 use App\Models\QuizQuestion;
 use App\Models\User;
+use App\Services\QuizService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -55,6 +56,28 @@ class QuizTest extends TestCase
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $activity->section->course_id]);
 
         return $learner;
+    }
+
+    private function makeQuizWithBank(int $count, ?int $poolSize = null): Activity
+    {
+        $course = Course::factory()->create(['status' => 'published']);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Bölüm 1']);
+        $activity = Activity::create([
+            'course_section_id' => $section->id,
+            'title' => 'Soru Bankalı Sınav',
+            'type' => 'quiz',
+            'is_required' => true,
+            'pass_score' => 50,
+            'pool_size' => $poolSize,
+        ]);
+
+        for ($i = 1; $i <= $count; $i++) {
+            $question = QuizQuestion::create(['activity_id' => $activity->id, 'question' => "Soru {$i}", 'type' => 'single_choice', 'sort_order' => $i]);
+            QuizOption::create(['quiz_question_id' => $question->id, 'label' => 'Doğru', 'is_correct' => true, 'sort_order' => 1]);
+            QuizOption::create(['quiz_question_id' => $question->id, 'label' => 'Yanlış', 'is_correct' => false, 'sort_order' => 2]);
+        }
+
+        return $activity->fresh();
     }
 
     public function test_all_correct_answers_score_100_percent_and_pass(): void
@@ -240,5 +263,83 @@ class QuizTest extends TestCase
         $learner = $this->enroll($activity);
 
         $this->actingAs($learner)->post(route('activities.heartbeat', $activity))->assertStatus(422);
+    }
+
+    public function test_a_null_pool_size_returns_the_full_question_bank(): void
+    {
+        $activity = $this->makeQuizWithBank(5);
+        $learner = $this->enroll($activity);
+        $enrollment = $learner->enrollments()->first();
+
+        $questions = app(QuizService::class)->questionsForAttempt($activity, $enrollment);
+
+        $this->assertCount(5, $questions);
+    }
+
+    public function test_a_pool_size_at_or_above_the_bank_size_returns_the_full_bank(): void
+    {
+        $activity = $this->makeQuizWithBank(3, poolSize: 10);
+        $learner = $this->enroll($activity);
+        $enrollment = $learner->enrollments()->first();
+
+        $questions = app(QuizService::class)->questionsForAttempt($activity, $enrollment);
+
+        $this->assertCount(3, $questions);
+    }
+
+    public function test_a_pool_size_smaller_than_the_bank_draws_a_deterministic_subset(): void
+    {
+        $activity = $this->makeQuizWithBank(6, poolSize: 3);
+        $learner = $this->enroll($activity);
+        $enrollment = $learner->enrollments()->first();
+        $service = app(QuizService::class);
+
+        $first = $service->questionsForAttempt($activity, $enrollment);
+        $second = $service->questionsForAttempt($activity, $enrollment);
+
+        $this->assertCount(3, $first);
+        $this->assertSame($first->pluck('id')->all(), $second->pluck('id')->all());
+        $this->assertEmpty($first->pluck('id')->diff($activity->quizQuestions()->pluck('id')));
+    }
+
+    /**
+     * The single most important correctness property of the question bank:
+     * whatever subset the learner is shown when they open the quiz has to be
+     * the exact same subset graded on submit. Deriving the subset from
+     * (enrollment, activity, attempt number) instead of storing it anywhere
+     * guarantees this without a session/table to keep in sync -- this test
+     * is the regression guard for that guarantee actually holding across
+     * the two separate requests (GET the view, then POST the answers).
+     */
+    public function test_the_quiz_view_shows_exactly_the_pool_sized_subset_and_grades_against_the_same_subset(): void
+    {
+        $activity = $this->makeQuizWithBank(5, poolSize: 2);
+        $learner = $this->enroll($activity);
+        $enrollment = $learner->enrollments()->first();
+        $subset = app(QuizService::class)->questionsForAttempt($activity, $enrollment);
+        $this->assertCount(2, $subset);
+        $excluded = $activity->quizQuestions()->whereNotIn('id', $subset->pluck('id'))->get();
+
+        $viewResponse = $this->actingAs($learner)->get(route('activities.view', $activity));
+
+        $viewResponse->assertOk();
+        $viewResponse->assertSee('2 soru');
+        foreach ($subset as $question) {
+            $viewResponse->assertSee($question->question);
+        }
+        foreach ($excluded as $question) {
+            $viewResponse->assertDontSee($question->question);
+        }
+
+        $answers = $subset->mapWithKeys(fn ($q) => [$q->id => $q->options->firstWhere('is_correct', true)->id])->all();
+        $submitResponse = $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), ['answers' => $answers]);
+
+        $submitResponse->assertRedirect(route('activities.view', $activity));
+        $this->assertDatabaseHas('quiz_attempts', [
+            'activity_id' => $activity->id,
+            'enrollment_id' => $enrollment->id,
+            'score' => 100,
+            'passed' => true,
+        ]);
     }
 }

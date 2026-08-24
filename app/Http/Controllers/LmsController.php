@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Notifications\CoursePublished;
 use App\Notifications\LiveSessionScheduled;
 use App\Services\CompletionEngine;
+use App\Services\QuizService;
 use App\Support\DocumentEstimator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -47,7 +48,7 @@ class LmsController extends Controller
      */
     private const SAFE_UPLOAD_MIMES = 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,mp3,wav,jpg,jpeg,png,gif,txt,csv';
 
-    public function __construct(private CompletionEngine $completion) {}
+    public function __construct(private CompletionEngine $completion, private QuizService $quiz) {}
 
     public function loginForm()
     {
@@ -731,7 +732,12 @@ class LmsController extends Controller
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
 
         if ($activity->type === 'quiz') {
-            $activity->load('quizQuestions.options');
+            // setRelation (not load()) so the existing blade template's
+            // $activity->quizQuestions keeps working unchanged, but now
+            // holds this attempt's drawn subset rather than the full bank
+            // when pool_size is set -- see QuizService for why the subset
+            // has to be derived deterministically rather than stored.
+            $activity->setRelation('quizQuestions', $this->quiz->questionsForAttempt($activity, $enrollment));
             $attempts = QuizAttempt::where('activity_id', $activity->id)->where('enrollment_id', $enrollment->id)->orderByDesc('submitted_at')->get();
             $hasPassed = $attempts->contains('passed', true);
             $attemptsRemaining = $activity->max_attempts ? max(0, $activity->max_attempts - $attempts->count()) : null;
@@ -893,7 +899,7 @@ class LmsController extends Controller
         $lastAttemptAt = $previousAttempts->max('submitted_at');
         abort_if($lastAttemptAt && $lastAttemptAt->diffInSeconds(now()) < 3, 429, 'Lütfen birkaç saniye bekleyip tekrar deneyin.');
 
-        $questions = $activity->quizQuestions()->with('options')->get();
+        $questions = $this->quiz->questionsForAttempt($activity, $enrollment);
         abort_if($questions->isEmpty(), 422, 'Bu sınavda henüz soru yok.');
 
         $data = $r->validate(['answers' => 'required|array']);
