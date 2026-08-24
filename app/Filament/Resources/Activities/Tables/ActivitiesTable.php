@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Activities\Tables;
 
+use App\Filament\Actions\QuizAnalyticsAction;
 use App\Filament\Actions\ViewAuditLogAction;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -52,6 +53,7 @@ class ActivitiesTable
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => (bool) $record->path),
                 EditAction::make(),
+                QuizAnalyticsAction::make(),
                 ViewAuditLogAction::make(),
                 DeleteAction::make(),
             ])
