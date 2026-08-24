@@ -2,6 +2,11 @@
 
 namespace App\Filament\Resources\Courses\RelationManagers;
 
+use App\Models\Enrollment;
+use App\Models\User;
+use App\Notifications\TrainingAssigned;
+use App\Services\EnrollmentService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -9,8 +14,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -52,6 +59,31 @@ class EnrollmentsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make(),
+                Action::make('bulkAssign')
+                    ->label('Toplu ata')
+                    ->icon(Heroicon::OutlinedUserPlus)
+                    ->color('gray')
+                    ->schema([
+                        Select::make('user_ids')->label('Katılımcılar')
+                            ->options(fn () => User::whereNull('deactivated_at')
+                                ->whereNotIn('id', $this->getOwnerRecord()->enrollments()->pluck('user_id'))
+                                ->pluck('name', 'id'))
+                            ->multiple()
+                            ->searchable()
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $course = $this->getOwnerRecord();
+                        $assigned = 0;
+                        foreach (User::whereIn('id', $data['user_ids'])->get() as $user) {
+                            $result = app(EnrollmentService::class)->enroll($course, $user, checkPrerequisites: false);
+                            if ($result instanceof Enrollment && $result->wasRecentlyCreated) {
+                                $user->notify(new TrainingAssigned($result));
+                                $assigned++;
+                            }
+                        }
+                        Notification::make()->title($assigned.' kişiye eğitim atandı')->success()->send();
+                    }),
             ])
             ->recordActions([
                 EditAction::make(),

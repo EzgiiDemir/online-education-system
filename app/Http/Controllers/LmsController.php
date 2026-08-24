@@ -9,7 +9,6 @@ use App\Models\AuditLog;
 use App\Models\Certificate;
 use App\Models\ClassMessage;
 use App\Models\Course;
-use App\Models\CourseRun;
 use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\LearningPath;
@@ -24,6 +23,7 @@ use App\Models\WaitlistEntry;
 use App\Notifications\CoursePublished;
 use App\Notifications\LiveSessionScheduled;
 use App\Services\CompletionEngine;
+use App\Services\EnrollmentService;
 use App\Services\QuizService;
 use App\Support\DocumentEstimator;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -50,7 +50,7 @@ class LmsController extends Controller
      */
     private const SAFE_UPLOAD_MIMES = 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,mp3,wav,jpg,jpeg,png,gif,txt,csv';
 
-    public function __construct(private CompletionEngine $completion, private QuizService $quiz) {}
+    public function __construct(private CompletionEngine $completion, private QuizService $quiz, private EnrollmentService $enrollments) {}
 
     public function loginForm()
     {
@@ -314,45 +314,7 @@ class LmsController extends Controller
 
     private function enrollUserInCourse(Course $course): Enrollment|WaitlistEntry
     {
-        $unmet = $course->unmetPrerequisitesFor(Auth::user());
-        abort_if($unmet->isNotEmpty(), 422, 'Bu eğitime kaydolmadan önce şu eğitim(ler)i tamamlamanız gerekiyor: '.$unmet->pluck('title')->implode(', ').'.');
-
-        $openRun = $course->runs()->whereIn('status', ['open', 'running'])->orderBy('starts_at')->first();
-
-        $existing = Auth::user()->enrollments()->where('course_id', $course->id)->first();
-        if ($existing) {
-            return $existing;
-        }
-
-        // A capacity-limited run needs the "is there a seat" check and the
-        // enrollment insert to happen as one atomic unit -- otherwise two
-        // concurrent requests can both read "1 seat left" and both insert,
-        // overselling the run. lockForUpdate() on the run row (mirrors
-        // CompletionEngine's heartbeat/attendance locking) serializes them.
-        if ($openRun && $openRun->max_seats !== null) {
-            return DB::transaction(function () use ($course, $openRun) {
-                $run = CourseRun::whereKey($openRun->id)->lockForUpdate()->first();
-                if (! $run->hasOpenSeats()) {
-                    return WaitlistEntry::firstOrCreate(['course_run_id' => $run->id, 'user_id' => Auth::id()]);
-                }
-
-                return $this->createEnrollmentAndNotify($course, $run->id);
-            });
-        }
-
-        return $this->createEnrollmentAndNotify($course, $openRun?->id);
-    }
-
-    private function createEnrollmentAndNotify(Course $course, ?int $runId): Enrollment
-    {
-        $enrollment = Auth::user()->enrollments()->firstOrCreate(['course_id' => $course->id], ['course_run_id' => $runId]);
-        if ($enrollment->wasRecentlyCreated) {
-            foreach ($course->sessions()->where('meeting_status', '!=', 'not_applicable')->get() as $session) {
-                Auth::user()->notify(new LiveSessionScheduled($session));
-            }
-        }
-
-        return $enrollment;
+        return $this->enrollments->enroll($course, Auth::user());
     }
 
     public function learningPaths()
