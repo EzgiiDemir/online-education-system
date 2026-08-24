@@ -58,6 +58,35 @@ class SystemHealthTest extends TestCase
         $this->assertDatabaseMissing('failed_jobs', ['uuid' => $uuid]);
     }
 
+    /**
+     * Faz 100 (spec §18: "Scheduled Jobs"): each named job in bootstrap/
+     * app.php's ->withSchedule() writes its own last-run cache key via
+     * ->after(), so this can show real per-job status instead of only the
+     * single generic scheduler-is-alive heartbeat.
+     */
+    public function test_a_scheduled_job_with_no_recorded_run_is_flagged_overdue(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $jobs = Livewire::actingAs($admin)->test(SystemHealth::class)->instance()->getScheduledJobs();
+
+        $reminderJob = collect($jobs)->firstWhere('command', 'app:send-training-reminders');
+        $this->assertNotNull($reminderJob);
+        $this->assertTrue($reminderJob['overdue']);
+        $this->assertNull($reminderJob['last_run']);
+    }
+
+    public function test_a_recently_run_scheduled_job_is_not_flagged_overdue(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        \Illuminate\Support\Facades\Cache::forever('scheduled_job_last_run:app:send-training-reminders', now());
+
+        $jobs = Livewire::actingAs($admin)->test(SystemHealth::class)->instance()->getScheduledJobs();
+
+        $reminderJob = collect($jobs)->firstWhere('command', 'app:send-training-reminders');
+        $this->assertFalse($reminderJob['overdue']);
+    }
+
     public function test_responses_carry_a_correlation_id_header(): void
     {
         $response = $this->get('/login');

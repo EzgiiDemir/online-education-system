@@ -24,8 +24,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['scim.auth' => ScimAuthenticate::class, 'api.auth' => ApiAuthenticate::class]);
     })
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('app:send-training-reminders')->dailyAt('07:00');
-        $schedule->command('app:purge-expired-recordings')->dailyAt('03:00');
+        // Each ->after() records its own last-run timestamp (keyed by
+        // command name) so the admin System Health page's "Scheduled Jobs"
+        // table can show real per-job status instead of only the generic
+        // process-is-alive heartbeat below.
+        $schedule->command('app:send-training-reminders')->dailyAt('07:00')
+            ->after(fn () => \Illuminate\Support\Facades\Cache::forever('scheduled_job_last_run:app:send-training-reminders', now()));
+        $schedule->command('app:purge-expired-recordings')->dailyAt('03:00')
+            ->after(fn () => \Illuminate\Support\Facades\Cache::forever('scheduled_job_last_run:app:purge-expired-recordings', now()));
         // A frequent, trivial heartbeat so the admin System Health page can
         // show "is the scheduler process actually running right now" --
         // the daily reminder job alone would show a stale, misleading

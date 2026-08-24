@@ -78,6 +78,26 @@ class SystemHealth extends Page
         ];
     }
 
+    /**
+     * Mirrors bootstrap/app.php's ->withSchedule() definitions -- each job's
+     * ->after() hook writes its own "scheduled_job_last_run:{command}" cache
+     * key, so this can show real per-job status rather than only the single
+     * generic scheduler heartbeat above.
+     */
+    public function getScheduledJobs(): array
+    {
+        return collect([
+            ['command' => 'app:send-training-reminders', 'label' => 'Eğitim hatırlatmaları', 'frequency' => 'Her gün 07:00', 'overdue_after_hours' => 26],
+            ['command' => 'app:purge-expired-recordings', 'label' => 'Süresi dolan kayıtları temizleme', 'frequency' => 'Her gün 03:00', 'overdue_after_hours' => 26],
+        ])->map(function (array $job) {
+            $lastRun = Cache::get('scheduled_job_last_run:'.$job['command']);
+            $job['last_run'] = $lastRun;
+            $job['overdue'] = ! $lastRun || now()->diffInHours($lastRun) > $job['overdue_after_hours'];
+
+            return $job;
+        })->all();
+    }
+
     public function getFailedJobs()
     {
         return DB::table('failed_jobs')->orderByDesc('failed_at')->limit(20)->get();

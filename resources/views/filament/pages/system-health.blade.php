@@ -40,6 +40,26 @@
     </div>
 
     <div style="margin-top:28px">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Zamanlanmış görevler</h2>
+        <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+                <tr style="text-align:left"><th style="padding:8px;border-bottom:1px solid rgba(0,0,0,.1)">Görev</th><th style="padding:8px;border-bottom:1px solid rgba(0,0,0,.1)">Sıklık</th><th style="padding:8px;border-bottom:1px solid rgba(0,0,0,.1)">Son çalışma</th></tr>
+            </thead>
+            <tbody>
+                @foreach($this->getScheduledJobs() as $job)
+                <tr>
+                    <td style="padding:8px;border-bottom:1px solid rgba(0,0,0,.06)">{{ $job['label'] }} <span style="opacity:.5">({{ $job['command'] }})</span></td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(0,0,0,.06)">{{ $job['frequency'] }}</td>
+                    <td style="padding:8px;border-bottom:1px solid rgba(0,0,0,.06);color:{{ $job['overdue'] ? '#b91c1c' : 'inherit' }}">{{ $job['last_run'] ? \Illuminate\Support\Carbon::parse($job['last_run'])->diffForHumans() : 'Hiç çalışmadı' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div style="margin-top:28px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h2 style="font-size:16px;font-weight:700">Başarısız işler (son 20)</h2>
             @if($m['queue_failed'] > 0)
