@@ -510,6 +510,73 @@ class LmsController extends Controller
         return view('lms.instructor-calendar', compact('month', 'eventsByDate', 'upcoming'));
     }
 
+    /**
+     * A unified, searchable view over everything the instructor has already
+     * uploaded across all of their courses (spec §11's nav/search/filters).
+     * Deliberately NOT the full "reusable content" architecture the spec
+     * also describes (one piece of content attached to several courses) --
+     * that needs Material/Activity to stop being owned by a single
+     * session/section, which touches the course builder, versioning, and
+     * every quiz/assignment flow. This is the browsing/discovery half on
+     * its own, scoped out from that larger, separately-planned change.
+     */
+    public function contentLibrary(Request $r)
+    {
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
+
+        $courses = Auth::user()->courses()->with(['sections.activities', 'sessions.materials'])->get();
+
+        $items = collect();
+        foreach ($courses as $course) {
+            foreach ($course->sections as $section) {
+                foreach ($section->activities as $activity) {
+                    $type = in_array($activity->type, ['video', 'document', 'presentation', 'quiz', 'assignment'], true) ? $activity->type : 'document';
+                    $items->push(['title' => $activity->title, 'type' => $type, 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $activity->created_at, 'updated_at' => $activity->updated_at, 'preview_url' => $activity->path ? asset('storage/'.$activity->path) : null, 'edit_url' => route('instructor.courses.show', $course).'#curriculum']);
+                }
+            }
+            foreach ($course->sessions as $session) {
+                $items->push(['title' => $session->title, 'type' => 'live_session', 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $session->created_at, 'updated_at' => $session->updated_at, 'preview_url' => null, 'edit_url' => route('instructor.courses.show', $course).'#sessions']);
+                foreach ($session->materials as $material) {
+                    $items->push(['title' => $material->title, 'type' => 'document', 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $material->created_at, 'updated_at' => $material->updated_at, 'preview_url' => asset('storage/'.$material->path), 'edit_url' => route('instructor.courses.show', $course).'#sessions']);
+                }
+            }
+        }
+
+        if ($r->filled('course_id')) {
+            $items = $items->where('course_id', (int) $r->query('course_id'));
+        }
+        if ($r->filled('language')) {
+            $items = $items->where('language', $r->query('language'));
+        }
+        if ($r->filled('q')) {
+            $needle = mb_strtolower($r->query('q'));
+            $items = $items->filter(fn ($i) => str_contains(mb_strtolower($i['title']), $needle));
+        }
+
+        // Counts reflect the search/course/language filters but not the
+        // type filter itself, so the type tabs show what switching to them
+        // would reveal rather than collapsing to the currently active one.
+        $typeCounts = $items->countBy('type');
+
+        $activeType = $r->query('type');
+        if ($activeType) {
+            $items = $items->where('type', $activeType);
+        }
+
+        $items = $items->sortByDesc('updated_at')->values();
+
+        return view('lms.content-library', [
+            'items' => new \Illuminate\Pagination\LengthAwarePaginator(
+                $items->forPage($r->integer('page', 1), 20),
+                $items->count(), 20, $r->integer('page', 1),
+                ['path' => $r->url(), 'query' => $r->query()]
+            ),
+            'typeCounts' => $typeCounts,
+            'activeType' => $activeType,
+            'courses' => $courses,
+        ]);
+    }
+
     public function instructorProfile()
     {
         abort_unless(Auth::user()->isInstructor(), 403);

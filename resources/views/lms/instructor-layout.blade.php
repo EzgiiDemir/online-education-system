@@ -15,6 +15,7 @@
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.dashboard') ? 'is-active' : '' }}" href="{{ route('instructor.dashboard') }}">{{ $en ? 'Overview' : 'Genel bakış' }}</a></li>
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.courses.*') ? 'is-active' : '' }}" href="{{ route('instructor.courses.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li>
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.calendar') ? 'is-active' : '' }}" href="{{ route('instructor.calendar') }}">{{ $en ? 'Calendar' : 'Takvim' }}</a></li>
+<li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.content-library') ? 'is-active' : '' }}" href="{{ route('instructor.content-library') }}">{{ $en ? 'Content Library' : 'İçerik Kütüphanesi' }}</a></li>
 <li class="nav-item"><a class="nav-link {{ request()->routeIs('instructor.profile') ? 'is-active' : '' }}" href="{{ route('instructor.profile') }}">{{ $en ? 'My Profile' : 'Profilim' }}</a></li>
 </ul>
 <div class="nav-actions">
