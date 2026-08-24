@@ -51,7 +51,6 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 /* Notification badge (sits on the profile avatar; the list itself now lives inside the profile dropdown) */
 .notif-badge{position:absolute;top:-2px;right:-2px;background:var(--accent);color:#fff;border-radius:999px;font-size:9px;font-weight:800;min-width:15px;height:15px;display:grid;place-items:center;padding:0 3px;border:2px solid var(--surface-solid)}
 .notif-mark-all{background:transparent;color:var(--brand);border:0;box-shadow:none;padding:0;font-size:11px;font-weight:650;width:auto}
-.notif-mark-all:hover{background:transparent;color:var(--brand)}
 .notif-item{margin:0}
 .notif-item button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:11px;font-size:13px;font-weight:600;color:var(--ink);background:transparent;border:0;box-shadow:none;line-height:1.4;white-space:normal}
 .notif-item button:hover{background:transparent;color:var(--ink)}
@@ -113,6 +112,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 button,.button,.btn.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;cursor:pointer;box-shadow:0 1px 2px #1018281a}
 button:hover,.button:hover,.btn.btn-primary:hover,.btn.btn-primary:focus{color:#fff;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%)}
 button:disabled,.button:disabled,.btn.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.notif-mark-all:hover{background:transparent;color:var(--brand)}
 .button-secondary,.button.secondary,.secondary,.btn.btn-outline-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;font-size:14px;padding:11px 20px;background:rgba(255,255,255,.6);color:var(--brand-dark);border:1px solid var(--line);box-shadow:0 1px 2px #1018280d}
 .button-secondary:hover,.button.secondary:hover,.secondary:hover,.btn.btn-outline-secondary:hover,.btn.btn-outline-secondary:focus{color:var(--brand-dark);background:rgba(255,255,255,.6);border-color:var(--line)}
 
@@ -123,6 +123,7 @@ button:disabled,.button:disabled,.btn.btn-primary:disabled{opacity:.5;cursor:not
    hover is intentionally identical to the resting state, no exceptions. */
 .button-danger,.profile-dropdown button.button-danger{background:#c0392b;color:#fff;border:0;box-shadow:none}
 .button-danger:hover,.profile-dropdown button.button-danger:hover{background:#c0392b;color:#fff;box-shadow:none}
+.btn-close:hover,.btn-close:focus{background:rgba(0,0,0,0) var(--bs-btn-close-bg) center/1em auto no-repeat}
 .danger-zone{margin-top:14px;padding:16px;border:1px solid #f0d8d1;border-radius:var(--radius-sm);background:var(--alert-error-bg)}
 .danger-zone p{margin:0 0 10px;font-size:13px;color:var(--alert-error-ink)}
 
