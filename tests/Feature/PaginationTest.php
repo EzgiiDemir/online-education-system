@@ -63,7 +63,9 @@ class PaginationTest extends TestCase
     public function test_my_learning_is_paginated(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
-        Course::factory()->count(12)->create(['status' => 'published'])
+        // 13, not 12: my-learning shows 12 per page (a clean 3-column x 4-row
+        // grid), so exactly 12 wouldn't produce a second page at all.
+        Course::factory()->count(13)->create(['status' => 'published'])
             ->each(fn ($course) => Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]));
 
         $response = $this->actingAs($learner)->get(route('learning.index'));

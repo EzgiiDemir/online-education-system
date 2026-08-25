@@ -6,10 +6,12 @@
 
 @if(!$selectedCourse)
 {{-- Step 1: pick a course --}}
-<form method="get" class="card" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:end">
-<label style="flex:1;min-width:200px">{{ $en ? 'Search your courses...' : 'Eğitimlerinizde arayın...' }}<input type="search" name="q" value="{{ request('q') }}" placeholder="{{ $en ? 'Search your courses...' : 'Eğitimlerinizde arayın...' }}"></label>
+<form method="get" class="report-filters">
+<div class="field" style="flex:2"><label for="att-q">{{ $en ? 'Search your courses' : 'Eğitimlerinizde arayın' }}</label><input id="att-q" type="search" name="q" value="{{ request('q') }}" placeholder="{{ $en ? 'Search your courses...' : 'Eğitimlerinizde arayın...' }}"></div>
+<div class="field" style="flex:0;align-self:flex-end;display:flex;gap:8px;white-space:nowrap">
 <button type="submit" class="btn btn-primary">{{ $en ? 'Search' : 'Ara' }}</button>
 @if(request('q'))<a class="btn btn-outline-secondary" href="{{ route('instructor.attendance') }}">{{ $en ? 'Clear' : 'Temizle' }}</a>@endif
+</div>
 </form>
 <div class="card">
 <h2 style="margin-top:0">{{ $en ? 'Select a course' : 'Bir eğitim seçin' }}</h2>

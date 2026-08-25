@@ -323,7 +323,7 @@ class LmsController extends Controller
             'certificates' => Auth::user()->enrollments()->whereHas('certificate')->count(),
         ];
 
-        $query = Auth::user()->enrollments()->with(['course.sessions.materials', 'course.sections.activities', 'progress', 'activityProgress', 'sessionProgress', 'certificate']);
+        $query = Auth::user()->enrollments()->with(['course.sessions', 'certificate']);
 
         $query = match ($tab) {
             'in_progress' => $query->where('status', '!=', 'completed'),
@@ -333,7 +333,11 @@ class LmsController extends Controller
             default => $query,
         };
 
-        $enrollments = $query->latest()->paginate(10)->withQueryString();
+        if ($r->filled('q')) {
+            $query->whereHas('course', fn ($q) => $q->where('title', 'like', '%'.$r->query('q').'%'));
+        }
+
+        $enrollments = $query->latest()->paginate(12)->withQueryString();
 
         return view('lms.my-learning', compact('enrollments', 'counts', 'tab'));
     }

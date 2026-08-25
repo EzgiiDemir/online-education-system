@@ -113,6 +113,41 @@ class SearchTest extends TestCase
         $response->assertDontSee('Herhangi Bir Eğitim');
     }
 
+    /**
+     * Faz 102 (item 1 of the UI/UX feedback): a plain LIKE search goes
+     * empty-handed on a typo. When the exact pass finds nothing, a
+     * Levenshtein-distance fallback still surfaces the intended course.
+     */
+    public function test_a_single_typo_still_finds_the_intended_course(): void
+    {
+        Course::factory()->create(['status' => 'published', 'title' => 'Pazarlama Temelleri']);
+
+        $response = $this->get(route('search.index', ['q' => 'Pazrlama']));
+
+        $response->assertOk();
+        $response->assertSee('Pazarlama Temelleri');
+    }
+
+    public function test_fuzzy_matching_is_case_insensitive_and_handles_turkish_letters(): void
+    {
+        Course::factory()->create(['status' => 'published', 'title' => 'İş Sağlığı ve Güvenliği']);
+
+        $response = $this->get(route('search.index', ['q' => 'is sagligi']));
+
+        $response->assertOk();
+        $response->assertSee('İş Sağlığı ve Güvenliği');
+    }
+
+    public function test_a_query_too_garbled_to_be_a_typo_still_finds_nothing(): void
+    {
+        Course::factory()->create(['status' => 'published', 'title' => 'Pazarlama Temelleri']);
+
+        $response = $this->get(route('search.index', ['q' => 'xyzqwk']));
+
+        $response->assertOk();
+        $response->assertDontSee('Pazarlama Temelleri');
+    }
+
     public function test_no_results_state_is_shown_for_an_unmatched_query(): void
     {
         $response = $this->get(route('search.index', ['q' => 'hicbirseyleeslesmeyensorgu12345']));

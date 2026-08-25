@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -79,6 +80,37 @@ class ManagerController extends Controller
             'team', 'directIds', 'allReports', 'incompleteEnrollments', 'overdueCount',
             'dueThisWeekCount', 'certificatesCount', 'recertificationDue', 'complianceRate'
         ));
+    }
+
+    /**
+     * The Team tab previously only showed aggregate counts on each card --
+     * a manager could see "3 kayıt / 1 tamamlandı" but never which
+     * courses, whether any were overdue, or when a certificate was earned
+     * without going through the CSV export. This is the click-through the
+     * cards were always missing.
+     */
+    public function teamMember(User $user)
+    {
+        abort_unless(Auth::user()->isManager(), 403);
+        // allReports() (not just directReports()): a senior manager can
+        // drill into anyone in their reporting chain, not only their own
+        // direct reports, same visibility rule the dashboard already uses.
+        abort_unless(Auth::user()->allReports()->contains('id', $user->id), 403);
+
+        $enrollments = Enrollment::currentCycle()->where('user_id', $user->id)
+            ->with(['course', 'certificate'])
+            ->latest()
+            ->get()
+            ->map(fn (Enrollment $e) => [
+                'enrollment' => $e,
+                'percent' => $e->completionStats()['percent'],
+                'overdue' => $e->course->isOverdueFor($e),
+                'stale' => $e->isStale(),
+            ]);
+
+        $isDirectReport = Auth::user()->directReports()->where('id', $user->id)->exists();
+
+        return view('lms.manager-team-member', compact('user', 'enrollments', 'isDirectReport'));
     }
 
     /**

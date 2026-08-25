@@ -7,13 +7,15 @@
 
 <div class="section-heading instructor-section-heading" style="margin-top:0"><div><span class="eyebrow">{{ $en ? 'CONTENT LIBRARY' : 'İÇERİK KÜTÜPHANESİ' }}</span><h2>{{ $en ? 'All content across your courses' : 'Tüm eğitimlerinizdeki içerikler' }}</h2></div></div>
 
-<form method="get" class="card" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+<form method="get" class="report-filters">
 @if($activeType)<input type="hidden" name="type" value="{{ $activeType }}">@endif
-<label style="flex:1;min-width:200px">{{ $en ? 'Search content...' : 'İçerikte ara...' }}<input type="search" name="q" value="{{ request('q') }}" placeholder="{{ $en ? 'Search content...' : 'İçerikte ara...' }}"></label>
-<label>{{ $en ? 'Course' : 'Eğitim' }}<select name="course_id"><option value="">{{ $en ? 'All courses' : 'Tüm eğitimler' }}</option>@foreach($courses as $course)<option value="{{ $course->id }}" @selected(request('course_id') == $course->id)>{{ $course->title }}</option>@endforeach</select></label>
-<label>{{ $en ? 'Language' : 'Dil' }}<select name="language"><option value="">{{ $en ? 'All' : 'Tümü' }}</option><option value="tr" @selected(request('language')==='tr')>Türkçe</option><option value="en" @selected(request('language')==='en')>English</option></select></label>
+<div class="field" style="flex:2;min-width:220px"><label for="cl-q">{{ $en ? 'Search content' : 'İçerikte ara' }}</label><input id="cl-q" type="search" name="q" value="{{ request('q') }}" placeholder="{{ $en ? 'Search content...' : 'İçerikte ara...' }}"></div>
+<div class="field"><label for="cl-course">{{ $en ? 'Course' : 'Eğitim' }}</label><select id="cl-course" name="course_id"><option value="">{{ $en ? 'All courses' : 'Tüm eğitimler' }}</option>@foreach($courses as $course)<option value="{{ $course->id }}" @selected(request('course_id') == $course->id)>{{ $course->title }}</option>@endforeach</select></div>
+<div class="field"><label for="cl-language">{{ $en ? 'Language' : 'Dil' }}</label><select id="cl-language" name="language"><option value="">{{ $en ? 'All' : 'Tümü' }}</option><option value="tr" @selected(request('language')==='tr')>Türkçe</option><option value="en" @selected(request('language')==='en')>English</option></select></div>
+<div class="field" style="flex:0;align-self:flex-end;display:flex;gap:8px;white-space:nowrap">
 <button type="submit" class="btn btn-primary">{{ $en ? 'Filter' : 'Filtrele' }}</button>
 @if(request('q') || request('course_id') || request('language') || $activeType)<a class="btn btn-outline-secondary" href="{{ route('instructor.content-library') }}">{{ $en ? 'Clear' : 'Temizle' }}</a>@endif
+</div>
 </form>
 
 @php($baseQuery = array_filter(request()->except(['type', 'page'])))

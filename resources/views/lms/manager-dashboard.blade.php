@@ -43,6 +43,7 @@
 <span>%{{ (int) round($member->completed_enrollments_count / $member->enrollments_count * 100) }}</span>
 @endif
 </div>
+<a class="text-link" href="{{ route('manager.team-member', $member) }}">{{ $en ? 'View training record →' : 'Eğitim geçmişini gör →' }}</a>
 </article>
 @empty
 <div class="card empty-state">{{ $en ? 'No one reports to you yet. Ask an admin to assign team members in the admin panel.' : 'Şu an size bağlı bir çalışan yok. Bir yöneticiden admin panelinden ekip üyesi atamasını isteyin.' }}</div>

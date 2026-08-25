@@ -93,4 +93,48 @@ class ManagerWorkspaceTest extends TestCase
 
         $this->actingAs($learner)->get(route('manager.export'))->assertForbidden();
     }
+
+    /**
+     * Faz 102 (item 7 of the UI/UX feedback): the Team tab's cards only
+     * ever showed aggregate counts -- this is the click-through detail page
+     * they were missing.
+     */
+    public function test_a_manager_can_view_a_direct_reports_training_record(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $manager->id]);
+        $course = Course::factory()->create(['title' => 'Ekip Üyesi Eğitimi']);
+        Enrollment::create(['user_id' => $report->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
+
+        $response = $this->actingAs($manager)->get(route('manager.team-member', $report));
+
+        $response->assertOk();
+        $response->assertSee($report->name);
+        $response->assertSee('Ekip Üyesi Eğitimi');
+    }
+
+    public function test_a_manager_can_view_a_sub_teams_report_through_the_reporting_chain(): void
+    {
+        $seniorManager = User::factory()->create(['role' => 'manager']);
+        $subManager = User::factory()->create(['role' => 'manager', 'manager_id' => $seniorManager->id]);
+        $report = User::factory()->create(['role' => 'learner', 'manager_id' => $subManager->id]);
+
+        $this->actingAs($seniorManager)->get(route('manager.team-member', $report))->assertOk();
+    }
+
+    public function test_a_manager_cannot_view_an_unrelated_persons_training_record(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $outsider = User::factory()->create(['role' => 'learner']);
+
+        $this->actingAs($manager)->get(route('manager.team-member', $outsider))->assertForbidden();
+    }
+
+    public function test_a_learner_cannot_view_anyones_training_record(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $other = User::factory()->create(['role' => 'learner']);
+
+        $this->actingAs($learner)->get(route('manager.team-member', $other))->assertForbidden();
+    }
 }

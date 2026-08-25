@@ -97,6 +97,25 @@ class MyLearningTabsTest extends TestCase
         $response->assertDontSee($withoutCertCourse->title);
     }
 
+    /**
+     * Faz 102 (UI/UX pass): My Learning got a search box once a learner's
+     * course count grows past what a single page comfortably shows.
+     */
+    public function test_search_narrows_to_matching_course_titles(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $matching = Course::factory()->create(['status' => 'published', 'title' => 'Pazarlama Temelleri']);
+        $other = Course::factory()->create(['status' => 'published', 'title' => 'Finans Eğitimi']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $matching->id]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $other->id]);
+
+        $response = $this->actingAs($learner)->get(route('learning.index', ['q' => 'Pazarlama']));
+
+        $response->assertOk();
+        $response->assertSee('Pazarlama Temelleri');
+        $response->assertDontSee('Finans Eğitimi');
+    }
+
     public function test_an_unknown_tab_value_falls_back_to_all(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
