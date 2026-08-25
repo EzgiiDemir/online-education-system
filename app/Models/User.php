@@ -20,6 +20,35 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, Auditable;
 
+    /**
+     * Shared by every admin-facing delete/deactivate control (Filament's
+     * Users table row action, bulk action, and the edit-page delete/toggle)
+     * so the rule can't drift between them. courses.instructor_id has no
+     * cascade (a hard delete would just throw a raw FK violation), while
+     * enrollments.user_id does cascadeOnDelete -- deleting a learner with
+     * history would silently destroy the exact completion/certificate
+     * evidence AccountController::destroy()'s self-service anonymize-not-
+     * delete path exists to protect. Deactivating is always the safe
+     * alternative (never destroys the row), so it only re-checks the
+     * "would lock everyone out" cases, not the enrollment-history one.
+     */
+    public function blockingRemovalReason(bool $isDelete): ?string
+    {
+        $actionLabel = $isDelete ? 'silinemez' : 'devre dışı bırakılamaz';
+
+        if ($this->role === 'admin' && static::where('role', 'admin')->count() <= 1) {
+            return 'Son yönetici hesabı '.$actionLabel.'.';
+        }
+        if (Course::where('instructor_id', $this->id)->exists()) {
+            return 'Bu kullanıcının verdiği kurslar var, '.$actionLabel.'. Önce kursları başka bir eğitmene devredin.';
+        }
+        if ($isDelete && $this->enrollments()->exists()) {
+            return 'Bu kullanıcının eğitim kayıtları/sertifikaları var, silinemez. Silme işlemi bu geçmişi kalıcı olarak yok eder. Bunun yerine kullanıcıyı devre dışı bırakın.';
+        }
+
+        return null;
+    }
+
     public function isInstructor(): bool
     {
         return $this->role === 'admin' || $this->hasRole('instructor');

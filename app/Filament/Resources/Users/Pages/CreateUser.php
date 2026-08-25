@@ -21,6 +21,9 @@ class CreateUser extends CreateRecord
         $this->extraRoleKeys = $data['extra_role_keys'] ?? [];
         unset($data['extra_role_keys']);
 
+        $data['deactivated_at'] = ($data['is_deactivated'] ?? false) ? now() : null;
+        unset($data['is_deactivated']);
+
         return $data;
     }
 

@@ -3,15 +3,18 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Filament\Actions\ViewAuditLogAction;
+use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class UsersTable
 {
@@ -55,11 +58,23 @@ class UsersTable
                 ViewAction::make(),
                 EditAction::make(),
                 ViewAuditLogAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()->before(function (DeleteAction $action, User $record) {
+                    if ($reason = $record->blockingRemovalReason(isDelete: true)) {
+                        Notification::make()->danger()->title($reason)->send();
+                        $action->halt();
+                    }
+                }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->before(function (DeleteBulkAction $action, Collection $records) {
+                        foreach ($records as $record) {
+                            if ($reason = $record->blockingRemovalReason(isDelete: true)) {
+                                Notification::make()->danger()->title($record->name.': '.$reason)->send();
+                                $action->halt();
+                            }
+                        }
+                    }),
                 ]),
             ]);
     }

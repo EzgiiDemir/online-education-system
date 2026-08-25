@@ -3,15 +3,18 @@
 namespace App\Filament\Resources\Courses\Tables;
 
 use App\Filament\Actions\ViewAuditLogAction;
+use App\Models\Course;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class CoursesTable
 {
@@ -73,11 +76,23 @@ class CoursesTable
                     ->url(fn ($record) => route('courses.show', $record))->openUrlInNewTab(),
                 EditAction::make(),
                 ViewAuditLogAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()->before(function (DeleteAction $action, Course $record) {
+                    if ($reason = $record->blockingRemovalReason()) {
+                        Notification::make()->danger()->title($reason)->send();
+                        $action->halt();
+                    }
+                }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->before(function (DeleteBulkAction $action, Collection $records) {
+                        foreach ($records as $record) {
+                            if ($reason = $record->blockingRemovalReason()) {
+                                Notification::make()->danger()->title($record->title.': '.$reason)->send();
+                                $action->halt();
+                            }
+                        }
+                    }),
                 ]),
             ]);
     }

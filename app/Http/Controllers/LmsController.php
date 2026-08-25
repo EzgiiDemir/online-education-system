@@ -250,6 +250,15 @@ class LmsController extends Controller
         if (! Auth::attempt($data)) {
             return back()->withErrors(['email' => 'E-posta veya şifre hatalı.']);
         }
+        // deactivated_at was previously only checked for Filament admin
+        // panel access -- the primary login path never consulted it at
+        // all, so a deactivated account (manually, or via SCIM
+        // deprovisioning) could still sign in and use the whole app.
+        if (Auth::user()->isDeactivated()) {
+            Auth::logout();
+
+            return back()->withErrors(['email' => 'Bu hesap devre dışı bırakılmış.']);
+        }
         $r->session()->regenerate();
 
         return redirect(Auth::user()->defaultWorkspaceRoute());

@@ -35,6 +35,23 @@ class Course extends Model
     }
 
     /**
+     * enrollments.course_id cascadeOnDelete()s, and enrollments themselves
+     * cascade further into certificates/quiz attempts/submissions -- a hard
+     * delete of a course with any enrollment history would silently destroy
+     * every one of those learners' records at once. Set status to draft
+     * instead; nothing about "retiring" a course requires the row to be
+     * gone.
+     */
+    public function blockingRemovalReason(): ?string
+    {
+        if ($this->enrollments()->exists()) {
+            return 'Bu eğitimde kayıt/tamamlanma geçmişi var, silinemez. Silme işlemi tüm katılımcıların kayıt, sertifika ve sınav geçmişini kalıcı olarak yok eder. Bunun yerine durumu "Taslak" yapmayı düşünün.';
+        }
+
+        return null;
+    }
+
+    /**
      * Exactly one row per distinct learner -- their current cycle (see
      * Enrollment::scopeCurrentCycle()) -- instead of every historical row.
      * Rosters, participant counts, and completion-rate stats should read

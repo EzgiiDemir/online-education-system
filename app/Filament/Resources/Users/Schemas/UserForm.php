@@ -8,6 +8,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -38,6 +39,8 @@ class UserForm
                     Select::make('organization_unit_id')->label('Organizasyon birimi')->relationship('organizationUnit', 'name')->searchable()->preload()->native(false),
                     FileUpload::make('avatar_path')->label('Fotoğraf')->image()->disk('public')->directory('avatars')->imageEditor(),
                     Textarea::make('bio')->label('Kısa biyografi')->columnSpanFull(),
+                    Toggle::make('is_deactivated')->label('Hesap devre dışı')->columnSpanFull()
+                        ->helperText('Devre dışı bırakılan kullanıcı giriş yapamaz, ama tüm kayıt/sertifika geçmişi korunur -- silmenin yerine tercih edin.'),
                 ])->columns(2),
             ]);
     }

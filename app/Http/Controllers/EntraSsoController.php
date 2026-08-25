@@ -53,6 +53,7 @@ class EntraSsoController extends Controller
         abort_unless(in_array($domain, array_map('strtolower', $settings->accepted_domains ?: []), true), 422, 'Bu e-posta domaini kabul edilmiyor.');
 
         $user = User::firstOrCreate(['email' => $email], ['name' => $profile->json('displayName') ?: $email, 'password' => Str::random(32), 'role' => 'learner']);
+        abort_if($user->isDeactivated(), 403, 'Bu hesap devre dışı bırakılmış.');
         Auth::login($user);
         $r->session()->regenerate();
 
