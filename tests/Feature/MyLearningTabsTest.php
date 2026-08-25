@@ -127,4 +127,26 @@ class MyLearningTabsTest extends TestCase
         $response->assertOk();
         $response->assertSee($course->title);
     }
+
+    /**
+     * Regression: the compact card redesign replaced the per-session/material
+     * breakdown with a single generic "Devam et" button pointing back at the
+     * course page -- which itself had no join-class link either (see
+     * CourseShowPageTest::test_enrolled_learner_sees_a_join_class_link_...).
+     * Together those two gaps meant an enrolled learner could not reach the
+     * live classroom or any material at all once past the very first item.
+     */
+    public function test_my_learning_shows_a_join_class_link_for_an_upcoming_session(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published', 'delivery_type' => 'online']);
+        $session = $course->sessions()->create(['title' => 'Canlı Oturum 1', 'starts_at' => now()->addDay()]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->get(route('learning.index'));
+
+        $response->assertOk();
+        $response->assertSee('Derse katıl');
+        $response->assertSee(route('sessions.classroom', $session), false);
+    }
 }

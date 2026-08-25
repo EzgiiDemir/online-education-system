@@ -21,7 +21,6 @@
 @forelse($enrollments as $enrollment)
 @php($course = $enrollment->course)
 @php($percent = $enrollment->completionStats()['percent'])
-@php($nextSession = $course->sessions->where('starts_at', '>', now())->sortBy('starts_at')->first())
 <article class="course-card surface">
 <div class="course-card-top">
 <span class="badge">{{ $course->delivery_type === 'online' ? ($en ? 'LIVE CLASS' : 'CANLI SINIF') : ($en ? 'SELF-PACED' : 'İÇERİK TABANLI') }}</span>
@@ -31,16 +30,56 @@
 <p class="muted">{{ \Illuminate\Support\Str::limit($course->description, 100) }}</p>
 <div class="meter"><span style="width:{{ $percent }}%"></span></div>
 <small class="muted">%{{ $percent }} {{ $en ? 'completed' : 'tamamlandı' }}</small>
-@if($nextSession)
-<p class="muted" style="margin:8px 0 0;font-size:12.5px"><x-lucide name="calendar" size="13" /> {{ $nextSession->title }} · {{ $nextSession->starts_at->format('d.m.Y H:i') }}</p>
+@unless($enrollment->status === 'completed')
+<div class="learning-sessions">
+@foreach($course->sessions as $session)
+@php($sessionProgress = $enrollment->sessionProgress->firstWhere('course_session_id', $session->id))
+<div class="learning-session">
+<div><strong>{{ $session->title }}</strong><small>{{ $session->starts_at?->format('d.m.Y H:i') ?? ($en ? 'Date pending' : 'Tarih bekleniyor') }}</small></div>
+@if($sessionProgress?->completed_at)
+<span class="muted"><x-lucide name="check" size="14" /> {{ $en ? 'Attended' : 'Katıldı' }}</span>
+@elseif($session->meeting_status === 'not_applicable')
+<span class="muted">{{ $en ? 'In-person' : 'Yüz yüze' }}</span>
+@else
+<a class="btn btn-primary" href="{{ route('sessions.classroom', $session) }}">{{ $en ? 'Join class' : 'Derse katıl' }} <x-lucide name="arrow-right" size="14" /></a>
 @endif
+</div>
+@foreach($session->materials as $material)
+@php($materialProgress = $enrollment->progress->firstWhere('material_id', $material->id))
+<div class="learning-session">
+<div><small><x-lucide name="file-text" size="14" /> {{ $material->title }}</small></div>
+@if($materialProgress?->completed)
+<span class="muted"><x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}</span>
+@else
+<a class="btn btn-outline-secondary" href="{{ route('materials.view', $material) }}">{{ $en ? 'View content' : 'İçeriği görüntüle' }}</a>
+@endif
+</div>
+@endforeach
+@endforeach
+@foreach($course->sections as $section)
+@foreach($section->activities as $activity)
+@php($activityProgress = $enrollment->activityProgress->firstWhere('activity_id', $activity->id))
+<div class="learning-session">
+<div><small>{{ $activity->title }} @unless($activity->is_required)<span class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</span>@endunless</small></div>
+@if($activityProgress?->completed)
+<span class="muted"><x-lucide name="check" size="14" /> {{ $en ? 'Completed' : 'Tamamlandı' }}</span>
+@elseif($activity->type === 'live_session')
+<span class="muted">{{ $en ? 'Tracked via live session attendance' : 'Canlı oturum katılımıyla izlenir' }}</span>
+@else
+<a class="btn btn-outline-secondary" href="{{ route('activities.view', $activity) }}">{{ $en ? 'View content' : 'İçeriği görüntüle' }}</a>
+@endif
+</div>
+@endforeach
+@endforeach
+</div>
+@endunless
 <div class="course-card-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 @if($enrollment->certificate?->isRevoked())
 <span class="badge" style="background:#fbe9e4;color:#b3402e">{{ $en ? 'Certificate revoked' : 'Sertifika iptal edildi' }}</span>
 @elseif($enrollment->certificate)
 <a class="btn btn-primary" href="{{ route('certificates.download', $enrollment->certificate) }}">{{ $en ? 'Download certificate' : 'Sertifikayı indir' }}</a>
 @else
-<a class="btn btn-primary" href="{{ route('courses.show', $course) }}">{{ $en ? 'Continue' : 'Devam et' }} <x-lucide name="arrow-right" size="14" /></a>
+<a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}">{{ $en ? 'Course details' : 'Eğitim detayları' }}</a>
 @endif
 </div>
 </article>

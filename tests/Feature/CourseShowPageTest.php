@@ -82,6 +82,28 @@ class CourseShowPageTest extends TestCase
         $response->assertSee(route('materials.view', $material));
     }
 
+    /**
+     * Regression: the Sessions section used to show a session's title and a
+     * completion badge only -- no way to actually get into the live class.
+     * The only click-through into content was the single "Continue learning"
+     * button computed from nextIncompleteItem(), which explicitly skips
+     * live_session activities -- so a course whose curriculum was mostly
+     * live sessions left an enrolled learner with no path in at all.
+     */
+    public function test_enrolled_learner_sees_a_join_class_link_for_an_upcoming_session(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published', 'delivery_type' => 'online']);
+        $session = $course->sessions()->create(['title' => 'Canlı Oturum 1', 'starts_at' => now()->addDay()]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->get(route('courses.show', $course));
+
+        $response->assertOk();
+        $response->assertSee('Derse katıl');
+        $response->assertSee(route('sessions.classroom', $session), false);
+    }
+
     public function test_completed_enrollment_shows_certificate_download_link(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);

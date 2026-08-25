@@ -147,7 +147,7 @@ class LmsController extends Controller
         $continueUrl = null;
         $needsRecertification = false;
         if (Auth::check()) {
-            $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->with('progress', 'activityProgress', 'certificate')->currentCycle()->first();
+            $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->with('progress', 'activityProgress', 'sessionProgress', 'certificate')->currentCycle()->first();
             if ($enrollment) {
                 $needsRecertification = $enrollment->isStale();
                 $stats = $enrollment->completionStats();
@@ -323,7 +323,10 @@ class LmsController extends Controller
             'certificates' => Auth::user()->enrollments()->whereHas('certificate')->count(),
         ];
 
-        $query = Auth::user()->enrollments()->with(['course.sessions', 'certificate']);
+        $query = Auth::user()->enrollments()->with([
+            'course.sessions.materials', 'course.sections.activities', 'certificate',
+            'progress', 'activityProgress', 'sessionProgress',
+        ]);
 
         $query = match ($tab) {
             'in_progress' => $query->where('status', '!=', 'completed'),

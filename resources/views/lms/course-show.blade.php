@@ -118,7 +118,13 @@
                 <span>{{ $activity->title }} @unless($activity->is_required)<small class="muted">({{ $en ? 'optional' : 'opsiyonel' }})</small>@endunless</span>
                 @if($enrollment && $activity->type !== 'live_session')
                     @php($activityDone = $enrollment->activityProgress->firstWhere('activity_id', $activity->id)?->completed)
-                    <span class="badge">@if($activityDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
+                    @if($activityDone)
+                    <span class="badge"><x-lucide name="check" size="14" /></span>
+                    @else
+                    <a class="text-link" href="{{ route('activities.view', $activity) }}">{{ $en ? 'View content →' : 'İçeriği görüntüle →' }}</a>
+                    @endif
+                @elseif($enrollment && $activity->type === 'live_session')
+                    <span class="badge">{{ $en ? 'Tracked via live session attendance' : 'Canlı oturum katılımıyla izlenir' }}</span>
                 @endif
             </li>
             @endforeach
@@ -132,8 +138,21 @@
     <div class="card surface course-show-section">
         <h2>{{ $en ? 'Sessions' : 'Seanslar' }}</h2>
         @foreach($course->sessions as $session)
+        @php($sessionProgress = $enrollment?->sessionProgress->firstWhere('course_session_id', $session->id))
         <div class="curriculum-section">
-            <div class="course-card-top"><strong>{{ $session->title }}</strong><span class="muted">{{ $session->starts_at?->format('d.m.Y H:i') ?? ($en ? 'Date pending' : 'Tarih bekleniyor') }}</span></div>
+            <div class="course-card-top">
+                <strong>{{ $session->title }}</strong>
+                <span class="muted">{{ $session->starts_at?->format('d.m.Y H:i') ?? ($en ? 'Date pending' : 'Tarih bekleniyor') }}</span>
+                @if($enrollment)
+                    @if($sessionProgress?->completed_at)
+                    <span class="badge"><x-lucide name="check" size="14" /> {{ $en ? 'Attended' : 'Katıldı' }}</span>
+                    @elseif($session->meeting_status === 'not_applicable')
+                    <span class="badge">{{ $en ? 'In-person' : 'Yüz yüze' }}</span>
+                    @else
+                    <a class="btn btn-primary" href="{{ route('sessions.classroom', $session) }}">{{ $en ? 'Join class' : 'Derse katıl' }} <x-lucide name="arrow-right" size="14" /></a>
+                    @endif
+                @endif
+            </div>
             @if($session->materials->isNotEmpty())
             <ul class="curriculum-list list-group list-group-flush">
             @foreach($session->materials as $material)
@@ -141,7 +160,11 @@
                 <span><x-lucide name="file-text" size="14" /> {{ $material->title }}</span>
                 @if($enrollment)
                     @php($materialDone = $enrollment->progress->firstWhere('material_id', $material->id)?->completed)
-                    <span class="badge">@if($materialDone)<x-lucide name="check" size="14" />@else{{ $en ? 'Not started' : 'Başlanmadı' }}@endif</span>
+                    @if($materialDone)
+                    <span class="badge"><x-lucide name="check" size="14" /></span>
+                    @else
+                    <a class="text-link" href="{{ route('materials.view', $material) }}">{{ $en ? 'View content →' : 'İçeriği görüntüle →' }}</a>
+                    @endif
                 @endif
             </li>
             @endforeach
