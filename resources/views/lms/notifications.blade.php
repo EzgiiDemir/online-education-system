@@ -1,5 +1,7 @@
-@extends('lms.layout')
+@php($notificationsLayout = match(auth()->user()->role) { 'instructor' => 'lms.instructor-layout', 'manager' => 'lms.manager-layout', default => 'lms.layout' })
+@extends($notificationsLayout)
 @section('title', (session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler').' · Arucad Campus LMS')
+@section('page-title', session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'NOTIFICATIONS' : 'BİLDİRİMLER' }}</span><h1>{{ $en ? 'Notifications' : 'Bildirimler' }}</h1></div>
