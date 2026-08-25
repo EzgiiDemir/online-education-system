@@ -120,4 +120,27 @@ class ClassroomAccessBoundaryTest extends TestCase
 
         $this->get(route('meet.join', 'guest-shortlink'))->assertForbidden();
     }
+
+    /**
+     * Regression: the classroom page renders inside the shared authenticated
+     * layout, and relies on body.classroom-page to switch classroom-fullscreen.css
+     * into its fullscreen mode -- hiding the persistent left sidebar/topbar so
+     * the video stage and control bar get the full viewport. classroom.css
+     * targeted the pre-sidebar markup (.site-nav, a bare 100vh .page-shell)
+     * and never accounted for the sidebar/topbar now wrapping every page, so
+     * the control bar was pushed below the fold. This just locks in the hook
+     * the CSS depends on; it can't assert computed layout.
+     */
+    public function test_the_classroom_page_carries_the_fullscreen_body_class(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published', 'delivery_type' => 'online']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->get(route('sessions.classroom', $session));
+
+        $response->assertOk();
+        $response->assertSee('<body class="classroom-page">', false);
+    }
 }
