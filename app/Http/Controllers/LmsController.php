@@ -860,8 +860,7 @@ class LmsController extends Controller
     {
         $session = CourseSession::where('room_key', $roomKey)->firstOrFail();
         abort_unless(Auth::check(), 403);
-        $allowed = Auth::user()->isInstructor() && Auth::id() === $session->course->instructor_id || Auth::user()->enrollments()->where('course_id', $session->course_id)->exists();
-        abort_unless($allowed, 403);
+        $this->authorizeClassroomAccess($session);
 
         return redirect()->route('sessions.classroom', $session);
     }
@@ -914,8 +913,7 @@ class LmsController extends Controller
 
     public function classroom(CourseSession $session)
     {
-        $allowed = Auth::user()->isInstructor() && Auth::id() === $session->course->instructor_id || Auth::user()->enrollments()->where('course_id', $session->course_id)->exists();
-        abort_unless($allowed, 403);
+        $this->authorizeClassroomAccess($session);
         $session->load('course.instructor', 'materials');
         $messages = ClassMessage::where('course_session_id', $session->id)->with('user')->latest()->limit(50)->get()->reverse();
 
@@ -934,6 +932,7 @@ class LmsController extends Controller
 
     public function classMessage(Request $r, CourseSession $session)
     {
+        $this->authorizeClassroomAccess($session);
         $r->validate(['body' => 'required|string|max:2000']);
         ClassMessage::create(['course_session_id' => $session->id, 'user_id' => Auth::id(), 'body' => $r->body]);
 
@@ -942,6 +941,7 @@ class LmsController extends Controller
 
     public function classPresence(CourseSession $session)
     {
+        $this->authorizeClassroomAccess($session);
         \DB::table('class_presence')->updateOrInsert(['course_session_id' => $session->id, 'user_id' => Auth::id()], ['last_seen_at' => now(), 'updated_at' => now(), 'created_at' => now()]);
         if (Auth::user()->enrollments()->where('course_id', $session->course_id)->exists()) {
             $this->completion->accrueSessionAttendance($session, Auth::id());
@@ -953,6 +953,7 @@ class LmsController extends Controller
 
     public function sessionAttendanceStatus(CourseSession $session)
     {
+        $this->authorizeClassroomAccess($session);
         $attended = SessionAttendance::where('course_session_id', $session->id)->where('user_id', Auth::id())->value('duration_seconds') ?? 0;
         $required = $this->completion->requiredSessionSeconds($session);
 
@@ -961,6 +962,7 @@ class LmsController extends Controller
 
     public function classSignals(Request $r, CourseSession $session)
     {
+        $this->authorizeClassroomAccess($session);
         $signals = \DB::table('class_signals')->where('course_session_id', $session->id)->where('consumed', false)->where(function ($q) {
             $q->whereNull('recipient_id')->orWhere('recipient_id', Auth::id());
         })->where('sender_id', '!=', Auth::id())->orderBy('id')->get();
@@ -973,10 +975,26 @@ class LmsController extends Controller
 
     public function sendSignal(Request $r, CourseSession $session)
     {
+        $this->authorizeClassroomAccess($session);
         $data = $r->validate(['type' => 'required|string', 'payload' => 'required', 'recipient_id' => 'nullable|integer']);
         \DB::table('class_signals')->insert(['course_session_id' => $session->id, 'sender_id' => Auth::id(), 'recipient_id' => $data['recipient_id'] ?? null, 'type' => $data['type'], 'payload' => json_encode($data['payload']), 'created_at' => now(), 'updated_at' => now()]);
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * The same "is this your live class" rule classroom() has always used,
+     * now shared by every AJAX endpoint that page's JS calls -- those
+     * previously had no check of their own at all, so a direct POST/GET to
+     * classMessage/classPresence/classSignals/sendSignal/attendance-status
+     * with any session id worked for any authenticated user, enrolled or
+     * not. The page itself was never the actual boundary.
+     */
+    private function authorizeClassroomAccess(CourseSession $session): void
+    {
+        $allowed = (Auth::user()->isInstructor() && Auth::id() === $session->course->instructor_id)
+            || Auth::user()->enrollments()->where('course_id', $session->course_id)->exists();
+        abort_unless($allowed, 403);
     }
 
     public function uploadRecording(Request $r, CourseSession $session)
