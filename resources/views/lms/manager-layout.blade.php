@@ -1,44 +1,79 @@
 <!doctype html>
 <html lang="{{ session('locale','tr') }}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@yield('page-title', session('locale', 'tr') === 'en' ? 'Manager workspace' : 'Yönetici çalışma alanı') · Arucad Campus LMS</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor-forms.css') }}">
-<script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="instructor-page">
 @php($en = session('locale', 'tr') === 'en')
-<nav class="navbar navbar-expand-lg site-nav sticky-top">
-<div class="container-fluid">
-<a class="navbar-brand brand" href="{{ route('manager.dashboard') }}">Arucad Campus <span>LMS</span></a>
-<x-workspace-switcher />
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#managerNavCollapse" aria-controls="managerNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
-<div class="collapse navbar-collapse ms-auto justify-content-end" id="managerNavCollapse">
-<ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
-<li class="nav-item"><a class="nav-link {{ request()->routeIs('manager.dashboard') ? 'is-active' : '' }}" href="{{ route('manager.dashboard') }}">{{ $en ? 'Team overview' : 'Ekip genel bakış' }}</a></li>
-</ul>
+@php($user = auth()->user())
+@php($sidebarGroups = [['label' => $en ? 'MAIN MENU' : 'ANA MENÜ', 'items' => [
+    ['url' => route('manager.dashboard').'#overview', 'label' => $en ? 'Overview' : 'Genel bakış', 'icon' => 'layout-grid', 'active' => request()->routeIs('manager.dashboard')],
+    ['url' => route('manager.dashboard').'#team', 'label' => $en ? 'Team' : 'Ekip', 'icon' => 'users', 'active' => false],
+    ['url' => route('manager.dashboard').'#training', 'label' => $en ? 'Training' : 'Eğitim Takibi', 'icon' => 'graduation-cap', 'active' => false],
+    ['url' => route('manager.dashboard').'#compliance', 'label' => $en ? 'Compliance' : 'Uyumluluk', 'icon' => 'shield-check', 'active' => false],
+    ['url' => route('manager.dashboard').'#reports', 'label' => $en ? 'Reports' : 'Raporlar', 'icon' => 'bar-chart', 'active' => false],
+]]])
+@php($sidebarGroups[] = ['label' => $en ? 'ACCOUNT' : 'HESAP', 'items' => [
+    ['url' => route('account.show'), 'label' => $en ? 'Account' : 'Hesap bilgileri', 'icon' => 'circle-user', 'active' => request()->routeIs('account.show')],
+]])
+@php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== 'manager'))
+@if(!empty($otherWorkspaces))
+@php($workspaceLabels = ['learner' => $en ? 'Learner' : 'Öğrenci', 'instructor' => $en ? 'Instructor' : 'Eğitmen', 'manager' => $en ? 'Manager' : 'Yönetici', 'admin' => $en ? 'Admin' : 'Yönetim'])
+@php($workspaceUrls = ['learner' => route('lms.home'), 'instructor' => route('instructor.dashboard'), 'manager' => route('manager.dashboard'), 'admin' => url('/admin')])
+@php($workspaceIcons = ['learner' => 'graduation-cap', 'instructor' => 'layout-grid', 'manager' => 'users', 'admin' => 'settings'])
+@php($sidebarGroups[] = ['label' => $en ? 'MY OTHER WORKSPACES' : 'DİĞER ÇALIŞMA ALANLARIM', 'items' => array_map(fn ($w) => ['url' => $workspaceUrls[$w] ?? '#', 'label' => $workspaceLabels[$w] ?? $w, 'icon' => $workspaceIcons[$w] ?? 'layout-grid'], $otherWorkspaces)])
+@endif
+<div class="app-shell">
+<x-app-sidebar :brand-route="route('manager.dashboard')" :groups="$sidebarGroups" />
+<div class="app-main">
+<header class="app-topbar">
+<button type="button" class="sidebar-mobile-toggle" data-sidebar-mobile-toggle aria-label="{{ $en ? 'Toggle menu' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
+<div class="topbar-spacer"></div>
 <div class="nav-actions">
+@php($unreadNotifCount = $user->unreadNotifications->count())
+@php($recentNotifications = $user->notifications()->latest()->limit(6)->get())
 <div class="profile-menu dropdown">
-<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-<span class="profile-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span>
-<span class="profile-name">{{ auth()->user()->name }}</span>
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}">
+<span class="profile-avatar-wrap"><x-lucide name="bell" size="18" />@if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif</span>
 </button>
 <div class="profile-dropdown dropdown-menu">
-<div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
+<div class="dropdown-head">
+<strong>{{ $en ? 'Notifications' : 'Bildirimler' }}</strong>
+@if($unreadNotifCount > 0)<form method="post" action="{{ route('notifications.read-all') }}">@csrf<button type="submit" class="notif-mark-all">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>@endif
+</div>
+@forelse($recentNotifications as $notification)
+<form method="post" action="{{ route('notifications.read', $notification->id) }}" class="notif-item{{ $notification->read_at ? '' : ' is-unread' }}">
+@csrf
+<button type="submit">{{ $notification->data['message'] ?? '—' }}</button>
+</form>
+@empty
+<p class="muted" style="padding:16px;margin:0">{{ $en ? 'No notifications yet.' : 'Henüz bildirim yok.' }}</p>
+@endforelse
+<a href="{{ route('notifications.index') }}" class="notif-viewall">{{ $en ? 'View all' : 'Tümünü gör' }}</a>
+</div>
+</div>
+<div class="profile-menu dropdown">
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+<span class="profile-avatar">{{ mb_strtoupper(mb_substr($user->name,0,1)) }}</span>
+<span class="profile-name">{{ $user->name }}</span>
+</button>
+<div class="profile-dropdown dropdown-menu">
+<div class="dropdown-head"><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></div>
 <div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
 <div class="dropdown-divider"></div>
-<a href="{{ route('account.show') }}"><x-lucide name="circle-user" size="16" /> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
 <a href="{{ route('lms.home') }}"><x-lucide name="globe" size="16" /> {{ $en ? 'View portal' : 'Portalı görüntüle' }}</a>
 <button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
 <form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger"><x-lucide name="log-out" size="16" /> {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
 </div>
 </div>
-</div>
-</div>
-</nav>
+</header>
 <main class="page-shell container instructor-main">
-<header class="instructor-header"><div><span class="eyebrow">MANAGER WORKSPACE</span><h1>@yield('page-title', $en ? 'Manager workspace' : 'Yönetici çalışma alanı')</h1></div></header>
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 @yield('content')
 </main>
+</div>
+</div>
 <script>
 document.addEventListener('click', function (e) {
     if (e.target.closest('[data-theme-toggle]')) {
@@ -48,5 +83,6 @@ document.addEventListener('click', function (e) {
     }
 });
 </script>
+<x-sidebar-script />
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 </body></html>

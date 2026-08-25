@@ -56,8 +56,11 @@ class MultiRoleWorkspaceTest extends TestCase
 
         $page = $this->actingAs($user)->get(route('instructor.dashboard'));
         $page->assertOk();
-        $page->assertSee('Çalışma alanı:');
-        $page->assertSee('Yönetici');
+        // Faz 102: the old topbar "Çalışma alanı: X" badge was replaced by a
+        // dedicated sidebar section listing every other workspace this user
+        // can switch into.
+        $page->assertSee('DİĞER ÇALIŞMA ALANLARIM');
+        $page->assertSee(route('manager.dashboard'), false);
     }
 
     public function test_a_multi_role_user_can_actually_open_their_second_workspace_not_just_see_a_dead_link(): void

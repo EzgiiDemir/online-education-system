@@ -23,6 +23,25 @@ class CourseWorkspaceTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Faz 102 (UI/UX pass): (int) EXPR / 60 casts before dividing (operator
+     * precedence), so the "old" attendance minutes stat was still a float
+     * like 5.4166666666667 despite the cast -- needed (int) (EXPR / 60).
+     */
+    public function test_attendance_minutes_is_a_whole_number_not_a_long_decimal(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id, 'delivery_type' => 'online']);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        \App\Models\SessionAttendance::create(['course_session_id' => $session->id, 'user_id' => User::factory()->create()->id, 'joined_at' => now(), 'duration_seconds' => 325]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.courses.show', $course));
+
+        $response->assertOk();
+        $response->assertSee('>5<', false);
+        $response->assertDontSee('5.4166666666667');
+    }
+
     public function test_all_workspace_tabs_are_present(): void
     {
         $instructor = User::factory()->create(['role' => 'instructor']);

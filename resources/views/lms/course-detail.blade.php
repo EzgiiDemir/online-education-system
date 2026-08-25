@@ -4,7 +4,7 @@
 
 <div class="section-heading instructor-section-heading">
 <div><span class="eyebrow">{{ strtoupper($course->delivery_type) }} · {{ $statusLabels[$course->status] ?? $course->status }}</span><h1 style="margin:0">{{ $course->title }}</h1></div>
-<a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}" target="_blank" rel="noopener">{{ $en ? 'Preview as learner' : 'Öğrenci olarak önizle' }} <x-lucide name="external-link" size="14" /></a>
+<a class="btn btn-outline-secondary" href="{{ route('courses.show', $course) }}" target="_blank" rel="noopener">{{ $en ? 'Preview as learner' : 'Öğrenci olarak önizle' }} <x-lucide name="eye" size="14" /></a>
 </div>
 
 <ul class="nav nav-tabs" id="course-workspace-tabs">
@@ -21,7 +21,7 @@
 {{-- ============ OVERVIEW ============ --}}
 <div data-tab-panel="overview">
 <div class="row row-cols-1 row-cols-lg-2 g-4 mt-1">
-<div class="card"><span class="tag">{{strtoupper($course->delivery_type)}} · {{$course->language==='en'?'ENGLISH':'TÜRKÇE'}}</span><h2>{{$course->title}}</h2><p>{{$course->description}}</p><p><b>{{ $en ? 'Instructor:' : 'Eğitmen:' }}</b> {{$course->instructor->name}}<br><b>{{ $en ? 'Guest instructor:' : 'Misafir eğitimci:' }}</b> {{$course->guest_instructor_name ?: ($en ? 'None' : 'Yok')}}<br><b>{{ $en ? 'Certificate:' : 'Sertifika:' }}</b> {{$course->certificate_enabled?($en?'Active':'Aktif'):($en?'Inactive':'Pasif')}}<br><b>SDG:</b> {{implode(', ',$course->sdg_goals ?: []) ?: ($en ? 'Not set' : 'Belirlenmedi')}}</p></div>
+<div class="card"><span class="tag">{{strtoupper($course->delivery_type)}} · {{$course->language==='en'?'ENGLISH':'TÜRKÇE'}}</span><h2>{{ $en ? 'Course details' : 'Eğitim bilgileri' }}</h2><p>{{$course->description}}</p><p><b>{{ $en ? 'Instructor:' : 'Eğitmen:' }}</b> {{$course->instructor->name}}<br><b>{{ $en ? 'Guest instructor:' : 'Misafir eğitimci:' }}</b> {{$course->guest_instructor_name ?: ($en ? 'None' : 'Yok')}}<br><b>{{ $en ? 'Certificate:' : 'Sertifika:' }}</b> {{$course->certificate_enabled?($en?'Active':'Aktif'):($en?'Inactive':'Pasif')}}<br><b>SDG:</b> {{implode(', ',$course->sdg_goals ?: []) ?: ($en ? 'Not set' : 'Belirlenmedi')}}</p></div>
 <div class="card">
 <h2>{{ $en ? 'Course health' : 'Eğitim sağlığı' }}</h2>
 <ul class="list-group list-group-flush">

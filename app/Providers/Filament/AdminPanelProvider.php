@@ -36,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/sdg/arucad_home_logo.png'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/sdg/arucad_home_logo.png'))
-            ->topNavigation()
+            ->sidebarCollapsibleOnDesktop()
             ->spa()
             ->login()
             ->colors([

@@ -439,9 +439,17 @@ class LmsController extends Controller
             ->orderByDesc('starts_at')
             ->get();
 
-        $pendingSubmissionsCount = AssignmentSubmission::whereHas('activity.section', fn ($q) => $q->whereIn('course_id', $courseIds))
-            ->whereNull('graded_at')
-            ->count();
+        // Each assignment with pending submissions is its own row (not one
+        // "N assignments waiting" aggregate) -- the whole point of this list
+        // is a link that lands exactly where the work is, not a click that
+        // dead-ends on the general course list wondering which course/
+        // assignment it meant.
+        $pendingSubmissionActivities = Activity::where('type', 'assignment')
+            ->whereHas('section', fn ($q) => $q->whereIn('course_id', $courseIds))
+            ->whereHas('assignmentSubmissions', fn ($q) => $q->whereNull('graded_at'))
+            ->withCount(['assignmentSubmissions as pending_count' => fn ($q) => $q->whereNull('graded_at')])
+            ->with('section.course')
+            ->get();
 
         // currentCycle(): a recertified enrollment's old cycle is already
         // completed and must not double-count as "behind" here.
@@ -450,24 +458,47 @@ class LmsController extends Controller
             ->filter(fn (Enrollment $e) => $e->course->isOverdueFor($e))
             ->count();
 
-        $tomorrowSessionsCount = CourseSession::whereIn('course_id', $courseIds)
+        $tomorrowSessions = CourseSession::whereIn('course_id', $courseIds)
             ->whereBetween('starts_at', [now()->addDay()->startOfDay(), now()->addDay()->endOfDay()])
-            ->count();
+            ->with('course')
+            ->get();
 
-        $coursesMissingContentCount = $courses->filter(
+        $coursesMissingContent = $courses->filter(
             fn (Course $c) => $c->sections->isEmpty() && $c->sessions->every(fn (CourseSession $s) => $s->materials->isEmpty())
-        )->count();
+        );
 
         // A single prioritised checklist rather than two overlapping lists
         // (spec's "Attention Required" + "My Tasks" would otherwise show the
         // same four numbers under two headings) -- each entry links straight
         // to where the instructor can act on it.
-        $pendingTasks = collect([
-            $studentsBehindCount > 0 ? ['count' => $studentsBehindCount, 'label_tr' => 'öğrenci geride kaldı', 'label_en' => 'students are behind', 'href' => route('instructor.courses.index')] : null,
-            $pendingSubmissionsCount > 0 ? ['count' => $pendingSubmissionsCount, 'label_tr' => 'ödev değerlendirme bekliyor', 'label_en' => 'assignments waiting for grading', 'href' => route('instructor.courses.index')] : null,
-            $tomorrowSessionsCount > 0 ? ['count' => $tomorrowSessionsCount, 'label_tr' => 'canlı ders yarına planlandı', 'label_en' => 'live class scheduled for tomorrow', 'href' => route('calendar.index')] : null,
-            $coursesMissingContentCount > 0 ? ['count' => $coursesMissingContentCount, 'label_tr' => 'eğitimde henüz içerik yok', 'label_en' => 'courses have no content yet', 'href' => route('instructor.courses.index')] : null,
-        ])->filter()->values();
+        $pendingTasks = collect();
+        if ($studentsBehindCount > 0) {
+            $pendingTasks->push(['count' => $studentsBehindCount, 'label_tr' => 'öğrenci geride kaldı', 'label_en' => 'students are behind', 'href' => route('instructor.courses.index')]);
+        }
+        foreach ($pendingSubmissionActivities as $activity) {
+            $pendingTasks->push([
+                'count' => $activity->pending_count,
+                'label_tr' => $activity->title.' ödevi değerlendirme bekliyor — '.$activity->section->course->title,
+                'label_en' => $activity->title.' assignment waiting for grading — '.$activity->section->course->title,
+                'href' => route('instructor.activities.submissions', $activity),
+            ]);
+        }
+        foreach ($tomorrowSessions as $session) {
+            $pendingTasks->push([
+                'count' => 1,
+                'label_tr' => $session->title.' yarın planlandı — '.$session->course->title,
+                'label_en' => $session->title.' is scheduled for tomorrow — '.$session->course->title,
+                'href' => route('instructor.courses.show', $session->course).'#sessions',
+            ]);
+        }
+        foreach ($coursesMissingContent as $course) {
+            $pendingTasks->push([
+                'count' => 1,
+                'label_tr' => $course->title.' eğitiminde henüz içerik yok',
+                'label_en' => $course->title.' has no content yet',
+                'href' => route('instructor.courses.show', $course).'#curriculum',
+            ]);
+        }
 
         $recentActivity = collect()
             ->merge(
@@ -487,6 +518,47 @@ class LmsController extends Controller
             'courses', 'upcomingSession', 'todaySessions', 'sessionsThisWeekCount',
             'sessionsNeedingAttendanceReview', 'pendingTasks', 'recentActivity'
         ));
+    }
+
+    /**
+     * A dedicated, purpose-built attendance flow (course search → session
+     * picker → roster) -- previously attendance marking only existed
+     * buried inside a specific course's Course Workspace Sessions tab, with
+     * no standalone entry point an instructor could reach directly for
+     * "I need to take attendance right now" without first navigating into
+     * that course. Reuses markSessionAttendance(), the same POST endpoint
+     * the Sessions tab's own attendance form already calls.
+     */
+    public function instructorAttendance(Request $r)
+    {
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
+
+        $coursesQuery = Auth::user()->courses()->withCount('sessions')->orderBy('title');
+        if ($r->filled('q')) {
+            $coursesQuery->where('title', 'like', '%'.$r->query('q').'%');
+        }
+        $courses = $coursesQuery->get();
+
+        $selectedCourse = null;
+        $sessions = collect();
+        $selectedSession = null;
+        $roster = collect();
+
+        if ($r->filled('course_id')) {
+            $selectedCourse = Auth::user()->courses()->find($r->query('course_id'));
+        }
+        if ($selectedCourse) {
+            $sessions = $selectedCourse->sessions()->orderByDesc('starts_at')->get();
+        }
+        if ($selectedCourse && $r->filled('session_id')) {
+            $selectedSession = $sessions->firstWhere('id', (int) $r->query('session_id'));
+        }
+        if ($selectedSession) {
+            $roster = $selectedCourse->currentEnrollments()->with(['user', 'sessionProgress'])->orderBy('id')->get()
+                ->map(fn (Enrollment $e) => ['enrollment' => $e, 'attended' => $e->sessionProgress->firstWhere('course_session_id', $selectedSession->id)]);
+        }
+
+        return view('lms.instructor-attendance', compact('courses', 'selectedCourse', 'sessions', 'selectedSession', 'roster'));
     }
 
     public function instructorCourses()
@@ -634,7 +706,7 @@ class LmsController extends Controller
         // their current cycle) rather than enrollments -- otherwise a
         // recertifying learner would show up twice in "Participants" and
         // inflate the enrollment/completed counts.
-        $stats = ['enrollments' => $course->currentEnrollments->count(), 'completed' => $course->currentEnrollments->where('status', 'completed')->count(), 'sessions' => $course->sessions->count(), 'attendance_minutes' => (int) DB::table('session_attendance')->whereIn('course_session_id', $course->sessions->pluck('id'))->sum('duration_seconds') / 60, 'recordings' => $course->sessions->whereNotNull('recording_path')->count()];
+        $stats = ['enrollments' => $course->currentEnrollments->count(), 'completed' => $course->currentEnrollments->where('status', 'completed')->count(), 'sessions' => $course->sessions->count(), 'attendance_minutes' => (int) (DB::table('session_attendance')->whereIn('course_session_id', $course->sessions->pluck('id'))->sum('duration_seconds') / 60), 'recordings' => $course->sessions->whereNotNull('recording_path')->count()];
         // Separate, dedicated paginated query for the participant list card only.
         // $course->currentEnrollments (the full eager-loaded collection above)
         // must stay intact and unpaginated: the per-run participant counts and

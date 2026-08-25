@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/instructor/courses', [LmsController::class, 'instructorCourses'])->name('instructor.courses.index');
     Route::get('/instructor/calendar', [LmsController::class, 'instructorCalendar'])->name('instructor.calendar');
     Route::get('/instructor/content-library', [LmsController::class, 'contentLibrary'])->name('instructor.content-library');
+    Route::get('/instructor/attendance', [LmsController::class, 'instructorAttendance'])->name('instructor.attendance');
     Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
     Route::get('/manager/export', [ManagerController::class, 'exportTeam'])->name('manager.export');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');

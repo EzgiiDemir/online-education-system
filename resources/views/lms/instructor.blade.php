@@ -2,6 +2,7 @@
 @section('page-title', session('locale', 'tr') === 'en' ? 'Overview' : 'Genel bakış')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'INSTRUCTOR WORKSPACE' : 'EĞİTMEN ÇALIŞMA ALANI' }}</span><h1>{{ $en ? 'Overview' : 'Genel bakış' }}</h1></div></div>
 <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
 <div class="card metric-card"><span class="tag">{{ $en ? 'ACTIVE COURSES' : 'AKTİF EĞİTİMLER' }}</span><strong>{{ $courses->where('status','published')->count() }}</strong><small>{{ $en ? 'Your published courses' : 'Yayınlanan eğitimleriniz' }}</small></div>
 <div class="card metric-card"><span class="tag">{{ $en ? 'STUDENTS' : 'ÖĞRENCİ' }}</span><strong>{{ $courses->sum('enrollments_count') }}</strong><small>{{ $en ? 'Across all your courses' : 'Tüm eğitimlerinizde' }}</small></div>
@@ -45,7 +46,7 @@
 <span class="badge">{{ $en ? 'ATTENDANCE REVIEW' : 'YOKLAMA KONTROLÜ' }}</span>
 <ul class="curriculum-list" style="margin-top:8px">
 @foreach($sessionsNeedingAttendanceReview as $needsReview)
-<li><span>{{ $needsReview->title }} — {{ $needsReview->course->title }}</span><a class="text-link" href="{{ route('instructor.courses.show', $needsReview->course) }}">{{ $en ? 'Review →' : 'İncele →' }}</a></li>
+<li><span>{{ $needsReview->title }} — {{ $needsReview->course->title }}</span><a class="text-link" href="{{ route('instructor.courses.show', $needsReview->course) }}#sessions">{{ $en ? 'Review →' : 'İncele →' }}</a></li>
 @endforeach
 </ul>
 </div>

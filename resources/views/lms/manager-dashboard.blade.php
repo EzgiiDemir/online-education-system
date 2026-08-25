@@ -2,6 +2,7 @@
 @section('page-title','Ekip genel bakış')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'MANAGER WORKSPACE' : 'YÖNETİCİ ÇALIŞMA ALANI' }}</span><h1>{{ $en ? 'Team overview' : 'Ekip genel bakış' }}</h1></div></div>
 
 <ul class="nav nav-tabs" id="manager-workspace-tabs">
 <li class="nav-item"><a class="nav-link is-active" href="#overview" data-tab="overview">{{ $en ? 'Overview' : 'Genel bakış' }}</a></li>

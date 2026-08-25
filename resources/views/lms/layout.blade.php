@@ -3,47 +3,56 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Arucad Campus LMS')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
-    <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
 @php($en = session('locale', 'tr') === 'en')
-<nav class="navbar navbar-expand-lg site-nav sticky-top">
-<div class="container-fluid">
-<a class="navbar-brand brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
-<x-workspace-switcher />
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavCollapse" aria-controls="mainNavCollapse" aria-expanded="false" aria-label="{{ $en ? 'Toggle navigation' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
-<div class="collapse navbar-collapse ms-auto justify-content-end" id="mainNavCollapse">
-<ul class="navbar-nav me-lg-3 mb-2 mb-lg-0">
-@auth @if(auth()->user()->role !== 'admin')<li class="nav-item"><a class="nav-link {{ request()->routeIs('learning.index') ? 'is-active' : '' }}" href="{{ route('learning.index') }}">{{ $en ? 'My Courses' : 'Eğitimlerim' }}</a></li><li class="nav-item"><a class="nav-link {{ request()->routeIs('learning-paths.*') ? 'is-active' : '' }}" href="{{ route('learning-paths.index') }}">{{ $en ? 'Learning Paths' : 'Öğrenme Yolları' }}</a></li>@endif @endauth
-</ul>
-<div class="nav-actions">
+@auth
+@php($user = auth()->user())
+@php($sidebarGroups = [])
+@php($sidebarGroups[] = ['label' => $en ? 'MAIN MENU' : 'ANA MENÜ', 'items' => array_filter([
+    ['url' => route('lms.home'), 'label' => $en ? 'Home' : 'Anasayfa', 'icon' => 'house', 'active' => request()->routeIs('lms.home')],
+    $user->role !== 'admin' ? ['url' => route('learning.index'), 'label' => $en ? 'My Courses' : 'Eğitimlerim', 'icon' => 'book-open', 'active' => request()->routeIs('learning.index')] : null,
+    $user->role !== 'admin' ? ['url' => route('learning-paths.index'), 'label' => $en ? 'Learning Paths' : 'Öğrenme Yolları', 'icon' => 'map', 'active' => request()->routeIs('learning-paths.*')] : null,
+    ['url' => route('calendar.index'), 'label' => $en ? 'Calendar' : 'Takvim', 'icon' => 'calendar', 'active' => request()->routeIs('calendar.index')],
+    $user->role !== 'admin' ? ['url' => route('skills.index'), 'label' => $en ? 'My Skills' : 'Yetkinliklerim', 'icon' => 'award', 'active' => request()->routeIs('skills.index')] : null,
+])])
+@php($sidebarGroups[] = ['label' => $en ? 'ACCOUNT' : 'HESAP', 'items' => [
+    ['url' => route('account.show'), 'label' => $en ? 'Account' : 'Hesap bilgileri', 'icon' => 'circle-user', 'active' => request()->routeIs('account.show')],
+]])
+@php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== $user->role))
+@if(!empty($otherWorkspaces))
+@php($workspaceLabels = ['learner' => $en ? 'Learner' : 'Öğrenci', 'instructor' => $en ? 'Instructor' : 'Eğitmen', 'manager' => $en ? 'Manager' : 'Yönetici', 'admin' => $en ? 'Admin' : 'Yönetim'])
+@php($workspaceUrls = ['learner' => route('lms.home'), 'instructor' => route('instructor.dashboard'), 'manager' => route('manager.dashboard'), 'admin' => url('/admin')])
+@php($workspaceIcons = ['learner' => 'graduation-cap', 'instructor' => 'layout-grid', 'manager' => 'users', 'admin' => 'settings'])
+@php($sidebarGroups[] = ['label' => $en ? 'MY OTHER WORKSPACES' : 'DİĞER ÇALIŞMA ALANLARIM', 'items' => array_map(fn ($w) => ['url' => $workspaceUrls[$w] ?? '#', 'label' => $workspaceLabels[$w] ?? $w, 'icon' => $workspaceIcons[$w] ?? 'layout-grid'], $otherWorkspaces)])
+@endif
+@if($user->role === 'admin')
+@php($sidebarGroups[] = ['label' => $en ? 'ADMIN' : 'YÖNETİM', 'items' => [
+    ['url' => '/admin', 'label' => $en ? 'Admin panel' : 'Yönetim paneli', 'icon' => 'settings'],
+    ['url' => route('reports.index'), 'label' => $en ? 'Reports' : 'Raporlar', 'icon' => 'bar-chart', 'active' => request()->routeIs('reports.*')],
+]])
+@endif
+<div class="app-shell">
+<x-app-sidebar :brand-route="route('lms.home')" :groups="$sidebarGroups" />
+<div class="app-main">
+<header class="app-topbar">
+<button type="button" class="sidebar-mobile-toggle" data-sidebar-mobile-toggle aria-label="{{ $en ? 'Toggle menu' : 'Menüyü aç/kapat' }}"><x-lucide name="menu" size="20" /></button>
 <div class="nav-search" data-search-widget>
 <form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
 <input type="search" name="q" placeholder="{{ $en ? 'Search…' : 'Ara…' }}" aria-label="{{ $en ? 'Search the portal' : 'Portalda ara' }}" data-search-input>
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
-@auth
-@php($unreadNotifCount = auth()->user()->unreadNotifications->count())
-@php($recentNotifications = auth()->user()->notifications()->latest()->limit(6)->get())
+<div class="topbar-spacer"></div>
+<div class="nav-actions">
+@php($unreadNotifCount = $user->unreadNotifications->count())
+@php($recentNotifications = $user->notifications()->latest()->limit(6)->get())
 <div class="profile-menu dropdown">
-<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ auth()->user()->name }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
-<span class="profile-avatar-wrap">
-<span class="profile-avatar">
-@if(auth()->user()->avatar_path)
-<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}" alt="">
-@else
-{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}
-@endif
-</span>
-@if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif
-</span>
-<span class="profile-name">{{ auth()->user()->name }}</span>
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ $en ? 'Notifications' : 'Bildirimler' }}{{ $unreadNotifCount > 0 ? ' ('.$unreadNotifCount.' '.($en ? 'unread' : 'okunmamış').')' : '' }}">
+<span class="profile-avatar-wrap"><x-lucide name="bell" size="18" />@if($unreadNotifCount > 0)<span class="notif-badge" aria-hidden="true">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>@endif</span>
 </button>
 <div class="profile-dropdown dropdown-menu">
-<div class="dropdown-head"><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div>
-<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
-<div class="dropdown-divider"></div>
 <div class="dropdown-head">
 <strong>{{ $en ? 'Notifications' : 'Bildirimler' }}</strong>
 @if($unreadNotifCount > 0)<form method="post" action="{{ route('notifications.read-all') }}">@csrf<button type="submit" class="notif-mark-all">{{ $en ? 'Mark all read' : 'Tümünü okundu işaretle' }}</button></form>@endif
@@ -57,25 +66,52 @@
 <p class="muted" style="padding:16px;margin:0">{{ $en ? 'No notifications yet.' : 'Henüz bildirim yok.' }}</p>
 @endforelse
 <a href="{{ route('notifications.index') }}" class="notif-viewall">{{ $en ? 'View all' : 'Tümünü gör' }}</a>
+</div>
+</div>
+<div class="profile-menu dropdown">
+<button class="profile-trigger" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{{ $user->name }}">
+<span class="profile-avatar-wrap">
+<span class="profile-avatar">
+@if($user->avatar_path)
+<img src="{{ asset('storage/'.$user->avatar_path) }}" alt="">
+@else
+{{ mb_strtoupper(mb_substr($user->name,0,1)) }}
+@endif
+</span>
+</span>
+<span class="profile-name">{{ $user->name }}</span>
+</button>
+<div class="profile-dropdown dropdown-menu">
+<div class="dropdown-head"><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></div>
+<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
 <div class="dropdown-divider"></div>
-@if(auth()->user()->role==='admin')<a href="/admin"><x-lucide name="settings" size="16" /> {{ $en ? 'Admin panel' : 'Yönetim paneli' }}</a><a href="{{ route('reports.index') }}"><x-lucide name="bar-chart" size="16" /> {{ $en ? 'Reports' : 'Raporlar' }}</a>@endif
-@if(auth()->user()->isInstructor() && auth()->user()->role!=='admin')<a href="{{ route('instructor.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Instructor panel' : 'Eğitmen paneli' }}</a>@endif
-@if(auth()->user()->role==='manager')<a href="{{ route('manager.dashboard') }}"><x-lucide name="layout-grid" size="16" /> {{ $en ? 'Manager panel' : 'Yönetici paneli' }}</a>@endif
 <a href="{{ route('account.show') }}"><x-lucide name="circle-user" size="16" /> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
-<a href="{{ route('skills.index') }}"><x-lucide name="award" size="16" /> {{ $en ? 'My Skills' : 'Yetkinliklerim' }}</a>
-<a href="{{ route('calendar.index') }}"><x-lucide name="calendar" size="16" /> {{ $en ? 'Calendar' : 'Takvim' }}</a>
 <button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
 <form method="post" action="{{ route('logout') }}">@csrf<button type="submit" class="button-danger"><x-lucide name="log-out" size="16" /> {{ $en ? 'Log out' : 'Çıkış yap' }}</button></form>
 </div>
 </div>
-@else
-<a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
-@endauth
 </div>
+</header>
+<main class="page-shell container">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
+</div>
+</div>
+@else
+<nav class="navbar navbar-expand-lg site-nav sticky-top">
+<div class="container-fluid">
+<a class="navbar-brand brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
+<div class="nav-actions">
+<div class="nav-search" data-search-widget>
+<form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
+<input type="search" name="q" placeholder="{{ $en ? 'Search…' : 'Ara…' }}" aria-label="{{ $en ? 'Search the portal' : 'Portalda ara' }}" data-search-input>
+</form>
+<div class="nav-search-results" data-search-results></div>
+</div>
+<a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
 </div>
 </div>
 </nav>
-<main class="page-shell container">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell container">@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
+@endauth
 <script>
 document.addEventListener('click', function (e) {
     if (e.target.closest('[data-theme-toggle]')) {
@@ -148,5 +184,6 @@ document.addEventListener('click', function (e) {
     });
 })();
 </script>
+<x-sidebar-script />
 <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 </body></html>
