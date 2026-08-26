@@ -31,10 +31,10 @@
 <button class="control" id="mute" disabled><x-lucide name="mic" size="16" /> <span>{{ $en ? 'Microphone' : 'Mikrofon' }}</span></button>
 <button class="control" id="camera" disabled><x-lucide name="video" size="16" /> <span>{{ $en ? 'Camera' : 'Kamera' }}</span></button>
 <button class="control" id="raiseHand" disabled><span>✋</span> <span id="raiseHandLabel">{{ $en ? 'Raise hand' : 'El kaldır' }}</span></button>
-<label class="control" for="documentInput" id="documentLabel"><x-lucide name="upload" size="16" /> <span>{{ $en ? 'Add document' : 'Belge ekle' }}</span></label>
+<button type="button" class="control" id="documentBtn" disabled><x-lucide name="upload" size="16" /> <span>{{ $en ? 'Add document' : 'Belge ekle' }}</span></button>
 <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.ppt,.pptx" style="display:none">
 @if($isInstructor)
-<label class="control" for="presentInput" id="presentLabel"><x-lucide name="monitor-up" size="16" /> <span>{{ $en ? 'Present' : 'Sun' }}</span></label>
+<button type="button" class="control" id="presentBtn" disabled><x-lucide name="monitor-up" size="16" /> <span>{{ $en ? 'Present' : 'Sun' }}</span></button>
 <input type="file" id="presentInput" accept=".pdf,.doc,.docx,.ppt,.pptx" style="display:none">
 @endif
 <button class="control" id="screen" disabled><x-lucide name="screen-share" size="16" /> <span>{{ $en ? 'Share screen' : 'Ekran paylaş' }}</span></button>
@@ -212,6 +212,8 @@ function renderFileRow(data){
     row.innerHTML='<span>'+fileIconHtml+'</span><div class="shared-file-body"><a href="'+data.url+'" target="_blank" rel="noopener">'+data.title+'</a><small>'+(data.uploaderName||'')+'</small><div class="shared-file-grade" data-grade-slot>'+gradeSlot+'</div></div>';
     document.getElementById('filesList').prepend(row);
 }
+document.getElementById('documentBtn')?.addEventListener('click',()=>document.getElementById('documentInput').click());
+document.getElementById('presentBtn')?.addEventListener('click',()=>document.getElementById('presentInput').click());
 document.getElementById('documentInput')?.addEventListener('change',async function(e){
     const file=e.target.files[0];if(!file)return;
     const fd=new FormData();fd.append('file',file);
