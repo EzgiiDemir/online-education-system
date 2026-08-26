@@ -1,8 +1,9 @@
 @props(['brandRoute', 'groups'])
+@php($en = session('locale', 'tr') === 'en')
 <aside class="app-sidebar" id="appSidebar">
 <div class="sidebar-brand">
-<a class="sidebar-brand-link" href="{{ $brandRoute }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Arucad" class="brand-logo"><span class="brand-full">{{ session('locale', 'tr') === 'en' ? 'Continuous Learning Center' : 'Sürekli Öğrenme Merkezi' }}</span></a>
-<button type="button" class="sidebar-collapse-btn" data-sidebar-collapse aria-label="Menüyü daralt/genişlet"><x-lucide name="arrow-left" size="18" /></button>
+<a class="sidebar-brand-link" href="{{ $brandRoute }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Arucad" class="brand-logo"><span class="brand-full">{{ $en ? 'Continuous Learning Center' : 'Sürekli Öğrenme Merkezi' }}</span></a>
+<button type="button" class="sidebar-collapse-btn" data-sidebar-collapse aria-label="{{ $en ? 'Collapse/expand menu' : 'Menüyü daralt/genişlet' }}"><x-lucide name="arrow-left" size="18" /></button>
 </div>
 <nav class="sidebar-nav">
 @foreach($groups as $group)

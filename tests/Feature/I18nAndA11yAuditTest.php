@@ -210,4 +210,45 @@ class I18nAndA11yAuditTest extends TestCase
         $this->assertStringContainsString('Certificate of Achievement', $html);
         $this->assertStringContainsString('Issued on:', $html);
     }
+
+    /**
+     * activity-view and material-view were entirely hardcoded Turkish with
+     * no $en check anywhere in either file -- every string on the page,
+     * including the "back to My Learning" link and the completion button,
+     * stayed Turkish regardless of locale. Fixed alongside the rest of this
+     * audit; this locks both pages in.
+     */
+    public function test_material_view_renders_in_english(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published']);
+        $session = $course->sessions()->create(['title' => 'Session 1']);
+        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'title' => 'Slides', 'type' => 'application/msword', 'path' => 'demo/slides.docx']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('materials.view', $material));
+
+        $response->assertOk();
+        $response->assertSee('Back to My Learning');
+        $response->assertSee('This content type cannot be previewed in the browser.');
+        $response->assertSee('Download / open file');
+        $response->assertDontSee('Öğrenim alanıma dön');
+    }
+
+    public function test_activity_view_renders_in_english(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $course = Course::factory()->create(['status' => 'published']);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Section 1']);
+        $activity = Activity::create(['course_section_id' => $section->id, 'title' => 'Reading', 'type' => 'document', 'is_required' => true]);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('activities.view', $activity));
+
+        $response->assertOk();
+        $response->assertSee('Back to My Learning');
+        $response->assertSee('There is no separate file for this activity.');
+        $response->assertSee('I have read / reviewed it');
+        $response->assertDontSee('Öğrenim alanıma dön');
+    }
 }
