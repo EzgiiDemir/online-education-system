@@ -106,8 +106,8 @@ class CertificateLifecycleTest extends TestCase
             'enrollment' => $certificate->enrollment->load('user', 'course'),
         ])->render();
 
-        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number));
-        $this->assertStringContainsString('<img src="'.$expectedDataUri.'" width="100" height="100">', $html);
+        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 130);
+        $this->assertStringContainsString('<img src="'.$expectedDataUri.'" width="130" height="130">', $html);
         $this->assertStringNotContainsString('<svg', $html, 'inline <svg> silently fails to render under this DomPDF setup -- see QrCodeGenerator docblock');
         $this->assertStringContainsString($certificate->certificate_number, $html);
         $this->assertStringNotContainsString(route('certificates.verify', $certificate->certificate_number), $html);

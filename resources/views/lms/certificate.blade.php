@@ -8,7 +8,7 @@ h2{font-size:26px;margin:22px 0}
 .cert-code b{font-size:14px;color:#172033}
 .verify-qr{text-align:right}
 .verify-qr img{display:block;margin:0 0 0 auto}
-.verify-qr .qr-caption{font-size:8px;color:#667;white-space:nowrap;margin:2px 0 0}
+.verify-qr .qr-caption{font-size:8px;color:#667;white-space:nowrap;margin:0}
 </style></head><body>
 @php($en = session('locale', 'tr') === 'en')
 <div class="cert">
@@ -20,7 +20,7 @@ h2{font-size:26px;margin:22px 0}
 <h2>{{$enrollment->course->title}}</h2>
 <table class="cert-footer"><tr>
 <td class="cert-code" width="50%">{{ $en ? 'Certificate No:' : 'Sertifika No:' }} <b>{{$certificate->certificate_number}}</b><br>{{ $en ? 'Issued on:' : 'Veriliş tarihi:' }} {{$certificate->issued_at->format('d.m.Y')}}</td>
-<td class="verify-qr" width="50%"><img src="{{ \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number)) }}" width="100" height="100"><div class="qr-caption">{{ $en ? 'Scan the QR code to verify the certificate' : 'Sertifikayı doğrulamak için QR kodu okutunuz' }}</div></td>
+<td class="verify-qr" width="50%"><img src="{{ \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 130) }}" width="130" height="130"><div class="qr-caption">{{ $en ? 'Scan the QR code to verify the certificate' : 'Sertifikayı doğrulamak için QR kodu okutunuz' }}</div></td>
 </tr></table>
 </div>
 </body></html>
