@@ -17,7 +17,7 @@ class AuthenticationTest extends TestCase
 
         PortalSetting::create([
             'id' => 1,
-            'portal_name' => 'Arucad Campus LMS',
+            'portal_name' => 'Arucad Sürekli Öğrenme Merkezi',
             'accepted_domains' => ['company.com'],
             'local_login_enabled' => true,
         ]);

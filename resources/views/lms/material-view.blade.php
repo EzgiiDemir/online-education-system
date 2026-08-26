@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', $material->title.' · Arucad Campus LMS')
+@section('title', $material->title.' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
 @section('content')
 <div class="viewer-wrap">
 <a class="viewer-back" href="{{ route('learning.index') }}"><x-lucide name="arrow-left" size="14" /> Öğrenim alanıma dön</a>

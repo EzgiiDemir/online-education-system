@@ -106,16 +106,16 @@ class I18nAndA11yAuditTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
 
         $notifications = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('notifications.index'));
-        $notifications->assertSee('<title>Notifications · Arucad Campus LMS</title>', false);
+        $notifications->assertSee('<title>Notifications · Arucad Continuous Learning Center</title>', false);
 
         $calendar = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('calendar.index'));
-        $calendar->assertSee('<title>Calendar · Arucad Campus LMS</title>', false);
+        $calendar->assertSee('<title>Calendar · Arucad Continuous Learning Center</title>', false);
 
         $skills = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('skills.index'));
-        $skills->assertSee('<title>My Skills · Arucad Campus LMS</title>', false);
+        $skills->assertSee('<title>My Skills · Arucad Continuous Learning Center</title>', false);
 
         $home = $this->withSession(['locale' => 'en'])->get('/');
-        $home->assertSee('<title>Arucad Campus LMS · Course catalog</title>', false);
+        $home->assertSee('<title>Arucad Continuous Learning Center · Course catalog</title>', false);
     }
 
     public function test_course_builder_edit_section_input_has_an_accessible_label(): void

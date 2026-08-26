@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Calendar' : 'Takvim').' · Arucad Campus LMS')
+@section('title', (session('locale', 'tr') === 'en' ? 'Calendar' : 'Takvim').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @php($prevMonth = $month->copy()->subMonth()->format('Y-m'))

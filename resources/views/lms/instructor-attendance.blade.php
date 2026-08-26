@@ -1,8 +1,8 @@
 @extends('lms.instructor-layout')
-@section('page-title', session('locale', 'tr') === 'en' ? 'Attendance' : 'Yoklama')
+@section('page-title', session('locale', 'tr') === 'en' ? 'Participant List' : 'Katılımcı Listesi')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
-<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'ATTENDANCE' : 'YOKLAMA' }}</span><h1>{{ $en ? 'Take attendance' : 'Yoklama al' }}</h1></div></div>
+<div class="section-heading"><div><span class="eyebrow">{{ $en ? 'PARTICIPANT LIST' : 'KATILIMCI LİSTESİ' }}</span><h1>{{ $en ? 'Participant list' : 'Katılımcı listesi' }}</h1></div></div>
 
 @if(!$selectedCourse)
 {{-- Step 1: pick a course --}}

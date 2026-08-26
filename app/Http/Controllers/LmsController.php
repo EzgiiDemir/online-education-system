@@ -235,7 +235,7 @@ class LmsController extends Controller
         $session->load('course');
         $start = $session->starts_at?->utc()->format('Ymd\\THis\\Z') ?? now()->utc()->format('Ymd\\THis\\Z');
         $end = $session->ends_at?->utc()->format('Ymd\\THis\\Z') ?? now()->addHour()->utc()->format('Ymd\\THis\\Z');
-        $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Arucad Campus LMS//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:session-{$session->id}@campus-lms\r\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\r\nURL:{$session->meeting_url}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
+        $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Arucad Surekli Ogrenme Merkezi//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:session-{$session->id}@campus-lms\r\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\r\nURL:{$session->meeting_url}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
 
         return response($ics, 200, ['Content-Type' => 'text/calendar', 'Content-Disposition' => 'attachment; filename="'.$session->id.'.ics"']);
     }
@@ -1399,6 +1399,15 @@ class LmsController extends Controller
      * Deliberately shows only holder name / course / dates -- not a login,
      * not the PDF, not any other enrollment data.
      */
+    public function verifyLookup(Request $r)
+    {
+        if ($r->filled('number')) {
+            return redirect()->route('certificates.verify', trim($r->query('number')));
+        }
+
+        return view('lms.certificate-verify-lookup');
+    }
+
     public function verifyCertificate(string $certificateNumber)
     {
         $certificate = Certificate::where('certificate_number', $certificateNumber)

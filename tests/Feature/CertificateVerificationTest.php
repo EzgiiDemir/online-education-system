@@ -65,4 +65,35 @@ class CertificateVerificationTest extends TestCase
         $response->assertOk();
         $response->assertDontSee(route('certificates.download', $certificate));
     }
+
+    /**
+     * The verify route requires a certificate number in the URL, so anyone
+     * arriving without one already in hand (e.g. from a nav link, not a QR
+     * scan) needs a lookup form -- this is that entry point.
+     */
+    public function test_the_lookup_page_shows_a_form_when_no_number_is_given(): void
+    {
+        $response = $this->get(route('certificates.verify.lookup'));
+
+        $response->assertOk();
+        $response->assertSee('Sertifika doğrula');
+    }
+
+    public function test_submitting_a_number_on_the_lookup_page_redirects_to_the_verify_page(): void
+    {
+        $response = $this->get(route('certificates.verify.lookup', ['number' => 'CERT-LOOKUP01']));
+
+        $response->assertRedirect(route('certificates.verify', 'CERT-LOOKUP01'));
+    }
+
+    public function test_the_verification_link_is_reachable_from_every_workspace_sidebar(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $manager = User::factory()->create(['role' => 'manager']);
+
+        $this->actingAs($learner)->get(route('lms.home'))->assertSee(route('certificates.verify.lookup'), false);
+        $this->actingAs($instructor)->get(route('instructor.dashboard'))->assertSee(route('certificates.verify.lookup'), false);
+        $this->actingAs($manager)->get(route('manager.dashboard'))->assertSee(route('certificates.verify.lookup'), false);
+    }
 }

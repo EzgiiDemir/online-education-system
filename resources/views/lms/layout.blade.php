@@ -2,7 +2,7 @@
 <html lang="{{ session('locale', 'tr') }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Arucad Campus LMS')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
+    <title>@yield('title', session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
     <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
@@ -19,6 +19,7 @@
 ])])
 @php($sidebarGroups[] = ['label' => $en ? 'ACCOUNT' : 'HESAP', 'items' => [
     ['url' => route('account.show'), 'label' => $en ? 'Account' : 'Hesap bilgileri', 'icon' => 'circle-user', 'active' => request()->routeIs('account.show')],
+    ['url' => route('certificates.verify.lookup'), 'label' => $en ? 'Verification' : 'Doğrulama', 'icon' => 'trophy', 'active' => request()->routeIs('certificates.verify*')],
 ]])
 @php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== $user->role))
 @if(!empty($otherWorkspaces))
@@ -98,7 +99,7 @@
 @else
 <nav class="navbar navbar-expand-lg site-nav sticky-top">
 <div class="container-fluid">
-<a class="navbar-brand brand" href="{{ route('lms.home') }}">Arucad Campus <span>LMS</span></a>
+<a class="navbar-brand brand" href="{{ route('lms.home') }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Arucad" class="brand-logo"><span>{{ $en ? 'Continuous Learning Center' : 'Sürekli Öğrenme Merkezi' }}</span></a>
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>
 <form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
@@ -106,6 +107,7 @@
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
+<a class="nav-button nav-button-ghost" href="{{ route('certificates.verify.lookup') }}">{{ $en ? 'Verification' : 'Doğrulama' }}</a>
 <a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
 </div>
 </div>

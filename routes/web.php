@@ -27,6 +27,7 @@ Route::get('/meet/{roomKey}', [LmsController::class, 'meeting'])->name('meet.joi
 Route::get('/courses/{course}', [LmsController::class, 'courseShow'])->name('courses.show');
 Route::get('/learning-paths', [LmsController::class, 'learningPaths'])->name('learning-paths.index');
 Route::get('/learning-paths/{path}', [LmsController::class, 'learningPathShow'])->name('learning-paths.show');
+Route::get('/verify', [LmsController::class, 'verifyLookup'])->name('certificates.verify.lookup')->middleware('throttle:certificate-verify');
 Route::get('/verify/{certificateNumber}', [LmsController::class, 'verifyCertificate'])->name('certificates.verify')->middleware('throttle:certificate-verify');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index')->middleware('throttle:search');
 Route::get('/search/quick', [SearchController::class, 'quick'])->name('search.quick')->middleware('throttle:search');

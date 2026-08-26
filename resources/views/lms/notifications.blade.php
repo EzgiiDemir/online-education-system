@@ -1,6 +1,6 @@
 @php($notificationsLayout = match(auth()->user()->role) { 'instructor' => 'lms.instructor-layout', 'manager' => 'lms.manager-layout', default => 'lms.layout' })
 @extends($notificationsLayout)
-@section('title', (session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler').' · Arucad Campus LMS')
+@section('title', (session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
 @section('page-title', session('locale', 'tr') === 'en' ? 'Notifications' : 'Bildirimler')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')

@@ -136,7 +136,7 @@ class AdminPanelSmokeTest extends TestCase
         $course = Course::factory()->create();
         $section = $course->sections()->create(['title' => 'Bölüm 1']);
         $quiz = $section->activities()->create(['title' => 'Değerlendirme Sınavı', 'type' => 'quiz', 'is_required' => true]);
-        $question = $quiz->quizQuestions()->create(['question' => 'Arucad Campus LMS nedir?', 'type' => 'single_choice', 'sort_order' => 1]);
+        $question = $quiz->quizQuestions()->create(['question' => 'Arucad Sürekli Öğrenme Merkezi nedir?', 'type' => 'single_choice', 'sort_order' => 1]);
         $question->options()->createMany([
             ['label' => 'Bir öğrenme yönetim sistemi', 'is_correct' => true, 'sort_order' => 1],
             ['label' => 'Bir muhasebe programı', 'is_correct' => false, 'sort_order' => 2],

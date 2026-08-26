@@ -38,7 +38,7 @@ class WebhookSubscriptionsTable
                     ->color('gray')
                     ->action(function (WebhookSubscription $record) {
                         DeliverWebhookJob::dispatchSync($record, 'webhook.test', [
-                            'message' => 'Bu, Arucad Campus LMS\'ten gönderilen bir test bildirimdir.',
+                            'message' => 'Bu, Arucad Sürekli Öğrenme Merkezi\'nden gönderilen bir test bildirimdir.',
                         ], isTest: true);
                         Notification::make()->title('Test teslimatı gönderildi, sonucu aşağıdaki geçmişte görebilirsiniz.')->success()->send();
                     }),

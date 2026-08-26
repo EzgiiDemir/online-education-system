@@ -80,7 +80,11 @@ class CertificateLifecycleTest extends TestCase
      * than typing in the URL -- P1 §15. Only ext-gd/ext-imagick-free SVG
      * output is available in this environment (see QrCodeGenerator), and
      * DomPDF needs an explicit pixel size on the <svg> tag itself or it
-     * renders oversized; this locks both of those in.
+     * renders oversized; this locks both of those in. The certificate no
+     * longer prints the verify URL as visible text (bottom-right QR corner
+     * only, per design), so encoding correctness is checked by comparing
+     * against a QR generated from the same URL directly -- QR generation is
+     * deterministic, so identical input always produces identical markup.
      */
     public function test_the_downloaded_pdf_embeds_a_qr_code_pointing_at_the_verify_url(): void
     {
@@ -93,7 +97,10 @@ class CertificateLifecycleTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('<svg width="100" height="100"', $html);
-        $this->assertStringContainsString(route('certificates.verify', $certificate->certificate_number), $html);
+        $expectedQr = \App\Support\QrCodeGenerator::svg(route('certificates.verify', $certificate->certificate_number));
+        $this->assertStringContainsString($expectedQr, $html);
+        $this->assertStringContainsString($certificate->certificate_number, $html);
+        $this->assertStringNotContainsString(route('certificates.verify', $certificate->certificate_number), $html);
 
         $response = $this->actingAs($owner)->get(route('certificates.download', $certificate));
         $response->assertOk();

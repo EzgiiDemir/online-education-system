@@ -183,7 +183,7 @@
 </ul>
 </div>
 <div class="card">
-<h3 style="margin-top:0">{{ $en ? 'Attendance' : 'Yoklama' }}</h3>
+<h3 style="margin-top:0">{{ $en ? 'Attendance' : 'Katılım' }}</h3>
 <ul class="list-group list-group-flush">
 <li class="list-group-item requirement-row"><span>{{ $en ? 'Average attendance' : 'Ortalama katılım' }}</span><b>{{ $analytics['avgAttendance'] !== null ? '%'.$analytics['avgAttendance'] : '—' }}</b></li>
 </ul>

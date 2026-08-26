@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('portal_settings', function (Blueprint $t) {
             $t->id();
-            $t->string('portal_name')->default('Arucad Campus LMS');
+            $t->string('portal_name')->default('Arucad Sürekli Öğrenme Merkezi');
             $t->string('logo_path')->nullable();
             $t->json('accepted_domains')->nullable();
             $t->boolean('entra_enabled')->default(false);
