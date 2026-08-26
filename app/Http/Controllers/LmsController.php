@@ -1069,7 +1069,11 @@ class LmsController extends Controller
         $this->authorize('update', $session->course);
         $r->validate(['file' => ['required', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
         $file = $r->file('file');
-        Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+
+        if ($r->wantsJson()) {
+            return response()->json(['title' => $material->title, 'type' => $material->type, 'url' => asset('storage/'.$material->path)]);
+        }
 
         return back()->with('success', 'Dosya sınıfta paylaşıldı.');
     }
@@ -1117,10 +1121,19 @@ class LmsController extends Controller
         return response()->json($signals);
     }
 
+    /**
+     * These broadcast to every participant and only make sense coming from
+     * whoever is teaching the session -- the button is instructor-only in
+     * the UI, but that alone doesn't stop a direct POST from anyone else
+     * still in the room, so it's enforced here too.
+     */
+    private const HOST_ONLY_SIGNAL_TYPES = ['mute-all', 'camera-off-all', 'screenshare-stop-all', 'presentation-shown', 'presentation-hidden'];
+
     public function sendSignal(Request $r, CourseSession $session)
     {
         $this->authorizeClassroomAccess($session);
-        $data = $r->validate(['type' => 'required|string', 'payload' => 'required', 'recipient_id' => 'nullable|integer']);
+        $data = $r->validate(['type' => 'required|string', 'payload' => 'present', 'recipient_id' => 'nullable|integer']);
+        abort_if(in_array($data['type'], self::HOST_ONLY_SIGNAL_TYPES, true) && Auth::id() !== $session->course->instructor_id, 403);
         \DB::table('class_signals')->insert(['course_session_id' => $session->id, 'sender_id' => Auth::id(), 'recipient_id' => $data['recipient_id'] ?? null, 'type' => $data['type'], 'payload' => json_encode($data['payload']), 'created_at' => now(), 'updated_at' => now()]);
 
         return response()->json(['ok' => true]);

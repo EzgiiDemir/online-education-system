@@ -2,14 +2,19 @@
 .classroom-page .live-room{background:var(--surface);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--glass-border);box-shadow:0 20px 50px #10182814}
 .classroom-page .live-kicker{color:var(--muted)}
 .classroom-page .live-header h1{color:var(--nav-text)}
-.classroom-page .live-header p{color:var(--muted)}
+.classroom-page .live-header-meta{color:var(--muted)}
 .classroom-page .live-status{color:var(--muted)}
 .classroom-page .live-status i{background:#94a378;box-shadow:0 0 0 4px #94a37822}
-.classroom-page .video-stage{background:#e5e1da33;border:1px solid var(--glass-border);border-radius:16px}
+.classroom-page .host-controls button{background:var(--surface);color:var(--text-secondary);border:1px solid var(--line)}
+.classroom-page .stage-main{background:#e5e1da33;border:1px solid var(--glass-border);border-radius:16px}
 .classroom-page .video-tile{background:var(--surface-solid);box-shadow:0 5px 16px #10182814;border-radius:14px}
+.classroom-page .stage-main .video-tile{border-radius:16px}
+.classroom-page .tile-pin{color:var(--ink)}
 .classroom-page .empty-stage{color:var(--muted)}
 .classroom-page .empty-stage strong{color:var(--ink)}
 .classroom-page .empty-stage span{color:#4d6787}
+.classroom-page .presentation-stage{background:#e5e1da33;border:1px solid var(--glass-border)}
+.classroom-page .presentation-fallback{color:var(--text-secondary)}
 .classroom-page .panel{background:var(--surface);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-border);box-shadow:0 8px 24px #10182810;border-radius:16px}
 .classroom-page .panel-title h2{color:var(--nav-text)}
 .classroom-page .panel-title>span{color:var(--muted)}
