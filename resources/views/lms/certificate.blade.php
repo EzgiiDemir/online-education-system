@@ -8,7 +8,7 @@ h2{font-size:26px;margin:22px 0}
 .cert-code b{font-size:14px;color:#172033}
 .verify-qr{text-align:right}
 .verify-qr img{display:block;margin:0 0 0 auto}
-.verify-qr .qr-caption{font-size:10px;color:#667;line-height:1.3;max-width:140px;margin:2px 0 0 auto}
+.verify-qr .qr-caption{font-size:8px;color:#667;white-space:nowrap;margin:2px 0 0}
 </style></head><body>
 @php($en = session('locale', 'tr') === 'en')
 <div class="cert">
