@@ -22,13 +22,8 @@
 <button type="button" id="screensOffAllBtn"><x-lucide name="screen-share" size="14" /> <span>{{ $en ? 'Stop all screen shares' : 'Tüm ekran paylaşımlarını durdur' }}</span></button>
 </div>
 @endif
-<div class="stage-wrap">
 <div class="stage-main" id="stageMain">
 <div class="empty-stage" id="emptyStage"><span><x-lucide name="video" size="28" /></span><strong>{{ $en ? 'Ready to join the class?' : 'Sınıfa katılmaya hazır mısınız?' }}</strong><small>{{ $en ? 'Turn on your camera and microphone to join the session.' : 'Kamera ve mikrofonunuzu açarak derse katılın.' }}</small><div class="pre-join-toggles"><label><input type="checkbox" id="wantVideo" checked> {{ $en ? 'Camera' : 'Kamera' }}</label><label><input type="checkbox" id="wantAudio" checked> {{ $en ? 'Microphone' : 'Mikrofon' }}</label></div><p class="join-error" id="joinError" style="display:none"></p></div>
-</div>
-<div class="stage-thumbs" id="stageThumbs">
-<div class="video-tile local-tile" id="localTile" style="display:none"><video id="localVideo" autoplay muted playsinline></video><div class="hand-badge" id="localHandBadge">✋</div><div class="tile-footer"><span class="tile-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span><span>{{ auth()->user()->name }} <em>{{ $en ? 'Me' : 'Ben' }}</em></span><b id="localMic"><x-lucide name="mic" size="14" /></b><button type="button" class="tile-pin" id="localPinBtn" data-tile-id="local" title="{{ $en ? 'Pin to main stage' : 'Büyük ekranda sabitle' }}"><x-lucide name="target" size="14" /></button></div></div>
-</div>
 </div>
 <div class="presentation-stage" id="presentationStage" style="display:none"></div>
 <div class="control-bar">
@@ -47,7 +42,17 @@
 </div>
 </main>
 <aside class="live-sidebar">
-<section class="panel participants-panel"><div class="panel-title"><h2>{{ $en ? 'Participants' : 'Katılımcılar' }}</h2><span id="participantCount">1</span></div><div id="participants" class="participant-list"><div class="participant"><span class="participant-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span><div><strong>{{ auth()->user()->name }}</strong><small>{{ $isInstructor ? ($en ? 'Instructor' : 'Eğitmen') : ($en ? 'Participant' : 'Katılımcı') }}</small></div><b><x-lucide name="mic" size="14" /></b></div></div></section>
+<section class="panel participants-panel">
+<div class="panel-title"><h2>{{ $en ? 'Participants' : 'Katılımcılar' }}</h2><span id="participantCount">1</span></div>
+<div id="participants" class="participant-list">
+<div class="video-tile local-tile" id="localTile" data-tile-id="local">
+<video id="localVideo" autoplay muted playsinline style="display:none"></video>
+<div class="tile-placeholder" id="localPlaceholder"><span class="tile-avatar-lg">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span></div>
+<div class="hand-badge" id="localHandBadge">✋</div>
+<div class="tile-footer"><span class="tile-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name,0,1)) }}</span><span>{{ auth()->user()->name }} <em>{{ $en ? 'Me' : 'Ben' }}</em></span><b id="localMic"><x-lucide name="mic" size="14" /></b><button type="button" class="tile-pin" data-tile-id="local" title="{{ $en ? 'Pin to main stage' : 'Büyük ekranda sabitle' }}"><x-lucide name="target" size="14" /></button></div>
+</div>
+</div>
+</section>
 <section class="panel chat-panel"><div class="panel-title"><h2>{{ $en ? 'Class chat' : 'Sınıf sohbeti' }}</h2><span><x-lucide name="message-circle" size="16" /></span></div><div class="chat-log" id="chat">@foreach($messages as $message)<div class="chat-message"><strong>{{ $message->user->name }}</strong><p>{{ $message->body }}</p></div>@endforeach</div><form class="chat-form" method="post" action="{{ route('sessions.messages',$session) }}">@csrf<input name="body" placeholder="{{ $en ? 'Write a message...' : 'Mesaj yazın...' }}" required><button type="submit"><x-lucide name="send" size="16" /></button></form></section>
 <section class="panel files-panel"><div class="panel-title"><h2>{{ $en ? 'Shared files' : 'Paylaşılan dosyalar' }}</h2><span><x-lucide name="file-text" size="16" /></span></div><p class="panel-empty">{{ $en ? 'No files have been shared in this session yet.' : 'Bu oturumda henüz dosya paylaşılmadı.' }}</p></section>
 </aside>
@@ -55,7 +60,7 @@
 </div>
 <script>
 const root=document.getElementById('room'),me=Number(root.dataset.user),instructor=Number(root.dataset.instructor),isInstructor=root.dataset.isInstructor==='1',csrf=root.dataset.csrf;let stream=null,peers={},recorder=null,chunks=[],polling=false;
-let featuredId=null,pinnedId=null,handRaised=false,raisedHands=new Set(),isScreenSharing=false;
+let featuredId=null,pinnedId=null,handRaised=false,raisedHands=new Set(),isScreenSharing=false,knownNames={};
 const micIconHtml={!! json_encode(\App\Support\Icon::svg('mic', 14)) !!};
 const micOffIconHtml={!! json_encode(\App\Support\Icon::svg('mic-off', 14)) !!};
 const targetIconHtml={!! json_encode(\App\Support\Icon::svg('target', 14)) !!};
@@ -88,9 +93,9 @@ function tileEl(id){return id==='local'?document.getElementById('localTile'):doc
 function updatePinButtons(){document.querySelectorAll('.tile-pin').forEach(function(btn){btn.classList.toggle('is-pinned',pinnedId===btn.dataset.tileId)})}
 function promote(id){
     const el=tileEl(id);if(!el)return;
-    const main=document.getElementById('stageMain'),thumbs=document.getElementById('stageThumbs');
+    const main=document.getElementById('stageMain'),list=document.getElementById('participants');
     const emptyStage=document.getElementById('emptyStage');
-    if(featuredId){const prev=tileEl(featuredId);if(prev&&prev!==el)thumbs.appendChild(prev)}
+    if(featuredId){const prev=tileEl(featuredId);if(prev&&prev!==el)list.appendChild(prev)}
     if(emptyStage&&emptyStage.parentElement===main)emptyStage.remove();
     main.appendChild(el);
     featuredId=id;
@@ -100,22 +105,58 @@ function togglePin(id){pinnedId=(pinnedId===id)?null:id;updatePinButtons();if(pi
 document.addEventListener('click',function(e){
     const pinBtn=e.target.closest('.tile-pin');
     if(pinBtn){e.stopPropagation();togglePin(pinBtn.dataset.tileId);return}
-    const thumbTile=e.target.closest('#stageThumbs .video-tile');
-    if(thumbTile)promote(thumbTile.id==='localTile'?'local':thumbTile.id.replace('tile-',''));
+    const tile=e.target.closest('#participants .video-tile');
+    if(tile)promote(tile.dataset.tileId);
 });
-function addRemote(id,name){
+/**
+ * Ensures a tile exists for a participant without ever touching one that's
+ * already there -- heartbeat() calls this for everyone present every 5s,
+ * and a live <video srcObject> would be destroyed and re-negotiated for
+ * nothing if the row were rebuilt from scratch each time.
+ */
+function ensureTile(id,name){
     let tile=document.getElementById('tile-'+id);
-    if(!tile){
-        tile=document.createElement('div');tile.className='video-tile';tile.id='tile-'+id;
-        tile.innerHTML='<video autoplay playsinline></video><div class="hand-badge" data-hand-badge>✋</div><div class="tile-footer"><span class="tile-avatar">'+name.slice(0,1).toUpperCase()+'</span><span>'+name+'</span><b>'+micIconHtml+'</b><button type="button" class="tile-pin" data-tile-id="'+id+'" title="{{ $en ? "Pin to main stage" : "Büyük ekranda sabitle" }}">'+targetIconHtml+'</button></div>';
-        document.getElementById('stageThumbs').appendChild(tile);
-        if(!isInstructor&&id===instructor&&!pinnedId)promote(id);
-        else if(!featuredId&&!pinnedId)promote(id);
-    }
-    return tile.querySelector('video')
+    if(tile)return tile;
+    tile=document.createElement('div');tile.className='video-tile';tile.id='tile-'+id;tile.dataset.tileId=String(id);
+    tile.innerHTML='<video autoplay playsinline></video><div class="tile-placeholder"><span class="tile-avatar-lg">'+name.slice(0,1).toUpperCase()+'</span></div><div class="hand-badge" data-hand-badge>✋</div><div class="tile-footer"><span class="tile-avatar">'+name.slice(0,1).toUpperCase()+'</span><span>'+name+'</span><b>'+micIconHtml+'</b><button type="button" class="tile-pin" data-tile-id="'+id+'" title="{{ $en ? "Pin to main stage" : "Büyük ekranda sabitle" }}">'+targetIconHtml+'</button></div>';
+    document.getElementById('participants').appendChild(tile);
+    if(!isInstructor&&id===instructor&&!pinnedId)promote(id);
+    else if(!featuredId&&!pinnedId)promote(id);
+    return tile;
 }
-function peer(id,name,initiator){if(peers[id])return peers[id];let pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});peers[id]=pc;if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream));pc.ontrack=e=>addRemote(id,name).srcObject=e.streams[0];pc.onicecandidate=e=>e.candidate&&send('candidate',e.candidate,id);pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(pc.connectionState)){document.getElementById('tile-'+id)?.remove();delete peers[id];if(featuredId===String(id)||featuredId===id){featuredId=null}}};if(initiator)pc.createOffer().then(o=>pc.setLocalDescription(o).then(()=>send('offer',o,id)));return pc}
-async function heartbeat(){if(!stream)return;await fetch(root.dataset.presence,{method:'POST',headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'}});let users=await(await fetch(root.dataset.presence,{headers:{'Accept':'application/json'}})).json();let list=document.getElementById('participants');list.innerHTML='';users.forEach(u=>{let row=document.createElement('div');row.className='participant';row.innerHTML='<span class="participant-avatar">'+u.name.slice(0,1).toUpperCase()+'</span><div><strong>'+u.name+'</strong><small>'+(u.id===instructor?i18n.instructor:i18n.participant)+'</small></div><b>'+micIconHtml+'</b><span class="hand-badge-inline'+(raisedHands.has(u.id)?' is-visible':'')+'">✋</span>';list.append(row);if(u.id!==me)peer(u.id,u.name,instructor===me)});document.getElementById('participantCount').textContent=users.length;setTimeout(heartbeat,5000)}
+function addRemote(id,name){
+    const tile=ensureTile(id,name);
+    const video=tile.querySelector('video');
+    const placeholder=tile.querySelector('.tile-placeholder');
+    if(placeholder)placeholder.style.display='none';
+    video.style.display='';
+    return video;
+}
+function peer(id,name,initiator){if(peers[id])return peers[id];let pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});peers[id]=pc;if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream));pc.ontrack=e=>addRemote(id,name).srcObject=e.streams[0];pc.onicecandidate=e=>e.candidate&&send('candidate',e.candidate,id);pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(pc.connectionState)){delete peers[id]}};if(initiator)pc.createOffer().then(o=>pc.setLocalDescription(o).then(()=>send('offer',o,id)));return pc}
+async function heartbeat(){
+    if(!stream)return;
+    await fetch(root.dataset.presence,{method:'POST',headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'}});
+    let users=await(await fetch(root.dataset.presence,{headers:{'Accept':'application/json'}})).json();
+    let presentIds=new Set(['local']);
+    users.forEach(u=>{
+        if(u.id===me)return;
+        presentIds.add(String(u.id));
+        knownNames[u.id]=u.name;
+        const tile=ensureTile(u.id,u.name);
+        const badge=tile.querySelector('[data-hand-badge]');
+        if(badge)badge.classList.toggle('is-visible',raisedHands.has(u.id));
+        peer(u.id,u.name,instructor===me);
+    });
+    document.querySelectorAll('.video-tile[data-tile-id]').forEach(function(tile){
+        if(!presentIds.has(tile.dataset.tileId)){
+            if(peers[tile.dataset.tileId])delete peers[tile.dataset.tileId];
+            if(featuredId===tile.dataset.tileId){featuredId=null;promote('local')}
+            tile.remove();
+        }
+    });
+    document.getElementById('participantCount').textContent=users.length;
+    setTimeout(heartbeat,5000);
+}
 function showPresentation(data){
     const stage=document.getElementById('presentationStage');
     const isPdf=(data.type||'')==='application/pdf';
@@ -128,7 +169,7 @@ async function poll(){
     let data=await(await fetch(root.dataset.signals,{headers:{'Accept':'application/json'}})).json();
     for(const s of data){
         if(s.type==='offer'||s.type==='answer'||s.type==='candidate'){
-            let p=peers[s.sender_id]||peer(s.sender_id,i18n.participant,false),payload=JSON.parse(s.payload);
+            let p=peers[s.sender_id]||peer(s.sender_id,knownNames[s.sender_id]||i18n.participant,false),payload=JSON.parse(s.payload);
             if(s.type==='offer'){await p.setRemoteDescription(payload);let answer=await p.createAnswer();await p.setLocalDescription(answer);await send('answer',answer,s.sender_id)}
             else if(s.type==='answer')await p.setRemoteDescription(payload);
             else if(s.type==='candidate')try{await p.addIceCandidate(payload)}catch(e){}
@@ -169,7 +210,8 @@ showJoinError(messages[err.name]||(i18n.errGeneric+err.message));
 return;
 }
 document.getElementById('localVideo').srcObject=stream;
-document.getElementById('localTile').style.display='';
+document.getElementById('localVideo').style.display='';
+document.getElementById('localPlaceholder').style.display='none';
 document.querySelectorAll('.control:not(#join)').forEach(b=>b.disabled=false);
 if(!stream.getVideoTracks().length)document.getElementById('camera').disabled=true;
 if(!stream.getAudioTracks().length)document.getElementById('mute').disabled=true;

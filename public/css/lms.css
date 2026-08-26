@@ -105,7 +105,7 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .hero-mark img{width:100%;height:100%;object-fit:cover}
 .eyebrow{font-size:12px;font-weight:750;letter-spacing:.1em;color:var(--brand)}
 .muted{color:var(--muted)}
-.section-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}
+.section-heading{display:flex;flex-wrap:wrap;row-gap:8px;justify-content:space-between;align-items:end;margin-bottom:22px}
 .section-heading h2{margin:5px 0 0}
 
 /* Glass surfaces */
@@ -230,7 +230,7 @@ progress::-moz-progress-bar{background:linear-gradient(90deg,var(--brand),var(--
    (heading/title on its own line, action/badge below) instead of
    overflowing horizontally. */
 @media(max-width:480px){
-  .section-heading,.requirement-row,.curriculum-list li,.path-course-item,.course-card-top,.course-meta,.pagination{flex-wrap:wrap;row-gap:6px}
+  .requirement-row,.curriculum-list li,.path-course-item,.course-card-top,.course-meta,.pagination{flex-wrap:wrap;row-gap:6px}
   .section-heading>*,.requirement-row>*,.curriculum-list li>*,.path-course-item>*{min-width:0}
   .pagination{justify-content:center;text-align:center}
 }

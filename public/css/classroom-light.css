@@ -18,8 +18,8 @@
 .classroom-page .panel{background:var(--surface);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-border);box-shadow:0 8px 24px #10182810;border-radius:16px}
 .classroom-page .panel-title h2{color:var(--nav-text)}
 .classroom-page .panel-title>span{color:var(--muted)}
-.classroom-page .participant strong,.classroom-page .chat-message strong{color:var(--ink)}
-.classroom-page .participant small,.classroom-page .chat-message p,.classroom-page .panel-empty{color:var(--muted)}
+.classroom-page .chat-message strong{color:var(--ink)}
+.classroom-page .chat-message p,.classroom-page .panel-empty{color:var(--muted)}
 .classroom-page .chat-message{border-color:var(--line)}
 .classroom-page .chat-form input{background:var(--surface-solid);color:var(--ink);border-color:var(--line)}
 .classroom-page .control{background:var(--surface);color:var(--text-secondary);border:1px solid var(--line);box-shadow:0 2px 6px #10182812;border-radius:14px}

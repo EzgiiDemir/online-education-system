@@ -1458,7 +1458,7 @@ class LmsController extends Controller
         $this->authorize('view', $certificate);
         abort_if($certificate->isRevoked(), 410, 'Bu sertifika iptal edilmiştir ve artık indirilemez.');
 
-        return Pdf::loadView('lms.certificate', ['certificate' => $certificate, 'enrollment' => $certificate->enrollment->load('user', 'course')])->download($certificate->certificate_number.'.pdf');
+        return Pdf::loadView('lms.certificate', ['certificate' => $certificate, 'enrollment' => $certificate->enrollment->load('user', 'course')])->setPaper('a4', 'landscape')->download($certificate->certificate_number.'.pdf');
     }
 
     /**

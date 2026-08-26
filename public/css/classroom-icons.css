@@ -1,6 +1,6 @@
 .classroom-page .panel-title{min-height:28px}
 .classroom-page .chat-form button{font-size:18px}
-.classroom-page .live-sidebar{grid-template-rows:minmax(160px,.8fr) minmax(260px,1.4fr) minmax(130px,.8fr)}
+.classroom-page .live-sidebar{grid-template-rows:minmax(220px,1.6fr) minmax(160px,1.2fr) minmax(110px,.8fr)}
 .classroom-page .participant-list{overflow:auto}
 .classroom-page .chat-log{overflow:auto}
 .classroom-page .stage-main{border:1px solid #1d2939}

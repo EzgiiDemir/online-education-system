@@ -78,13 +78,23 @@ class CertificateLifecycleTest extends TestCase
     /**
      * The QR code lets a physical printout be verified by scanning rather
      * than typing in the URL -- P1 §15. Only ext-gd/ext-imagick-free SVG
-     * output is available in this environment (see QrCodeGenerator), and
-     * DomPDF needs an explicit pixel size on the <svg> tag itself or it
-     * renders oversized; this locks both of those in. The certificate no
-     * longer prints the verify URL as visible text (bottom-right QR corner
-     * only, per design), so encoding correctness is checked by comparing
-     * against a QR generated from the same URL directly -- QR generation is
-     * deterministic, so identical input always produces identical markup.
+     * output is available in this environment (see QrCodeGenerator).
+     *
+     * Regression: an earlier version embedded the QR as an inline <svg>
+     * element. That HTML string assertion passed, the PDF downloaded fine,
+     * and the suite was green -- but the QR was never actually visible in
+     * the rendered PDF. Verified by literally rendering the PDF and reading
+     * it back: DomPDF's CPDF adapter has no frame/renderer for a bare
+     * inline <svg> at all (its only "svg" case lives inside the <img>
+     * drawing switch, calling addSvgFromFile() -- the image pathway, not a
+     * generic vector-content one), so the element is silently skipped
+     * during layout with no warning. The only pathway that actually renders
+     * is a real <img src="data:image/svg+xml;base64,..."> tag (see
+     * QrCodeGenerator::dataUri()), confirmed by rendering the PDF and
+     * visually inspecting it. An HTML-string assertion can't re-verify
+     * *visible* rendering by itself, so this pins the exact tag pattern
+     * that was empirically confirmed to work, not just "some QR-shaped
+     * markup exists somewhere in the source".
      */
     public function test_the_downloaded_pdf_embeds_a_qr_code_pointing_at_the_verify_url(): void
     {
@@ -96,9 +106,9 @@ class CertificateLifecycleTest extends TestCase
             'enrollment' => $certificate->enrollment->load('user', 'course'),
         ])->render();
 
-        $this->assertStringContainsString('<svg width="100" height="100"', $html);
-        $expectedQr = \App\Support\QrCodeGenerator::svg(route('certificates.verify', $certificate->certificate_number));
-        $this->assertStringContainsString($expectedQr, $html);
+        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number));
+        $this->assertStringContainsString('<img src="'.$expectedDataUri.'" width="100" height="100">', $html);
+        $this->assertStringNotContainsString('<svg', $html, 'inline <svg> silently fails to render under this DomPDF setup -- see QrCodeGenerator docblock');
         $this->assertStringContainsString($certificate->certificate_number, $html);
         $this->assertStringNotContainsString(route('certificates.verify', $certificate->certificate_number), $html);
 
