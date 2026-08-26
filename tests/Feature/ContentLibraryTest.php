@@ -112,4 +112,42 @@ class ContentLibraryTest extends TestCase
         $response->assertOk();
         $response->assertSee(route('instructor.content-library'), false);
     }
+
+    public function test_an_instructor_can_export_their_content_library_as_csv(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id, 'title' => 'Dışa Aktarma Testi']);
+        $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Bölüm 1']);
+        $section->activities()->create(['title' => 'Dışa Aktarılacak Video', 'type' => 'video', 'is_required' => true]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.content-library.export'));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('Dışa Aktarılacak Video', $response->streamedContent());
+        $this->assertStringContainsString('Dışa Aktarma Testi', $response->streamedContent());
+    }
+
+    public function test_content_library_export_respects_the_course_filter(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $courseA = Course::factory()->create(['instructor_id' => $instructor->id, 'title' => 'Eğitim A']);
+        $courseB = Course::factory()->create(['instructor_id' => $instructor->id, 'title' => 'Eğitim B']);
+        CourseSection::create(['course_id' => $courseA->id, 'title' => 'Bölüm 1'])->activities()->create(['title' => 'A İçeriği', 'type' => 'video', 'is_required' => true]);
+        CourseSection::create(['course_id' => $courseB->id, 'title' => 'Bölüm 1'])->activities()->create(['title' => 'B İçeriği', 'type' => 'video', 'is_required' => true]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.content-library.export', ['course_id' => $courseA->id]));
+
+        $response->assertOk();
+        $csv = $response->streamedContent();
+        $this->assertStringContainsString('A İçeriği', $csv);
+        $this->assertStringNotContainsString('B İçeriği', $csv);
+    }
+
+    public function test_a_learner_cannot_export_the_content_library(): void
+    {
+        $learner = User::factory()->create(['role' => 'learner']);
+
+        $this->actingAs($learner)->get(route('instructor.content-library.export'))->assertForbidden();
+    }
 }

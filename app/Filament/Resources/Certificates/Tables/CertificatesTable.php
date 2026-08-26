@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CertificatesTable
 {
@@ -34,6 +35,12 @@ class CertificatesTable
                         default => 'gray',
                     }),
                 TextColumn::make('revoked_reason')->label('İptal gerekçesi')->placeholder('—')->toggleable(),
+            ])
+            ->headerActions([
+                Action::make('exportCsv')->label('CSV olarak dışa aktar')->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
+                    ->action(fn () => static::exportCsv()),
+                Action::make('exportPdf')->label('PDF olarak dışa aktar')->icon(Heroicon::OutlinedDocumentArrowDown)->color('gray')
+                    ->action(fn () => static::exportPdf()),
             ])
             ->filters([
                 SelectFilter::make('status')->label('Durum')
@@ -64,5 +71,44 @@ class CertificatesTable
                     }),
                 ViewAuditLogAction::make(),
             ]);
+    }
+
+    private static function rows()
+    {
+        return Certificate::with('enrollment.user', 'enrollment.course')->orderByDesc('issued_at')->get();
+    }
+
+    private static function exportCsv(): StreamedResponse
+    {
+        $rows = static::rows();
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Sertifika No', 'Sahibi', 'E-posta', 'Eğitim', 'Veriliş Tarihi', 'Durum', 'İptal Gerekçesi']);
+            foreach ($rows as $certificate) {
+                fputcsv($out, [
+                    $certificate->certificate_number,
+                    $certificate->enrollment->user->name,
+                    $certificate->enrollment->user->email,
+                    $certificate->enrollment->course->title,
+                    $certificate->issued_at->format('Y-m-d'),
+                    ['active' => 'Geçerli', 'expired' => 'Süresi doldu', 'revoked' => 'İptal edildi'][$certificate->status()] ?? $certificate->status(),
+                    $certificate->revoked_reason,
+                ]);
+            }
+            fclose($out);
+        }, 'sertifikalar-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    private static function exportPdf(): StreamedResponse
+    {
+        $rows = static::rows();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificates-list', ['rows' => $rows]);
+
+        return response()->streamDownload(
+            fn () => print ($pdf->output()),
+            'sertifikalar-'.now()->format('Y-m-d').'.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
     }
 }

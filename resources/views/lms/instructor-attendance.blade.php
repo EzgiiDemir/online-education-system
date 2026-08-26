@@ -47,7 +47,7 @@
 </div>
 @else
 {{-- Step 3: roster --}}
-<div class="section-heading instructor-section-heading" style="margin-top:0"><div><span class="eyebrow">{{ $selectedCourse->title }}</span><h2>{{ $selectedSession->title }}</h2></div><a class="btn btn-outline-secondary" href="{{ route('instructor.attendance', ['course_id' => $selectedCourse->id]) }}">{{ $en ? '← Change session' : '← Seansı değiştir' }}</a></div>
+<div class="section-heading instructor-section-heading" style="margin-top:0"><div><span class="eyebrow">{{ $selectedCourse->title }}</span><h2>{{ $selectedSession->title }}</h2></div><span style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-outline-secondary" href="{{ route('instructor.sessions.attendance.export', $selectedSession) }}">{{ $en ? 'Export CSV' : 'CSV olarak dışa aktar' }}</a><a class="btn btn-outline-secondary" href="{{ route('instructor.attendance', ['course_id' => $selectedCourse->id]) }}">{{ $en ? '← Change session' : '← Seansı değiştir' }}</a></span></div>
 <div class="card">
 @if($selectedSession->meeting_status === 'not_applicable')
 <p class="muted" style="margin-top:0">{{ $en ? 'In-person session — attendance only counts if you mark it here.' : 'Yüz yüze seans — katılım yalnızca burada işaretlerseniz sayılır.' }}</p>

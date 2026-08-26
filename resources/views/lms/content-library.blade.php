@@ -14,6 +14,7 @@
 <div class="field"><label for="cl-language">{{ $en ? 'Language' : 'Dil' }}</label><select id="cl-language" name="language"><option value="">{{ $en ? 'All' : 'Tümü' }}</option><option value="tr" @selected(request('language')==='tr')>Türkçe</option><option value="en" @selected(request('language')==='en')>English</option></select></div>
 <div class="field" style="flex:0;align-self:flex-end;display:flex;gap:8px;white-space:nowrap">
 <button type="submit" class="btn btn-primary">{{ $en ? 'Filter' : 'Filtrele' }}</button>
+<a class="btn btn-outline-secondary" href="{{ route('instructor.content-library.export', request()->query()) }}">{{ $en ? 'Export CSV' : 'CSV olarak dışa aktar' }}</a>
 @if(request('q') || request('course_id') || request('language') || $activeType)<a class="btn btn-outline-secondary" href="{{ route('instructor.content-library') }}">{{ $en ? 'Clear' : 'Temizle' }}</a>@endif
 </div>
 </form>

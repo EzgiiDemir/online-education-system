@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LmsController extends Controller
 {
@@ -568,6 +569,28 @@ class LmsController extends Controller
         return view('lms.instructor-attendance', compact('courses', 'selectedCourse', 'sessions', 'selectedSession', 'roster'));
     }
 
+    public function exportAttendanceRoster(CourseSession $session): StreamedResponse
+    {
+        abort_unless(Auth::id() === $session->course->instructor_id, 403);
+
+        $roster = $session->course->currentEnrollments()->with(['user', 'sessionProgress'])->orderBy('id')->get()
+            ->map(fn (Enrollment $e) => ['enrollment' => $e, 'attended' => $e->sessionProgress->firstWhere('course_session_id', $session->id)]);
+
+        return response()->streamDownload(function () use ($roster) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Ad Soyad', 'E-posta', 'Durum', 'Katılım Tarihi']);
+            foreach ($roster as $row) {
+                fputcsv($out, [
+                    $row['enrollment']->user->name,
+                    $row['enrollment']->user->email,
+                    $row['attended']?->completed_at ? 'Katıldı' : 'Katılmadı',
+                    $row['attended']?->completed_at?->format('Y-m-d H:i') ?? '',
+                ]);
+            }
+            fclose($out);
+        }, 'katilimci-listesi-'.$session->id.'-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
     public function instructorCourses()
     {
         abort_unless(Auth::user()->hasRole('instructor'), 403);
@@ -628,10 +651,13 @@ class LmsController extends Controller
      * every quiz/assignment flow. This is the browsing/discovery half on
      * its own, scoped out from that larger, separately-planned change.
      */
-    public function contentLibrary(Request $r)
+    /**
+     * Shared by contentLibrary() (paginated view) and exportContentLibrary()
+     * (full CSV) so the two never drift on what "matches the current
+     * filters" means.
+     */
+    private function filteredContentLibraryItems(Request $r): array
     {
-        abort_unless(Auth::user()->hasRole('instructor'), 403);
-
         $courses = Auth::user()->courses()->with(['sections.activities', 'sessions.materials'])->get();
 
         $items = collect();
@@ -671,7 +697,14 @@ class LmsController extends Controller
             $items = $items->where('type', $activeType);
         }
 
-        $items = $items->sortByDesc('updated_at')->values();
+        return [$items->sortByDesc('updated_at')->values(), $typeCounts, $activeType, $courses];
+    }
+
+    public function contentLibrary(Request $r)
+    {
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
+
+        [$items, $typeCounts, $activeType, $courses] = $this->filteredContentLibraryItems($r);
 
         return view('lms.content-library', [
             'items' => new \Illuminate\Pagination\LengthAwarePaginator(
@@ -683,6 +716,29 @@ class LmsController extends Controller
             'activeType' => $activeType,
             'courses' => $courses,
         ]);
+    }
+
+    public function exportContentLibrary(Request $r): StreamedResponse
+    {
+        abort_unless(Auth::user()->hasRole('instructor'), 403);
+
+        [$items] = $this->filteredContentLibraryItems($r);
+        $typeLabels = ['video' => 'Video', 'document' => 'Doküman', 'presentation' => 'Sunum', 'quiz' => 'Quiz', 'assignment' => 'Ödev', 'live_session' => 'Canlı Seans'];
+
+        return response()->streamDownload(function () use ($items, $typeLabels) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Başlık', 'Tür', 'Eğitim', 'Dil', 'Son Güncelleme']);
+            foreach ($items as $item) {
+                fputcsv($out, [
+                    $item['title'],
+                    $typeLabels[$item['type']] ?? $item['type'],
+                    $item['course'],
+                    strtoupper($item['language'] ?? 'tr'),
+                    $item['updated_at']?->format('Y-m-d') ?? '',
+                ]);
+            }
+            fclose($out);
+        }, 'icerik-kutuphanesi-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function instructorProfile()

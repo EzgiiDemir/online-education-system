@@ -96,4 +96,30 @@ class InstructorAttendanceTest extends TestCase
 
         $this->actingAs($learner)->get(route('instructor.attendance'))->assertForbidden();
     }
+
+    public function test_the_owning_instructor_can_export_the_roster_as_csv(): void
+    {
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $instructor->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+        $learner = User::factory()->create(['name' => 'CSV Öğrenci', 'email' => 'csv-ogrenci@example.com']);
+        Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
+
+        $response = $this->actingAs($instructor)->get(route('instructor.sessions.attendance.export', $session));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('CSV Öğrenci', $response->streamedContent());
+        $this->assertStringContainsString('csv-ogrenci@example.com', $response->streamedContent());
+    }
+
+    public function test_a_different_instructor_cannot_export_someone_elses_roster(): void
+    {
+        $owner = User::factory()->create(['role' => 'instructor']);
+        $intruder = User::factory()->create(['role' => 'instructor']);
+        $course = Course::factory()->create(['instructor_id' => $owner->id]);
+        $session = $course->sessions()->create(['title' => 'Seans 1']);
+
+        $this->actingAs($intruder)->get(route('instructor.sessions.attendance.export', $session))->assertForbidden();
+    }
 }
