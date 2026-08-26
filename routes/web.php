@@ -33,6 +33,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search.index')-
 Route::get('/search/quick', [SearchController::class, 'quick'])->name('search.quick')->middleware('throttle:search');
 Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
 Route::middleware(['auth', 'throttle:submissions'])->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
+Route::middleware('auth')->post('/materials/{material}/grade', [LmsController::class, 'gradeSharedMaterial'])->name('materials.grade');
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LmsController::class, 'logout'])->name('logout');
     Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');

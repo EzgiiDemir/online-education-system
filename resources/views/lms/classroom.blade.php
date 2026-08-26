@@ -4,7 +4,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @php($isInstructor = auth()->id() === $session->course->instructor_id)
-<div class="live-room" id="room" data-user="{{ auth()->id() }}" data-instructor="{{ $session->course->instructor_id }}" data-is-instructor="{{ $isInstructor ? '1' : '0' }}" data-csrf="{{ csrf_token() }}" data-presence="{{ route('sessions.presence',$session) }}" data-signals="{{ route('sessions.signals',$session) }}" data-send="{{ route('sessions.signals.send',$session) }}" data-recording="{{ route('sessions.recording',$session) }}" data-attendance-status="{{ route('sessions.attendance-status',$session) }}" data-complete="{{ route('sessions.complete',$session) }}" data-share-files="{{ route('sessions.files.share',$session) }}">
+<div class="live-room" id="room" data-user="{{ auth()->id() }}" data-instructor="{{ $session->course->instructor_id }}" data-is-instructor="{{ $isInstructor ? '1' : '0' }}" data-csrf="{{ csrf_token() }}" data-presence="{{ route('sessions.presence',$session) }}" data-signals="{{ route('sessions.signals',$session) }}" data-send="{{ route('sessions.signals.send',$session) }}" data-recording="{{ route('sessions.recording',$session) }}" data-attendance-status="{{ route('sessions.attendance-status',$session) }}" data-complete="{{ route('sessions.complete',$session) }}" data-share-files="{{ route('sessions.files.share',$session) }}" data-grade-url-template="{{ route('materials.grade', ['material' => '__ID__']) }}">
 <header class="live-header live-header-compact">
 <div class="live-header-info">
 <span class="live-kicker">{{ $en ? 'IN-PORTAL LIVE CLASS' : 'PORTAL İÇİ CANLI SINIF' }}</span>
@@ -31,6 +31,8 @@
 <button class="control" id="mute" disabled><x-lucide name="mic" size="16" /> <span>{{ $en ? 'Microphone' : 'Mikrofon' }}</span></button>
 <button class="control" id="camera" disabled><x-lucide name="video" size="16" /> <span>{{ $en ? 'Camera' : 'Kamera' }}</span></button>
 <button class="control" id="raiseHand" disabled><span>✋</span> <span id="raiseHandLabel">{{ $en ? 'Raise hand' : 'El kaldır' }}</span></button>
+<label class="control" for="documentInput" id="documentLabel"><x-lucide name="upload" size="16" /> <span>{{ $en ? 'Add document' : 'Belge ekle' }}</span></label>
+<input type="file" id="documentInput" accept=".pdf,.doc,.docx,.ppt,.pptx" style="display:none">
 @if($isInstructor)
 <label class="control" for="presentInput" id="presentLabel"><x-lucide name="monitor-up" size="16" /> <span>{{ $en ? 'Present' : 'Sun' }}</span></label>
 <input type="file" id="presentInput" accept=".pdf,.doc,.docx,.ppt,.pptx" style="display:none">
@@ -54,7 +56,32 @@
 </div>
 </section>
 <section class="panel chat-panel"><div class="panel-title"><h2>{{ $en ? 'Class chat' : 'Sınıf sohbeti' }}</h2><span><x-lucide name="message-circle" size="16" /></span></div><div class="chat-log" id="chat">@foreach($messages as $message)<div class="chat-message"><strong>{{ $message->user->name }}</strong><p>{{ $message->body }}</p></div>@endforeach</div><form class="chat-form" method="post" action="{{ route('sessions.messages',$session) }}">@csrf<input name="body" placeholder="{{ $en ? 'Write a message...' : 'Mesaj yazın...' }}" required><button type="submit"><x-lucide name="send" size="16" /></button></form></section>
-<section class="panel files-panel"><div class="panel-title"><h2>{{ $en ? 'Shared files' : 'Paylaşılan dosyalar' }}</h2><span><x-lucide name="file-text" size="16" /></span></div><p class="panel-empty">{{ $en ? 'No files have been shared in this session yet.' : 'Bu oturumda henüz dosya paylaşılmadı.' }}</p></section>
+<section class="panel files-panel">
+<div class="panel-title"><h2>{{ $en ? 'Shared files' : 'Paylaşılan dosyalar' }}</h2><span><x-lucide name="file-text" size="16" /></span></div>
+<div class="files-list" id="filesList">
+@forelse($session->materials as $material)
+<div class="shared-file" id="file-{{ $material->id }}" data-material-id="{{ $material->id }}">
+<x-lucide name="file-text" size="14" />
+<div class="shared-file-body">
+<a href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">{{ $material->title }}</a>
+<small>{{ $material->uploadedBy?->name ?? '—' }}</small>
+<div class="shared-file-grade" data-grade-slot>
+@if($material->score !== null)
+<span class="shared-file-score">{{ $material->score }} / 100</span>
+@elseif($isInstructor)
+<form class="grade-form" data-grade-form data-material-id="{{ $material->id }}">
+<input type="number" min="0" max="100" placeholder="{{ $en ? 'Score' : 'Puan' }}" class="grade-score-input" required>
+<button type="submit">{{ $en ? 'Save & send' : 'Kaydet ve gönder' }}</button>
+</form>
+@endif
+</div>
+</div>
+</div>
+@empty
+@endforelse
+</div>
+<p class="panel-empty" id="filesEmpty" @if($session->materials->isNotEmpty()) style="display:none" @endif>{{ $en ? 'No files have been shared in this session yet.' : 'Bu oturumda henüz dosya paylaşılmadı.' }}</p>
+</section>
 </aside>
 </div>
 </div>
@@ -64,6 +91,7 @@ let featuredId=null,pinnedId=null,handRaised=false,raisedHands=new Set(),isScree
 const micIconHtml={!! json_encode(\App\Support\Icon::svg('mic', 14)) !!};
 const micOffIconHtml={!! json_encode(\App\Support\Icon::svg('mic-off', 14)) !!};
 const targetIconHtml={!! json_encode(\App\Support\Icon::svg('target', 14)) !!};
+const fileIconHtml={!! json_encode(\App\Support\Icon::svg('file-text', 14)) !!};
 const i18n={
     participant: {{ \Illuminate\Support\Js::from($en ? 'Participant' : 'Katılımcı') }},
     instructor: {{ \Illuminate\Support\Js::from($en ? 'Instructor' : 'Eğitmen') }},
@@ -85,7 +113,9 @@ const i18n={
     openFile: {{ \Illuminate\Support\Js::from($en ? 'Open file' : 'Dosyayı aç') }},
     mutedByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor muted everyone' : 'Eğitmen herkesi susturdu') }},
     cameraOffByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor turned off all cameras' : 'Eğitmen tüm kameraları kapattı') }},
-    screenOffByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor stopped all screen shares' : 'Eğitmen tüm ekran paylaşımlarını durdurdu') }}
+    screenOffByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor stopped all screen shares' : 'Eğitmen tüm ekran paylaşımlarını durdurdu') }},
+    score: {{ \Illuminate\Support\Js::from($en ? 'Score' : 'Puan') }},
+    saveAndSend: {{ \Illuminate\Support\Js::from($en ? 'Save & send' : 'Kaydet ve gönder') }}
 };
 const send=async(type,payload,recipient_id=null)=>fetch(root.dataset.send,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({type,payload,recipient_id})});
 function setStatus(t){document.getElementById('roomStatus').textContent=t}
@@ -164,6 +194,46 @@ function showPresentation(data){
     stage.style.display='block';
 }
 function hidePresentation(){const stage=document.getElementById('presentationStage');stage.style.display='none';stage.innerHTML=''}
+/**
+ * Shared by the local upload confirmation and the live 'document-shared'
+ * broadcast others receive -- a document a participant shares lands in the
+ * Files panel for everyone, with a grade form for the instructor if it
+ * isn't scored yet. Grading itself (see the submit handler below) is a
+ * separate, after-the-fact review action, not part of this broadcast.
+ */
+function renderFileRow(data){
+    if(document.getElementById('file-'+data.id))return;
+    document.getElementById('filesEmpty').style.display='none';
+    const row=document.createElement('div');
+    row.className='shared-file';row.id='file-'+data.id;row.dataset.materialId=data.id;
+    const gradeSlot=isInstructor
+        ? '<form class="grade-form" data-grade-form data-material-id="'+data.id+'"><input type="number" min="0" max="100" placeholder="'+i18n.score+'" class="grade-score-input" required><button type="submit">'+i18n.saveAndSend+'</button></form>'
+        : '';
+    row.innerHTML='<span>'+fileIconHtml+'</span><div class="shared-file-body"><a href="'+data.url+'" target="_blank" rel="noopener">'+data.title+'</a><small>'+(data.uploaderName||'')+'</small><div class="shared-file-grade" data-grade-slot>'+gradeSlot+'</div></div>';
+    document.getElementById('filesList').prepend(row);
+}
+document.getElementById('documentInput')?.addEventListener('change',async function(e){
+    const file=e.target.files[0];if(!file)return;
+    const fd=new FormData();fd.append('file',file);
+    const res=await fetch(root.dataset.shareFiles,{method:'POST',headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:fd});
+    if(!res.ok){e.target.value='';return}
+    const data=await res.json();
+    renderFileRow(data);
+    send('document-shared',data);
+    e.target.value='';
+});
+document.getElementById('filesList')?.addEventListener('submit',async function(e){
+    const form=e.target.closest('[data-grade-form]');
+    if(!form)return;
+    e.preventDefault();
+    const score=form.querySelector('.grade-score-input').value;
+    const url=root.dataset.gradeUrlTemplate.replace('__ID__',form.dataset.materialId);
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({score})});
+    if(!res.ok)return;
+    const result=await res.json();
+    const slot=form.closest('[data-grade-slot]')||form.parentElement;
+    slot.innerHTML='<span class="shared-file-score">'+result.score+' / 100</span>';
+});
 async function poll(){
     if(!stream)return;
     let data=await(await fetch(root.dataset.signals,{headers:{'Accept':'application/json'}})).json();
@@ -188,6 +258,8 @@ async function poll(){
             showPresentation(JSON.parse(s.payload));
         }else if(s.type==='presentation-hidden'){
             hidePresentation();
+        }else if(s.type==='document-shared'){
+            renderFileRow(JSON.parse(s.payload));
         }
     }
     setTimeout(poll,1000)

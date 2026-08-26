@@ -28,6 +28,8 @@
 .classroom-page .control.leave{background:#b3402e;border-color:#b3402e;color:#fff}
 .classroom-page .control:disabled{background:var(--brand-soft);color:var(--muted);box-shadow:none}
 .classroom-page .shared-file{color:var(--text-secondary);border-color:var(--line)}
+.classroom-page .shared-file-body a{color:var(--nav-text)}
+.classroom-page .grade-form input{background:var(--surface-solid);color:var(--ink);border-color:var(--line)}
 .classroom-page .pre-join-toggles{display:flex;gap:18px;margin-top:6px}
 .classroom-page .pre-join-toggles label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);cursor:pointer}
 .classroom-page .pre-join-toggles input{width:auto;margin:0}

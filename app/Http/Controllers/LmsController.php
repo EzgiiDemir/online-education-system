@@ -22,11 +22,13 @@ use App\Models\User;
 use App\Models\WaitlistEntry;
 use App\Notifications\CoursePublished;
 use App\Notifications\LiveSessionScheduled;
+use App\Notifications\SharedDocumentGraded;
 use App\Services\CompletionEngine;
 use App\Services\EnrollmentService;
 use App\Services\QuizService;
 use App\Support\DocumentEstimator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1058,24 +1060,57 @@ class LmsController extends Controller
     public function classroom(CourseSession $session)
     {
         $this->authorizeClassroomAccess($session);
-        $session->load('course.instructor', 'materials');
+        $session->load(['course.instructor', 'materials' => fn ($q) => $q->with('uploadedBy', 'gradedBy')->latest()]);
         $messages = ClassMessage::where('course_session_id', $session->id)->with('user')->latest()->limit(50)->get()->reverse();
 
         return view('lms.classroom', compact('session', 'messages'));
     }
 
+    /**
+     * Open to any classroom participant, not just the instructor -- a
+     * student sharing their own document/presentation for review is the
+     * same upload as the instructor presenting slides, just without the
+     * (still instructor-only, see sendSignal's HOST_ONLY_SIGNAL_TYPES)
+     * broadcast-to-everyone's-main-stage step.
+     */
     public function shareClassFile(Request $r, CourseSession $session)
     {
-        $this->authorize('update', $session->course);
+        $this->authorizeClassroomAccess($session);
         $r->validate(['file' => ['required', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
         $file = $r->file('file');
-        $material = Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+        $material = Material::create(['course_session_id' => $session->id, 'uploaded_by_id' => Auth::id(), 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
 
         if ($r->wantsJson()) {
-            return response()->json(['title' => $material->title, 'type' => $material->type, 'url' => asset('storage/'.$material->path)]);
+            return response()->json(['id' => $material->id, 'title' => $material->title, 'type' => $material->type, 'url' => asset('storage/'.$material->path), 'uploaderId' => Auth::id(), 'uploaderName' => Auth::user()->name]);
         }
 
         return back()->with('success', 'Dosya sınıfta paylaşıldı.');
+    }
+
+    /**
+     * Instructor-only, scoped to their own course: score + an optional note
+     * for a document a participant shared during the session, notifying
+     * whoever uploaded it. Grading is a review action taken after the fact
+     * from the session's Files panel, not part of the live broadcast --
+     * the student sees it the normal way, through their notification bell.
+     */
+    public function gradeSharedMaterial(Request $r, Material $material): JsonResponse
+    {
+        abort_unless(Auth::id() === $material->session->course->instructor_id, 403);
+        $data = $r->validate(['score' => 'required|integer|min:0|max:100', 'grade_note' => 'nullable|string|max:1000']);
+
+        $material->update([
+            'score' => $data['score'],
+            'grade_note' => $data['grade_note'] ?? null,
+            'graded_by_id' => Auth::id(),
+            'graded_at' => now(),
+        ]);
+
+        if ($material->uploaded_by_id && $material->uploaded_by_id !== Auth::id()) {
+            $material->uploadedBy->notify(new SharedDocumentGraded($material));
+        }
+
+        return response()->json(['ok' => true, 'score' => $material->score]);
     }
 
     public function classMessage(Request $r, CourseSession $session)
