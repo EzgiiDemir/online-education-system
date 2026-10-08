@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', ($query !== '' ? '"'.$query.'" · ' : '').(session('locale', 'tr') === 'en' ? 'Search' : 'Arama').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
+@section('title', ($query !== '' ? '"'.$query.'" · ' : '').(session('locale', 'tr') === 'en' ? 'Search' : 'Arama').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @php($totalCount = $results['courses']->count() + $results['activities']->count() + $results['materials']->count() + $results['sessions']->count() + $results['instructors']->count())

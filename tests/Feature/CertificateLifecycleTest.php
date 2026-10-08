@@ -76,25 +76,8 @@ class CertificateLifecycleTest extends TestCase
     }
 
     /**
-     * The QR code lets a physical printout be verified by scanning rather
-     * than typing in the URL -- P1 §15. Only ext-gd/ext-imagick-free SVG
-     * output is available in this environment (see QrCodeGenerator).
-     *
-     * Regression: an earlier version embedded the QR as an inline <svg>
-     * element. That HTML string assertion passed, the PDF downloaded fine,
-     * and the suite was green -- but the QR was never actually visible in
-     * the rendered PDF. Verified by literally rendering the PDF and reading
-     * it back: DomPDF's CPDF adapter has no frame/renderer for a bare
-     * inline <svg> at all (its only "svg" case lives inside the <img>
-     * drawing switch, calling addSvgFromFile() -- the image pathway, not a
-     * generic vector-content one), so the element is silently skipped
-     * during layout with no warning. The only pathway that actually renders
-     * is a real <img src="data:image/svg+xml;base64,..."> tag (see
-     * QrCodeGenerator::dataUri()), confirmed by rendering the PDF and
-     * visually inspecting it. An HTML-string assertion can't re-verify
-     * *visible* rendering by itself, so this pins the exact tag pattern
-     * that was empirically confirmed to work, not just "some QR-shaped
-     * markup exists somewhere in the source".
+     * QR sits centered under the copy. DomPDF only draws SVG via a real
+     * <img src="data:image/svg+xml;base64,..."> tag (see QrCodeGenerator).
      */
     public function test_the_downloaded_pdf_embeds_a_qr_code_pointing_at_the_verify_url(): void
     {
@@ -106,15 +89,30 @@ class CertificateLifecycleTest extends TestCase
             'enrollment' => $certificate->enrollment->load('user', 'course'),
         ])->render();
 
-        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 130);
-        $this->assertStringContainsString('<img src="'.$expectedDataUri.'" width="130" height="130">', $html);
+        // Asserts the QR *content* and the <img> delivery mechanism, not the
+        // pixel size -- the official ARUCAD artwork sizes it in mm via CSS.
+        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 80);
+        $this->assertStringContainsString('<img src="'.$expectedDataUri.'"', $html);
         $this->assertStringNotContainsString('<svg', $html, 'inline <svg> silently fails to render under this DomPDF setup -- see QrCodeGenerator docblock');
         $this->assertStringContainsString($certificate->certificate_number, $html);
+        $this->assertStringContainsString(request()->getSchemeAndHttpHost().'/verify', $html);
         $this->assertStringNotContainsString(route('certificates.verify', $certificate->certificate_number), $html);
 
         $response = $this->actingAs($owner)->get(route('certificates.download', $certificate));
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('lms.certificate', [
+            'certificate' => $certificate,
+            'enrollment' => $certificate->enrollment->load('user', 'course'),
+        ])->setPaper('a4', 'landscape')
+            ->setOption('margin_top', 0)
+            ->setOption('margin_right', 0)
+            ->setOption('margin_bottom', 0)
+            ->setOption('margin_left', 0);
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+        $this->assertSame(1, $dompdf->getCanvas()->get_page_count());
     }
 
     public function test_the_public_verify_page_flags_a_revoked_certificate(): void

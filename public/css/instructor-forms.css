@@ -30,3 +30,18 @@
 .builder-add-section form,.builder-add-activity form{flex-direction:column;align-items:stretch}
 .builder-add-section form input,.builder-add-section form textarea,.builder-add-activity form input,.builder-add-activity form select{width:100%;min-width:0}
 }
+
+/* Session planner: title/start/end on one row, the multi-file picker beneath.
+   Scoped to .session-form so it cannot affect the course wizard above it. */
+.session-form{display:flex;flex-direction:column;gap:14px;margin-top:12px}
+.session-form .session-form-row{display:flex;gap:12px;flex-wrap:wrap}
+.session-form .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px}
+.session-form .field.full{flex-basis:100%}
+.session-form .field>span{font-size:12px;font-weight:600;letter-spacing:.02em}
+.session-form .field>span i{color:#b3402e;font-style:normal}
+.session-form input[type=text],.session-form input:not([type]),.session-form input[type=datetime-local],.session-form input[type=file]{width:100%;padding:9px 10px;border:1px solid var(--line,#d8dce3);border-radius:8px;background:var(--surface,#fff);color:inherit;font:inherit}
+.session-form input[type=file]{padding:7px 10px;cursor:pointer}
+.session-form small.muted{font-size:11.5px;line-height:1.45}
+.session-form .upload-summary{font-size:12px;font-weight:600}
+.session-form button{align-self:flex-start}
+@media(max-width:760px){.session-form .session-form-row{flex-direction:column}.session-form .field{min-width:0}}

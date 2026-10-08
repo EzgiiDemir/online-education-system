@@ -21,11 +21,11 @@ class CertificatesTable
         return $table
             ->defaultSort('issued_at', 'desc')
             ->columns([
-                TextColumn::make('certificate_number')->label('Sertifika no')->searchable()->copyable(),
-                TextColumn::make('enrollment.user.name')->label('Sahibi')->searchable()->sortable(),
-                TextColumn::make('enrollment.course.title')->label('Eğitim')->searchable(),
-                TextColumn::make('issued_at')->label('Veriliş')->dateTime('d.m.Y')->sortable(),
-                TextColumn::make('status')->label('Durum')->badge()
+                TextColumn::make('certificate_number')->label(__('Sertifika no'))->searchable()->copyable(),
+                TextColumn::make('enrollment.user.name')->label(__('Sahibi'))->searchable()->sortable(),
+                TextColumn::make('enrollment.course.title')->label(__('Eğitim'))->searchable(),
+                TextColumn::make('issued_at')->label(__('Veriliş'))->dateTime('d.m.Y')->sortable(),
+                TextColumn::make('status')->label(__('Durum'))->badge()
                     ->state(fn (Certificate $record) => $record->status())
                     ->formatStateUsing(fn (string $state) => ['active' => 'Geçerli', 'expired' => 'Süresi doldu', 'revoked' => 'İptal edildi'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
@@ -34,16 +34,16 @@ class CertificatesTable
                         'revoked' => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('revoked_reason')->label('İptal gerekçesi')->placeholder('—')->toggleable(),
+                TextColumn::make('revoked_reason')->label(__('İptal gerekçesi'))->placeholder(__('—'))->toggleable(),
             ])
             ->headerActions([
-                Action::make('exportCsv')->label('CSV olarak dışa aktar')->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
+                Action::make('exportCsv')->label(__('CSV olarak dışa aktar'))->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
                     ->action(fn () => static::exportCsv()),
-                Action::make('exportPdf')->label('PDF olarak dışa aktar')->icon(Heroicon::OutlinedDocumentArrowDown)->color('gray')
+                Action::make('exportPdf')->label(__('PDF olarak dışa aktar'))->icon(Heroicon::OutlinedDocumentArrowDown)->color('gray')
                     ->action(fn () => static::exportPdf()),
             ])
             ->filters([
-                SelectFilter::make('status')->label('Durum')
+                SelectFilter::make('status')->label(__('Durum'))
                     ->options(['active' => 'Geçerli', 'expired' => 'Süresi doldu', 'revoked' => 'İptal edildi'])
                     ->query(fn ($query, array $data) => match ($data['value'] ?? null) {
                         'revoked' => $query->whereNotNull('revoked_at'),
@@ -52,22 +52,22 @@ class CertificatesTable
                     }),
             ])
             ->recordActions([
-                Action::make('download')->label('İndir')->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
+                Action::make('download')->label(__('İndir'))->icon(Heroicon::OutlinedArrowDownTray)->color('gray')
                     ->url(fn (Certificate $record) => route('certificates.download', $record))
                     ->openUrlInNewTab()
                     ->visible(fn (Certificate $record) => ! $record->isRevoked()),
-                Action::make('verify')->label('Doğrulama sayfası')->icon(Heroicon::OutlinedShieldCheck)->color('gray')
+                Action::make('verify')->label(__('Doğrulama sayfası'))->icon(Heroicon::OutlinedShieldCheck)->color('gray')
                     ->url(fn (Certificate $record) => route('certificates.verify', $record->certificate_number))
                     ->openUrlInNewTab(),
-                Action::make('revoke')->label('İptal et')->icon(Heroicon::OutlinedNoSymbol)->color('danger')
+                Action::make('revoke')->label(__('İptal et'))->icon(Heroicon::OutlinedNoSymbol)->color('danger')
                     ->visible(fn (Certificate $record) => ! $record->isRevoked())
                     ->requiresConfirmation()
                     ->schema([
-                        Textarea::make('reason')->label('İptal gerekçesi')->required()->maxLength(255),
+                        Textarea::make('reason')->label(__('İptal gerekçesi'))->required()->maxLength(255),
                     ])
                     ->action(function (Certificate $record, array $data) {
                         $record->revoke(Auth::user(), $data['reason']);
-                        Notification::make()->title('Sertifika iptal edildi')->success()->send();
+                        Notification::make()->title(__('Sertifika iptal edildi'))->success()->send();
                     }),
                 ViewAuditLogAction::make(),
             ]);

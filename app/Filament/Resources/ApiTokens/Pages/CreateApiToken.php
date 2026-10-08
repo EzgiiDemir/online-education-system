@@ -21,7 +21,7 @@ class CreateApiToken extends CreateRecord
         [$token, $plaintext] = ApiToken::generate($data['name']);
 
         Notification::make()
-            ->title('API token oluşturuldu')
+            ->title(__('API token oluşturuldu'))
             ->body("Bu token'ı şimdi kopyalayın, bir daha gösterilmeyecek:\n\n{$plaintext}")
             ->success()
             ->persistent()

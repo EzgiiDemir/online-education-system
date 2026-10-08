@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('url');
             $table->string('secret');
-            $table->json('events');
+            $table->jsonb('events');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -19,20 +19,20 @@ class CourseSessionsTable
         return $table
             ->columns([
                 TextColumn::make('course.title')
-                    ->label('Eğitim')
+                    ->label(__('Eğitim'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('title')
-                    ->label('Seans')
+                    ->label(__('Seans'))
                     ->searchable(),
-                TextColumn::make('meeting_status')->label('Durum')->badge()->placeholder('Yüz yüze'),
-                TextColumn::make('materials_count')->label('Materyal')->counts('materials')->badge(),
+                TextColumn::make('meeting_status')->label(__('Durum'))->badge()->placeholder(__('Yüz yüze')),
+                TextColumn::make('materials_count')->label(__('Materyal'))->counts('materials')->badge(),
                 TextColumn::make('starts_at')
-                    ->label('Başlangıç')
+                    ->label(__('Başlangıç'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('ends_at')
-                    ->label('Bitiş')
+                    ->label(__('Bitiş'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -45,7 +45,7 @@ class CourseSessionsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
+                SelectFilter::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),

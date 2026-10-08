@@ -23,7 +23,7 @@ class CreateScimToken extends CreateRecord
         [$token, $plaintext] = ScimToken::generate($data['name']);
 
         Notification::make()
-            ->title('SCIM token oluşturuldu')
+            ->title(__('SCIM token oluşturuldu'))
             ->body("Bu token'ı şimdi kopyalayın, bir daha gösterilmeyecek:\n\n{$plaintext}")
             ->success()
             ->persistent()

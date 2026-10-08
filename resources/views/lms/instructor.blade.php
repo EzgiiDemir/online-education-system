@@ -43,7 +43,7 @@
 </ul>
 @if($sessionsNeedingAttendanceReview->isNotEmpty())
 <div style="margin-top:{{ $pendingTasks->isNotEmpty() ? '16px' : '0' }}">
-<span class="badge">{{ $en ? 'ATTENDANCE REVIEW' : 'YOKLAMA KONTROLÜ' }}</span>
+<span class="badge">{{ $en ? 'PARTICIPANT LIST REVIEW' : 'KATILIMCI LİSTESİ KONTROLÜ' }}</span>
 <ul class="curriculum-list" style="margin-top:8px">
 @foreach($sessionsNeedingAttendanceReview as $needsReview)
 <li><span>{{ $needsReview->title }} — {{ $needsReview->course->title }}</span><a class="text-link" href="{{ route('instructor.courses.show', $needsReview->course) }}#sessions">{{ $en ? 'Review →' : 'İncele →' }}</a></li>

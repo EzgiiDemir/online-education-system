@@ -4,7 +4,7 @@
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 @php($isInstructor = auth()->id() === $session->course->instructor_id)
-<div class="live-room" id="room" data-user="{{ auth()->id() }}" data-instructor="{{ $session->course->instructor_id }}" data-is-instructor="{{ $isInstructor ? '1' : '0' }}" data-csrf="{{ csrf_token() }}" data-presence="{{ route('sessions.presence',$session) }}" data-signals="{{ route('sessions.signals',$session) }}" data-send="{{ route('sessions.signals.send',$session) }}" data-recording="{{ route('sessions.recording',$session) }}" data-attendance-status="{{ route('sessions.attendance-status',$session) }}" data-complete="{{ route('sessions.complete',$session) }}" data-share-files="{{ route('sessions.files.share',$session) }}" data-grade-url-template="{{ route('materials.grade', ['material' => '__ID__']) }}">
+<div class="live-room" id="room" data-user="{{ auth()->id() }}" data-instructor="{{ $session->course->instructor_id }}" data-is-instructor="{{ $isInstructor ? '1' : '0' }}" data-csrf="{{ csrf_token() }}" data-presence="{{ route('sessions.presence',$session) }}" data-signals="{{ route('sessions.signals',$session) }}" data-send="{{ route('sessions.signals.send',$session) }}" data-recording="{{ route('sessions.recording',$session) }}" data-attendance-status="{{ route('sessions.attendance-status',$session) }}" data-complete="{{ route('sessions.complete',$session) }}" data-share-files="{{ route('sessions.files.share',$session) }}" data-grade-url-template="{{ route('materials.grade', ['material' => '__ID__']) }}" data-delete-url-template="{{ route('materials.share.destroy', ['material' => '__ID__']) }}">
 <header class="live-header live-header-compact">
 <div class="live-header-info">
 <span class="live-kicker">{{ $en ? 'IN-PORTAL LIVE CLASS' : 'PORTAL İÇİ CANLI SINIF' }}</span>
@@ -76,6 +76,9 @@
 @endif
 </div>
 </div>
+@if($isInstructor || $material->uploaded_by_id === auth()->id())
+<button type="button" class="shared-file-delete" data-delete-file title="{{ $en ? 'Delete' : 'Sil' }}"><x-lucide name="trash" size="14" /></button>
+@endif
 </div>
 @empty
 @endforelse
@@ -92,6 +95,7 @@ const micIconHtml={!! json_encode(\App\Support\Icon::svg('mic', 14)) !!};
 const micOffIconHtml={!! json_encode(\App\Support\Icon::svg('mic-off', 14)) !!};
 const targetIconHtml={!! json_encode(\App\Support\Icon::svg('target', 14)) !!};
 const fileIconHtml={!! json_encode(\App\Support\Icon::svg('file-text', 14)) !!};
+const trashIconHtml={!! json_encode(\App\Support\Icon::svg('trash', 14)) !!};
 const i18n={
     participant: {{ \Illuminate\Support\Js::from($en ? 'Participant' : 'Katılımcı') }},
     instructor: {{ \Illuminate\Support\Js::from($en ? 'Instructor' : 'Eğitmen') }},
@@ -115,7 +119,9 @@ const i18n={
     cameraOffByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor turned off all cameras' : 'Eğitmen tüm kameraları kapattı') }},
     screenOffByHost: {{ \Illuminate\Support\Js::from($en ? 'The instructor stopped all screen shares' : 'Eğitmen tüm ekran paylaşımlarını durdurdu') }},
     score: {{ \Illuminate\Support\Js::from($en ? 'Score' : 'Puan') }},
-    saveAndSend: {{ \Illuminate\Support\Js::from($en ? 'Save & send' : 'Kaydet ve gönder') }}
+    saveAndSend: {{ \Illuminate\Support\Js::from($en ? 'Save & send' : 'Kaydet ve gönder') }},
+    deleteFile: {{ \Illuminate\Support\Js::from($en ? 'Delete' : 'Sil') }},
+    confirmDeleteFile: {{ \Illuminate\Support\Js::from($en ? 'Delete this file for everyone?' : 'Bu dosya herkes için silinsin mi?') }}
 };
 const send=async(type,payload,recipient_id=null)=>fetch(root.dataset.send,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({type,payload,recipient_id})});
 function setStatus(t){document.getElementById('roomStatus').textContent=t}
@@ -209,9 +215,28 @@ function renderFileRow(data){
     const gradeSlot=isInstructor
         ? '<form class="grade-form" data-grade-form data-material-id="'+data.id+'"><input type="number" min="0" max="100" placeholder="'+i18n.score+'" class="grade-score-input" required><button type="submit">'+i18n.saveAndSend+'</button></form>'
         : '';
-    row.innerHTML='<span>'+fileIconHtml+'</span><div class="shared-file-body"><a href="'+data.url+'" target="_blank" rel="noopener">'+data.title+'</a><small>'+(data.uploaderName||'')+'</small><div class="shared-file-grade" data-grade-slot>'+gradeSlot+'</div></div>';
+    const deleteBtn=(isInstructor||data.uploaderId===me)
+        ? '<button type="button" class="shared-file-delete" data-delete-file title="'+i18n.deleteFile+'">'+trashIconHtml+'</button>'
+        : '';
+    row.innerHTML='<span>'+fileIconHtml+'</span><div class="shared-file-body"><a href="'+data.url+'" target="_blank" rel="noopener">'+data.title+'</a><small>'+(data.uploaderName||'')+'</small><div class="shared-file-grade" data-grade-slot>'+gradeSlot+'</div></div>'+deleteBtn;
     document.getElementById('filesList').prepend(row);
 }
+function removeFileRow(id){
+    document.getElementById('file-'+id)?.remove();
+    if(!document.getElementById('filesList').children.length)document.getElementById('filesEmpty').style.display='';
+}
+document.getElementById('filesList')?.addEventListener('click',async function(e){
+    const btn=e.target.closest('[data-delete-file]');
+    if(!btn)return;
+    const row=btn.closest('.shared-file');
+    if(!row||!confirm(i18n.confirmDeleteFile))return;
+    const id=row.dataset.materialId;
+    const url=root.dataset.deleteUrlTemplate.replace('__ID__',id);
+    const res=await fetch(url,{method:'DELETE',headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'}});
+    if(!res.ok)return;
+    removeFileRow(id);
+    send('document-removed',{id:Number(id)});
+});
 document.getElementById('documentBtn')?.addEventListener('click',()=>document.getElementById('documentInput').click());
 document.getElementById('presentBtn')?.addEventListener('click',()=>document.getElementById('presentInput').click());
 document.getElementById('documentInput')?.addEventListener('change',async function(e){
@@ -262,6 +287,8 @@ async function poll(){
             hidePresentation();
         }else if(s.type==='document-shared'){
             renderFileRow(JSON.parse(s.payload));
+        }else if(s.type==='document-removed'){
+            removeFileRow(JSON.parse(s.payload).id);
         }
     }
     setTimeout(poll,1000)

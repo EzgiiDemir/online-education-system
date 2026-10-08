@@ -17,14 +17,14 @@ class EditCourse extends EditRecord
     {
         return [
             Action::make('createVersion')
-                ->label('Yeni sürüm oluştur')
+                ->label(__('Yeni sürüm oluştur'))
                 ->icon(Heroicon::OutlinedDocumentDuplicate)
                 ->color('gray')
                 ->requiresConfirmation()
                 ->modalDescription('Bu eğitimin (müfredatıyla birlikte) taslak durumda yeni bir sürümü oluşturulur. Mevcut kayıtlar ve sertifikalar bu eğitimin şu anki sürümüne bağlı kalmaya devam eder, hiçbir şey değişmez.')
                 ->action(function () {
                     $newVersion = $this->record->createNewVersion();
-                    Notification::make()->title('v'.$newVersion->version.' oluşturuldu')->success()->send();
+                    Notification::make()->title(__('v').$newVersion->version.' oluşturuldu')->success()->send();
 
                     return redirect(CourseResource::getUrl('edit', ['record' => $newVersion]));
                 }),

@@ -65,7 +65,16 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    /*
+     * Europe/Istanbul, not UTC: this is a Turkish training centre, and every
+     * datetime in the product is a wall-clock time somebody typed or reads --
+     * a session start a trainer enters as 14:00, the attendance timestamp on
+     * a roster export, the date printed on a certificate. Left at UTC those
+     * all rendered three hours out, so a learner joining a "14:00" session
+     * arrived at the wrong time and a certificate issued after 21:00 local
+     * carried the previous day's date.
+     */
+    'timezone' => env('APP_TIMEZONE', 'Europe/Istanbul'),
 
     /*
     |--------------------------------------------------------------------------

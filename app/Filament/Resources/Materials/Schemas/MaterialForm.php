@@ -14,15 +14,15 @@ class MaterialForm
     {
         return $schema
             ->components([
-                Select::make('course_session_id')->label('Seans')->required()->searchable()->preload()
+                Select::make('course_session_id')->label(__('Seans'))->required()->searchable()->preload()
                     ->options(fn () => CourseSession::with('course')->get()->mapWithKeys(fn ($session) => [$session->id => $session->course->title.' — '.$session->title]))
-                    ->getSearchResultsUsing(fn (string $search) => CourseSession::with('course')->where('title', 'like', "%{$search}%")->limit(50)->get()->mapWithKeys(fn ($session) => [$session->id => $session->course->title.' — '.$session->title])),
-                TextInput::make('title')->label('Materyal adı')->required()->maxLength(255),
-                TextInput::make('type')->label('Dosya türü')->required()->placeholder('örn. video/mp4, application/pdf')->helperText('Dosyayı yüklerseniz otomatik doldurulur.'),
-                FileUpload::make('path')->label('Dosya')->disk('public')->directory('materials')->required()
+                    ->getSearchResultsUsing(fn (string $search) => CourseSession::with('course')->whereLike('title', "%{$search}%", caseSensitive: false)->limit(50)->get()->mapWithKeys(fn ($session) => [$session->id => $session->course->title.' — '.$session->title])),
+                TextInput::make('title')->label(__('Materyal adı'))->required()->maxLength(255),
+                TextInput::make('type')->label(__('Dosya türü'))->required()->placeholder(__('örn. video/mp4, application/pdf'))->helperText(__('Dosyayı yüklerseniz otomatik doldurulur.')),
+                FileUpload::make('path')->label(__('Dosya'))->disk('public')->directory('materials')->required()
                     ->afterStateUpdated(fn ($state, callable $set) => $state && $set('type', $state->getMimeType()))
                     ->live(),
-                TextInput::make('duration_seconds')->label('Süre (saniye)')->numeric()->minValue(0)->helperText('Belirtilirse, öğrenci tamamlamak için bu sürenin en az %90\'ını izlemiş olmalıdır.'),
+                TextInput::make('duration_seconds')->label(__('Süre (saniye)'))->numeric()->minValue(0)->helperText(__('Belirtilirse, öğrenci tamamlamak için bu sürenin en az %90\'ını izlemiş olmalıdır.')),
             ]);
     }
 }

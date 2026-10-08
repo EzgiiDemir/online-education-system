@@ -13,10 +13,11 @@ class SetLocale
     {
         $settings = Schema::hasTable('portal_settings') ? PortalSetting::current() : null;
         $allowed = $settings?->available_locales ?: ['tr', 'en'];
-        $locale = session('locale', $settings?->default_locale ?: 'tr');
+        $locale = session('locale', $request->cookie('locale', $settings?->default_locale ?: 'tr'));
         if (! in_array($locale, $allowed, true)) {
             $locale = 'tr';
         }
+        session(['locale' => $locale]);
         app()->setLocale($locale);
 
         return $next($request);

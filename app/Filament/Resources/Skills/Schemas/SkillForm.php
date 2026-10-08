@@ -12,8 +12,8 @@ class SkillForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Yetkinlik adı')->required()->unique(ignoreRecord: true)->maxLength(255),
-                Select::make('courses')->label('Bu yetkinliği kazandıran eğitimler')->relationship('courses', 'title')->multiple()->searchable()->preload(),
+                TextInput::make('name')->label(__('Yetkinlik adı'))->required()->unique(ignoreRecord: true)->maxLength(255),
+                Select::make('courses')->label(__('Bu yetkinliği kazandıran eğitimler'))->relationship('courses', 'title')->multiple()->searchable()->preload(),
             ]);
     }
 }

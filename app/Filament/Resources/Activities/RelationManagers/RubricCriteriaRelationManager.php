@@ -36,9 +36,9 @@ class RubricCriteriaRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('label')->label('Kriter')->required()->maxLength(160)->columnSpanFull(),
-                TextInput::make('max_points')->label('Maksimum puan')->numeric()->minValue(1)->required(),
-                TextInput::make('sort_order')->label('Sıra')->numeric()->default(0),
+                TextInput::make('label')->label(__('Kriter'))->required()->maxLength(160)->columnSpanFull(),
+                TextInput::make('max_points')->label(__('Maksimum puan'))->numeric()->minValue(1)->required(),
+                TextInput::make('sort_order')->label(__('Sıra'))->numeric()->default(0),
             ]);
     }
 
@@ -48,9 +48,9 @@ class RubricCriteriaRelationManager extends RelationManager
             ->recordTitleAttribute('label')
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('label')->label('Kriter'),
-                TextColumn::make('max_points')->label('Maksimum puan')->badge(),
-                TextColumn::make('sort_order')->label('Sıra'),
+                TextColumn::make('label')->label(__('Kriter')),
+                TextColumn::make('max_points')->label(__('Maksimum puan'))->badge(),
+                TextColumn::make('sort_order')->label(__('Sıra')),
             ])
             ->headerActions([
                 CreateAction::make(),

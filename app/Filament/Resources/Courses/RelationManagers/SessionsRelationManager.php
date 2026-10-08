@@ -24,11 +24,11 @@ class SessionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('title')->label('Seans başlığı')
+                TextInput::make('title')->label(__('Seans başlığı'))
                     ->required()
                     ->maxLength(255),
-                DateTimePicker::make('starts_at')->label('Başlangıç'),
-                DateTimePicker::make('ends_at')->label('Bitiş'),
+                DateTimePicker::make('starts_at')->label(__('Başlangıç')),
+                DateTimePicker::make('ends_at')->label(__('Bitiş')),
             ]);
     }
 
@@ -37,12 +37,12 @@ class SessionsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('title')
             ->columns([
-                TextColumn::make('title')->label('Seans')
+                TextColumn::make('title')->label(__('Seans'))
                     ->searchable(),
-                TextColumn::make('meeting_status')->label('Durum')->badge()->placeholder('Yüz yüze'),
-                TextColumn::make('materials_count')->label('Materyal')->counts('materials')->badge(),
-                TextColumn::make('starts_at')->label('Başlangıç')->dateTime('d.m.Y H:i'),
-                TextColumn::make('ends_at')->label('Bitiş')->dateTime('H:i'),
+                TextColumn::make('meeting_status')->label(__('Durum'))->badge()->placeholder(__('Yüz yüze')),
+                TextColumn::make('materials_count')->label(__('Materyal'))->counts('materials')->badge(),
+                TextColumn::make('starts_at')->label(__('Başlangıç'))->dateTime('d.m.Y H:i'),
+                TextColumn::make('ends_at')->label(__('Bitiş'))->dateTime('H:i'),
             ])
             ->filters([
                 //

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('guest_instructor_email')->nullable();
             $table->text('guest_instructor_bio')->nullable();
             $table->boolean('certificate_enabled')->default(true);
-            $table->json('sdg_goals')->nullable();
+            $table->jsonb('sdg_goals')->nullable();
             $table->string('poster_path')->nullable();
             $table->string('image_path')->nullable();
         });

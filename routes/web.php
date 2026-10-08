@@ -14,11 +14,19 @@ Route::get('/', [LmsController::class, 'home'])->name('lms.home');
 Route::get('/language/{locale}', function (string $locale) {
     abort_unless(in_array($locale, ['tr', 'en'], true), 404);
     session(['locale' => $locale]);
+    cookie()->queue(cookie('locale', $locale, 60 * 24 * 365));
 
-    return back();
+    $previous = url()->previous();
+    if ($previous && $previous !== url()->current()) {
+        return redirect()->to($previous);
+    }
+
+    return redirect('/');
 })->name('language.switch');
 Route::get('/login', [LmsController::class, 'loginForm'])->name('login');
 Route::post('/login', [LmsController::class, 'login'])->middleware('throttle:login');
+Route::get('/instructor/login', [LmsController::class, 'instructorLoginForm'])->name('instructor.login');
+Route::post('/instructor/login', [LmsController::class, 'loginInstructor'])->middleware('throttle:login');
 Route::get('/register', [LmsController::class, 'registerForm'])->name('register');
 Route::post('/register', [LmsController::class, 'register'])->middleware('throttle:register');
 Route::get('/auth/entra/redirect', [EntraSsoController::class, 'redirect'])->name('entra.redirect');
@@ -31,13 +39,43 @@ Route::get('/verify', [LmsController::class, 'verifyLookup'])->name('certificate
 Route::get('/verify/{certificateNumber}', [LmsController::class, 'verifyCertificate'])->name('certificates.verify')->middleware('throttle:certificate-verify');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index')->middleware('throttle:search');
 Route::get('/search/quick', [SearchController::class, 'quick'])->name('search.quick')->middleware('throttle:search');
-Route::middleware('auth')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
-Route::middleware(['auth', 'throttle:submissions'])->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
-Route::middleware('auth')->post('/materials/{material}/grade', [LmsController::class, 'gradeSharedMaterial'])->name('materials.grade');
-Route::middleware('auth')->group(function () {
+// Shared: same URL visited by both a learner and the instructor hosting
+// the session (or an admin), so any of the three guards may satisfy it --
+// see config/auth.php and the plan behind Faz 117 for why there are now
+// three guards sharing one session instead of one.
+Route::middleware('auth:web,instructor,admin')->get('/my-learning', [LmsController::class, 'myLearning'])->name('learning.index');
+Route::middleware(['auth:web,instructor,admin', 'throttle:submissions'])->post('/sessions/{session}/files', [LmsController::class, 'shareClassFile'])->name('sessions.files.share');
+Route::middleware('auth:web,instructor,admin')->post('/materials/{material}/grade', [LmsController::class, 'gradeSharedMaterial'])->name('materials.grade');
+Route::middleware('auth:web,instructor,admin')->delete('/materials/{material}/share', [LmsController::class, 'deleteSharedMaterial'])->name('materials.share.destroy');
+
+// Learner + manager + account-level areas -- the 'web' guard.
+Route::middleware('auth:web')->group(function () {
     Route::post('/logout', [LmsController::class, 'logout'])->name('logout');
     Route::post('/courses/{course}/enroll', [LmsController::class, 'enroll'])->name('courses.enroll');
     Route::post('/learning-paths/{path}/enroll', [LmsController::class, 'enrollInPath'])->name('learning-paths.enroll');
+    Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
+    Route::get('/manager/export', [ManagerController::class, 'exportTeam'])->name('manager.export');
+    Route::get('/manager/team/{user}', [ManagerController::class, 'teamMember'])->name('manager.team-member');
+    Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/reports/completion', [ReportController::class, 'completion'])->name('reports.completion');
+    Route::get('/reports/completion/export', [ReportController::class, 'exportCompletion'])->name('reports.completion.export');
+    Route::get('/reports/attendance', [ReportController::class, 'attendance'])->name('reports.attendance');
+    Route::get('/reports/attendance/export', [ReportController::class, 'exportAttendance'])->name('reports.attendance.export');
+    Route::get('/reports/instructors', [ReportController::class, 'instructors'])->name('reports.instructors');
+    Route::get('/reports/instructors/export', [ReportController::class, 'exportInstructors'])->name('reports.instructors.export');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::post('/account/notification-preferences', [AccountController::class, 'updateNotificationPreferences'])->name('account.notification-preferences.update');
+    Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
+});
+
+// Instructor-only dashboard/course-authoring surface -- the 'instructor' guard.
+Route::middleware('auth:instructor')->group(function () {
+    Route::post('/instructor/logout', [LmsController::class, 'logoutInstructor'])->name('instructor.logout');
     Route::get('/instructor', [LmsController::class, 'instructor'])->name('instructor.dashboard');
     Route::get('/instructor/courses', [LmsController::class, 'instructorCourses'])->name('instructor.courses.index');
     Route::get('/instructor/calendar', [LmsController::class, 'instructorCalendar'])->name('instructor.calendar');
@@ -45,9 +83,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/instructor/content-library/export', [LmsController::class, 'exportContentLibrary'])->name('instructor.content-library.export');
     Route::get('/instructor/attendance', [LmsController::class, 'instructorAttendance'])->name('instructor.attendance');
     Route::get('/instructor/sessions/{session}/attendance/export', [LmsController::class, 'exportAttendanceRoster'])->name('instructor.sessions.attendance.export');
-    Route::get('/manager', [ManagerController::class, 'dashboard'])->name('manager.dashboard');
-    Route::get('/manager/export', [ManagerController::class, 'exportTeam'])->name('manager.export');
-    Route::get('/manager/team/{user}', [ManagerController::class, 'teamMember'])->name('manager.team-member');
     Route::post('/instructor/courses', [LmsController::class, 'storeCourse'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}', [LmsController::class, 'courseDetail'])->name('instructor.courses.show');
     Route::post('/instructor/courses/{course}', [LmsController::class, 'updateCourse'])->name('instructor.courses.update');
@@ -63,10 +98,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/instructor/materials/{material}', [CourseBuilderController::class, 'updateMaterial'])->name('builder.materials.update');
     Route::delete('/instructor/materials/{material}', [CourseBuilderController::class, 'destroyMaterial'])->name('builder.materials.destroy');
     Route::get('/instructor/courses/{course}/log', [LmsController::class, 'courseLog'])->name('instructor.courses.log');
+    Route::post('/instructor/sessions/{session}/attendance', [LmsController::class, 'markSessionAttendance'])->name('instructor.sessions.attendance');
+    Route::get('/instructor/activities/{activity}/submissions', [LmsController::class, 'assignmentSubmissions'])->name('instructor.activities.submissions');
+    Route::post('/instructor/submissions/{submission}/grade', [LmsController::class, 'gradeAssignment'])->name('instructor.submissions.grade');
+    Route::get('/instructor/profile', [LmsController::class, 'instructorProfile'])->name('instructor.profile');
+    Route::post('/instructor/profile', [LmsController::class, 'updateInstructorProfile'])->name('instructor.profile.update');
+});
+
+// Shared: same live-classroom/material/calendar URLs visited by both a
+// learner and the instructor hosting the session.
+Route::middleware('auth:web,instructor,admin')->group(function () {
     Route::post('/sessions/{session}/start', [LmsController::class, 'startSession'])->name('sessions.start');
     Route::post('/sessions/{session}/complete', [LmsController::class, 'completeSession'])->name('sessions.complete');
     Route::get('/sessions/{session}/attendance-status', [LmsController::class, 'sessionAttendanceStatus'])->name('sessions.attendance-status')->middleware('throttle:heartbeat');
-    Route::post('/instructor/sessions/{session}/attendance', [LmsController::class, 'markSessionAttendance'])->name('instructor.sessions.attendance');
     Route::get('/sessions/{session}/classroom', [LmsController::class, 'classroom'])->name('sessions.classroom');
     Route::post('/sessions/{session}/messages', [LmsController::class, 'classMessage'])->name('sessions.messages');
     Route::match(['get', 'post'], '/sessions/{session}/presence', [LmsController::class, 'classPresence'])->name('sessions.presence')->middleware('throttle:heartbeat');
@@ -83,28 +127,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/activities/{activity}/complete', [LmsController::class, 'completeActivity'])->name('activities.complete');
     Route::post('/activities/{activity}/quiz-attempts', [LmsController::class, 'submitQuizAttempt'])->name('activities.quiz-attempts.store')->middleware('throttle:quiz-attempts');
     Route::post('/activities/{activity}/submissions', [LmsController::class, 'submitAssignment'])->name('activities.submissions.store')->middleware('throttle:submissions');
-    Route::get('/instructor/activities/{activity}/submissions', [LmsController::class, 'assignmentSubmissions'])->name('instructor.activities.submissions');
-    Route::post('/instructor/submissions/{submission}/grade', [LmsController::class, 'gradeAssignment'])->name('instructor.submissions.grade');
     Route::get('/certificates/{certificate}', [LmsController::class, 'certificate'])->name('certificates.download');
-    Route::get('/skills', [LmsController::class, 'mySkills'])->name('skills.index');
     Route::get('/calendar', [LmsController::class, 'calendar'])->name('calendar.index');
     Route::get('/calendar/sessions/{session}.ics', [LmsController::class, 'calendarSessionIcs'])->name('calendar.ics.session');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
-    Route::get('/reports/completion', [ReportController::class, 'completion'])->name('reports.completion');
-    Route::get('/reports/completion/export', [ReportController::class, 'exportCompletion'])->name('reports.completion.export');
-    Route::get('/reports/attendance', [ReportController::class, 'attendance'])->name('reports.attendance');
-    Route::get('/reports/attendance/export', [ReportController::class, 'exportAttendance'])->name('reports.attendance.export');
-    Route::get('/reports/instructors', [ReportController::class, 'instructors'])->name('reports.instructors');
-    Route::get('/reports/instructors/export', [ReportController::class, 'exportInstructors'])->name('reports.instructors.export');
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
-    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
-    Route::post('/account/notification-preferences', [AccountController::class, 'updateNotificationPreferences'])->name('account.notification-preferences.update');
-    Route::post('/account/delete', [AccountController::class, 'destroy'])->name('account.destroy');
-});
-Route::middleware('auth')->group(function () {
-    Route::get('/instructor/profile', [LmsController::class, 'instructorProfile'])->name('instructor.profile');
-    Route::post('/instructor/profile', [LmsController::class, 'updateInstructorProfile'])->name('instructor.profile.update');
 });

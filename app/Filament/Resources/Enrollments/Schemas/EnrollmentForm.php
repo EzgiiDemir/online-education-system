@@ -12,11 +12,11 @@ class EnrollmentForm
     {
         return $schema
             ->components([
-                Select::make('user_id')->label('Katılımcı')->relationship('user', 'name')->searchable()->preload()->required(),
-                Select::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload()->required()->live(),
-                Select::make('course_run_id')->label('Dönem (opsiyonel)')->relationship('run', 'name')->searchable()->preload(),
-                Select::make('status')->label('Durum')->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'])->default('enrolled')->required()->native(false),
-                DateTimePicker::make('completed_at')->label('Tamamlanma tarihi'),
+                Select::make('user_id')->label(__('Katılımcı'))->relationship('user', 'name')->searchable()->preload()->required(),
+                Select::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload()->required()->live(),
+                Select::make('course_run_id')->label(__('Dönem (opsiyonel)'))->relationship('run', 'name')->searchable()->preload(),
+                Select::make('status')->label(__('Durum'))->options(['enrolled' => __('Kayıtlı'), 'in_progress' => __('Devam ediyor'), 'completed' => __('Tamamlandı')])->default('enrolled')->required()->native(false),
+                DateTimePicker::make('completed_at')->label(__('Tamamlanma tarihi')),
             ]);
     }
 }

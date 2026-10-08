@@ -11,9 +11,12 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Concerns\TranslatesNavigation;
 
 class AuditLogResource extends Resource
 {
+    use TranslatesNavigation;
+
     protected static ?string $model = AuditLog::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
@@ -33,14 +36,14 @@ class AuditLogResource extends Resource
     {
         return $schema
             ->components([
-                TextEntry::make('created_at')->label('Zaman')->dateTime('d.m.Y H:i:s'),
-                TextEntry::make('actor.name')->label('Kim')->placeholder('Sistem'),
-                TextEntry::make('action')->label('İşlem')->badge()
+                TextEntry::make('created_at')->label(__('Zaman'))->dateTime('d.m.Y H:i:s'),
+                TextEntry::make('actor.name')->label(__('Kim'))->placeholder(__('Sistem')),
+                TextEntry::make('action')->label(__('İşlem'))->badge()
                     ->formatStateUsing(fn (string $state) => ['created' => 'Oluşturuldu', 'updated' => 'Güncellendi', 'deleted' => 'Silindi'][$state] ?? $state),
-                TextEntry::make('entity_type')->label('Kayıt türü'),
-                TextEntry::make('entity_label')->label('Kayıt')->placeholder('—'),
-                TextEntry::make('ip_address')->label('IP')->placeholder('—'),
-                TextEntry::make('changes')->label('Değişiklikler')->columnSpanFull()
+                TextEntry::make('entity_type')->label(__('Kayıt türü')),
+                TextEntry::make('entity_label')->label(__('Kayıt'))->placeholder(__('—')),
+                TextEntry::make('ip_address')->label(__('IP'))->placeholder(__('—')),
+                TextEntry::make('changes')->label(__('Değişiklikler'))->columnSpanFull()
                     ->html()
                     ->formatStateUsing(fn ($state) => is_array($state) && $state !== [] ? '<pre style="white-space:pre-wrap;font-size:12px">'.e(json_encode($state, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)).'</pre>' : '—'),
             ]);

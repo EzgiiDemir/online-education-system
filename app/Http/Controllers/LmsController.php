@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\SyncPanelGuards;
 use App\Models\Activity;
 use App\Models\ActivityProgress;
 use App\Models\AssignmentSubmission;
@@ -30,10 +31,14 @@ use App\Support\DocumentEstimator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -64,7 +69,7 @@ class LmsController extends Controller
     {
         $courses = Schema::hasTable('courses')
             ? Course::where('status', 'published')->with('instructor', 'sessions')->latest()->paginate(12)
-            : new \Illuminate\Pagination\LengthAwarePaginator(collect(), 0, 12);
+            : new LengthAwarePaginator(collect(), 0, 12);
         $enrolledCourseIds = collect();
         $continueLearning = null;
         $requiredIncomplete = collect();
@@ -195,7 +200,7 @@ class LmsController extends Controller
      */
     public function calendar(Request $r)
     {
-        $month = \Illuminate\Support\Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
+        $month = Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
 
         $enrollments = Auth::user()->enrollments()->with('course', 'certificate')->get();
         $courseIds = $enrollments->pluck('course_id');
@@ -238,41 +243,77 @@ class LmsController extends Controller
         $session->load('course');
         $start = $session->starts_at?->utc()->format('Ymd\\THis\\Z') ?? now()->utc()->format('Ymd\\THis\\Z');
         $end = $session->ends_at?->utc()->format('Ymd\\THis\\Z') ?? now()->addHour()->utc()->format('Ymd\\THis\\Z');
-        $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Arucad Surekli Ogrenme Merkezi//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:session-{$session->id}@campus-lms\r\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\r\nURL:{$session->meeting_url}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
+        $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Arucad Egitim Merkezi//Calendar//EN\r\nBEGIN:VEVENT\r\nUID:session-{$session->id}@campus-lms\r\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\r\nURL:{$session->meeting_url}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
 
         return response($ics, 200, ['Content-Type' => 'text/calendar', 'Content-Disposition' => 'attachment; filename="'.$session->id.'.ics"']);
     }
 
-    public function login(Request $r)
+    /**
+     * $guard is always hardcoded by the calling route method below, never
+     * taken from request input -- this exists purely so the learner and
+     * instructor login forms (separate guards, see config/auth.php) can
+     * share one implementation without one login kicking out the other.
+     */
+    private function attemptLogin(Request $r, string $guard)
     {
         $data = $r->validate(['email' => 'required|email', 'password' => 'required']);
         $settings = PortalSetting::current();
         $domain = strtolower(substr(strrchr($data['email'], '@'), 1));
-        abort_unless(in_array($domain, array_map('strtolower', $settings->accepted_domains ?: []), true), 422, 'Bu e-posta domaini kabul edilmiyor.');
-        abort_unless($settings->local_login_enabled, 403, 'Yerel giriş devre dışı.');
-        if (! Auth::attempt($data)) {
-            return back()->withErrors(['email' => 'E-posta veya şifre hatalı.']);
+        abort_unless(in_array($domain, array_map('strtolower', $settings->accepted_domains ?: []), true), 422, __('Bu e-posta domaini kabul edilmiyor.'));
+        abort_unless($settings->local_login_enabled, 403, __('Yerel giriş devre dışı.'));
+        if (! Auth::guard($guard)->attempt($data)) {
+            return back()->withErrors(['email' => __('E-posta veya şifre hatalı.')]);
         }
         // deactivated_at was previously only checked for Filament admin
         // panel access -- the primary login path never consulted it at
         // all, so a deactivated account (manually, or via SCIM
         // deprovisioning) could still sign in and use the whole app.
-        if (Auth::user()->isDeactivated()) {
-            Auth::logout();
+        if (Auth::guard($guard)->user()->isDeactivated()) {
+            Auth::guard($guard)->logout();
 
-            return back()->withErrors(['email' => 'Bu hesap devre dışı bırakılmış.']);
+            return back()->withErrors(['email' => __('Bu hesap devre dışı bırakılmış.')]);
         }
         $r->session()->regenerate();
 
-        return redirect(Auth::user()->defaultWorkspaceRoute());
+        return redirect(Auth::guard($guard)->user()->defaultWorkspaceRoute());
+    }
+
+    /**
+     * Logs the current person out of every workspace they occupy.
+     * A different person signed in on another guard is left alone --
+     * we never session()->invalidate()/flush() the shared session.
+     */
+    private function terminateGuard(Request $r, string $guard)
+    {
+        SyncPanelGuards::logoutSameUserFromAllGuards(Auth::guard($guard)->user());
+        $r->session()->regenerateToken();
+
+        return redirect('/');
+    }
+
+    public function login(Request $r)
+    {
+        return $this->attemptLogin($r, 'web');
     }
 
     public function logout(Request $r)
     {
-        Auth::logout();
-        $r->session()->invalidate();
+        return $this->terminateGuard($r, 'web');
+    }
 
-        return redirect('/');
+    public function instructorLoginForm()
+    {
+        return view('lms.login', ['settings' => PortalSetting::current(), 'formAction' => route('instructor.login')]);
+    }
+
+    public function loginInstructor(Request $r)
+    {
+        return $this->attemptLogin($r, 'instructor');
+    }
+
+    public function logoutInstructor(Request $r)
+    {
+        return $this->terminateGuard($r, 'instructor');
     }
 
     public function registerForm()
@@ -288,12 +329,12 @@ class LmsController extends Controller
         abort_unless($settings->self_registration_enabled, 404);
         $data = $r->validate(['name' => 'required|string|max:255', 'email' => 'required|email|unique:users,email', 'password' => 'required|string|min:8|confirmed']);
         $domain = strtolower(substr(strrchr($data['email'], '@'), 1));
-        abort_unless(in_array($domain, array_map('strtolower', $settings->accepted_domains ?: []), true), 422, 'Bu e-posta domaini kabul edilmiyor.');
+        abort_unless(in_array($domain, array_map('strtolower', $settings->accepted_domains ?: []), true), 422, __('Bu e-posta domaini kabul edilmiyor.'));
         $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => Hash::make($data['password']), 'role' => 'learner']);
         Auth::login($user);
         $r->session()->regenerate();
 
-        return redirect()->route('lms.home')->with('success', 'Hesabınız oluşturuldu, hoş geldiniz!');
+        return redirect()->route('lms.home')->with('success', __('Hesabınız oluşturuldu, hoş geldiniz!'));
     }
 
     /**
@@ -313,7 +354,7 @@ class LmsController extends Controller
         }
 
         $counts = Auth::user()->enrollments()
-            ->selectRaw("count(*) as total_count")
+            ->selectRaw('count(*) as total_count')
             ->selectRaw("sum(case when status != 'completed' then 1 else 0 end) as in_progress_count")
             ->selectRaw("sum(case when status = 'completed' then 1 else 0 end) as completed_count")
             ->first();
@@ -340,7 +381,7 @@ class LmsController extends Controller
         };
 
         if ($r->filled('q')) {
-            $query->whereHas('course', fn ($q) => $q->where('title', 'like', '%'.$r->query('q').'%'));
+            $query->whereHas('course', fn ($q) => $q->whereLike('title', '%'.$r->query('q').'%', caseSensitive: false));
         }
 
         $enrollments = $query->latest()->paginate(12)->withQueryString();
@@ -354,10 +395,10 @@ class LmsController extends Controller
         $result = $this->enrollUserInCourse($course);
 
         if ($result instanceof WaitlistEntry) {
-            return redirect()->route('learning.index')->with('success', 'Bu eğitimin kontenjanı dolu. Bekleme listesine eklendiniz; bir kontenjan açıldığında bilgilendirileceksiniz.');
+            return redirect()->route('learning.index')->with('success', __('Bu eğitimin kontenjanı dolu. Bekleme listesine eklendiniz; bir kontenjan açıldığında bilgilendirileceksiniz.'));
         }
 
-        return redirect()->route('learning.index')->with('success', 'Eğitime kaydınız oluşturuldu. Canlı ders bilgileri e-posta adresinize gönderildi.');
+        return redirect()->route('learning.index')->with('success', __('Eğitime kaydınız oluşturuldu. Canlı ders bilgileri e-posta adresinize gönderildi.'));
     }
 
     private function enrollUserInCourse(Course $course): Enrollment|WaitlistEntry
@@ -402,7 +443,7 @@ class LmsController extends Controller
             $this->enrollUserInCourse($course);
         }
 
-        return redirect()->route('learning-paths.show', $path)->with('success', 'Öğrenim yolundaki tüm eğitimlere kaydınız oluşturuldu.');
+        return redirect()->route('learning-paths.show', $path)->with('success', __('Öğrenim yolundaki tüm eğitimlere kaydınız oluşturuldu.'));
     }
 
     public function instructor()
@@ -545,7 +586,7 @@ class LmsController extends Controller
 
         $coursesQuery = Auth::user()->courses()->withCount('sessions')->orderBy('title');
         if ($r->filled('q')) {
-            $coursesQuery->where('title', 'like', '%'.$r->query('q').'%');
+            $coursesQuery->whereLike('title', '%'.$r->query('q').'%', caseSensitive: false);
         }
         $courses = $coursesQuery->get();
 
@@ -593,18 +634,29 @@ class LmsController extends Controller
         }, 'katilimci-listesi-'.$session->id.'-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
-    public function instructorCourses()
+    /**
+     * Paginated and searchable for the same reason the participant list and
+     * My Learning already are: a trainer's course list only grows, and an
+     * unbounded grid of every course they have ever run is both slow and
+     * impossible to find anything in.
+     */
+    public function instructorCourses(Request $r)
     {
         abort_unless(Auth::user()->hasRole('instructor'), 403);
 
-        $courses = Auth::user()->courses()
+        $query = Auth::user()->courses()
             ->withCount([
                 'currentEnrollments as enrollments_count',
                 'currentEnrollments as completed_enrollments_count' => fn ($q) => $q->where('status', 'completed'),
             ])
             ->with('sessions')
-            ->latest()
-            ->get();
+            ->latest();
+
+        if ($r->filled('q')) {
+            $query->whereLike('title', '%'.$r->query('q').'%', caseSensitive: false);
+        }
+
+        $courses = $query->paginate(12)->withQueryString();
 
         return view('lms.instructor-courses', compact('courses'));
     }
@@ -619,7 +671,7 @@ class LmsController extends Controller
     {
         abort_unless(Auth::user()->hasRole('instructor'), 403);
 
-        $month = \Illuminate\Support\Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
+        $month = Carbon::parse($r->query('month', now()->toDateString()))->startOfMonth();
         $courses = Auth::user()->courses()->get();
         $courseIds = $courses->pluck('id');
 
@@ -709,7 +761,7 @@ class LmsController extends Controller
         [$items, $typeCounts, $activeType, $courses] = $this->filteredContentLibraryItems($r);
 
         return view('lms.content-library', [
-            'items' => new \Illuminate\Pagination\LengthAwarePaginator(
+            'items' => new LengthAwarePaginator(
                 $items->forPage($r->integer('page', 1), 20),
                 $items->count(), 20, $r->integer('page', 1),
                 ['path' => $r->url(), 'query' => $r->query()]
@@ -760,7 +812,7 @@ class LmsController extends Controller
         unset($data['avatar']);
         Auth::user()->update($data);
 
-        return back()->with('success', 'Profil bilgileriniz güncellendi.');
+        return back()->with('success', __('Profil bilgileriniz güncellendi.'));
     }
 
     public function courseDetail(Course $course)
@@ -822,7 +874,7 @@ class LmsController extends Controller
      * they're getting stuck -- a course-wide completion percentage can look
      * fine while one video is quietly losing half the class.
      */
-    private function buildCourseAnalytics(Course $course, \Illuminate\Support\Collection $assessableActivities): array
+    private function buildCourseAnalytics(Course $course, Collection $assessableActivities): array
     {
         $enrollmentIds = $course->currentEnrollments->pluck('id');
         $total = $enrollmentIds->count();
@@ -893,7 +945,7 @@ class LmsController extends Controller
     public function updateCourse(Request $r, Course $course)
     {
         $this->authorize('update', $course);
-        $data = $r->validate(['title' => 'required', 'description' => 'nullable', 'delivery_type' => 'required|in:online,offline', 'language' => 'required|in:tr,en', 'status' => 'required|in:draft,published,completed', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'guest_instructor_name' => 'nullable', 'guest_instructor_email' => 'nullable|email', 'guest_instructor_bio' => 'nullable', 'certificate_enabled' => 'nullable|boolean', 'sdg_goals' => 'nullable|array', 'poster' => 'nullable|image|max:5120', 'image' => 'nullable|image|max:5120']);
+        $data = $r->validate(['title' => 'required', 'description' => 'nullable', 'delivery_type' => 'required|in:online,offline', 'language' => 'required|in:tr,en', 'status' => 'required|in:draft,published,completed', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at', 'guest_instructor_name' => 'nullable', 'guest_instructor_email' => 'nullable|email', 'guest_instructor_bio' => 'nullable', 'certificate_enabled' => 'nullable|boolean', 'sdg_goals' => 'nullable|array', 'poster' => 'nullable|image|max:5120', 'image' => 'nullable|image|max:5120']);
         $data['certificate_enabled'] = $r->boolean('certificate_enabled');
         $data['sdg_goals'] = $r->input('sdg_goals', []);
         if ($r->hasFile('poster')) {
@@ -905,7 +957,7 @@ class LmsController extends Controller
         unset($data['poster'], $data['image']);
         $course->update($data);
 
-        return redirect()->route('instructor.courses.show', $course)->with('success', 'Eğitim ayarları kaydedildi.');
+        return redirect()->route('instructor.courses.show', $course)->with('success', __('Eğitim ayarları kaydedildi.'));
     }
 
     /**
@@ -963,7 +1015,7 @@ class LmsController extends Controller
     public function storeCourse(Request $r)
     {
         $this->authorize('create', Course::class);
-        $data = $r->validate(['title' => 'required', 'description' => 'nullable', 'delivery_type' => 'required|in:online,offline', 'language' => 'required|in:tr,en', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'guest_instructor_name' => 'nullable', 'guest_instructor_email' => 'nullable|email', 'guest_instructor_bio' => 'nullable', 'certificate_enabled' => 'nullable|boolean', 'sdg_goals' => 'nullable|array', 'poster' => 'nullable|image|max:5120', 'image' => 'nullable|image|max:5120']);
+        $data = $r->validate(['title' => 'required', 'description' => 'nullable', 'delivery_type' => 'required|in:online,offline', 'language' => 'required|in:tr,en', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at', 'guest_instructor_name' => 'nullable', 'guest_instructor_email' => 'nullable|email', 'guest_instructor_bio' => 'nullable', 'certificate_enabled' => 'nullable|boolean', 'sdg_goals' => 'nullable|array', 'poster' => 'nullable|image|max:5120', 'image' => 'nullable|image|max:5120']);
         $data['instructor_id'] = Auth::id();
         $data['status'] = 'published';
         $data['certificate_enabled'] = $r->boolean('certificate_enabled');
@@ -980,18 +1032,39 @@ class LmsController extends Controller
             $user->notify(new CoursePublished($course));
         }
 
-        return redirect()->route('instructor.courses.show', $course)->with('success', 'Eğitim planlandı ve yayınlandı.');
+        return redirect()->route('instructor.courses.show', $course)->with('success', __('Eğitim planlandı ve yayınlandı.'));
     }
 
     public function addSession(Request $r, Course $course)
     {
         $this->authorize('update', $course);
-        $data = $r->validate(['title' => 'required', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date', 'material' => ['nullable', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
-        $file = $r->file('material');
-        unset($data['material']);
+        // A lesson normally comes with a handful of handouts (slides, a PDF,
+        // a worksheet), so the form posts materials[] and every file is
+        // validated individually against the same safe-type allow-list. The
+        // singular 'material' is still accepted so older forms and links keep
+        // working. Validation runs before the session row is created, so a
+        // rejected file leaves nothing half-made behind.
+        $data = $r->validate([
+            'title' => 'required',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
+            'material' => ['nullable', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES],
+            'materials' => ['nullable', 'array', 'max:20'],
+            'materials.*' => ['file', 'max:51200', self::SAFE_UPLOAD_MIMES],
+        ]);
+        $files = array_filter(array_merge(
+            $r->file('materials') ?: [],
+            array_filter([$r->file('material')]),
+        ));
+        unset($data['material'], $data['materials']);
         $session = $course->sessions()->create(array_merge($data, ['room_key' => $course->delivery_type === 'online' ? Str::lower(Str::random(24)) : null, 'meeting_status' => $course->delivery_type === 'online' ? 'scheduled' : 'not_applicable']));
-        if ($file) {
-            Material::create(['course_session_id' => $session->id, 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+        foreach ($files as $file) {
+            Material::create([
+                'course_session_id' => $session->id,
+                'title' => $file->getClientOriginalName(),
+                'type' => $file->getMimeType(),
+                'path' => $file->store('materials', 'public'),
+            ]);
         }
         if ($course->delivery_type === 'online') {
             foreach ($course->currentEnrollments()->with('user')->get() as $enrollment) {
@@ -999,7 +1072,16 @@ class LmsController extends Controller
             }
         }
 
-        return back()->with('success', 'Seans planlandı. Portal içi toplantı odası otomatik oluşturuldu.');
+        // Only an online session actually gets a room; saying so on an
+        // in-person one told the trainer something that had not happened.
+        $message = $course->delivery_type === 'online'
+            ? __('Seans planlandı. Portal içi toplantı odası otomatik oluşturuldu.')
+            : __('Seans planlandı.');
+        if ($count = count($files)) {
+            $message .= ' '.trans_choice('{1}:count dosya eklendi.|[2,*]:count dosya eklendi.', $count, ['count' => $count]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function meeting(string $roomKey)
@@ -1016,7 +1098,7 @@ class LmsController extends Controller
         $enrollment = Auth::user()->currentEnrollmentForOrFail($session->course_id);
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now()]);
 
-        return back()->with('success', 'Seans başlangıcı kaydedildi.');
+        return back()->with('success', __('Seans başlangıcı kaydedildi.'));
     }
 
     /**
@@ -1033,11 +1115,11 @@ class LmsController extends Controller
         $enrollment = Auth::user()->currentEnrollmentForOrFail($session->course_id);
         $attended = SessionAttendance::where('course_session_id', $session->id)->where('user_id', Auth::id())->value('duration_seconds') ?? 0;
         $required = $this->completion->requiredSessionSeconds($session);
-        abort_unless($attended >= $required, 422, 'Seansı tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+        abort_unless($attended >= $required, 422, __('Seansı tamamlamadan tamamlandı olarak işaretleyemezsiniz.'));
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now(), 'completed_at' => now()]);
         $this->completion->evaluateEnrollment($enrollment);
 
-        return back()->with('success', 'Seans tamamlandı.');
+        return back()->with('success', __('Seans tamamlandı.'));
     }
 
     /**
@@ -1054,7 +1136,7 @@ class LmsController extends Controller
         SessionProgress::updateOrCreate(['enrollment_id' => $enrollment->id, 'course_session_id' => $session->id], ['started_at' => now(), 'last_seen_at' => now(), 'completed_at' => now()]);
         $this->completion->evaluateEnrollment($enrollment);
 
-        return back()->with('success', 'Katılım işaretlendi.');
+        return back()->with('success', __('Katılım işaretlendi.'));
     }
 
     public function classroom(CourseSession $session)
@@ -1084,7 +1166,7 @@ class LmsController extends Controller
             return response()->json(['id' => $material->id, 'title' => $material->title, 'type' => $material->type, 'url' => asset('storage/'.$material->path), 'uploaderId' => Auth::id(), 'uploaderName' => Auth::user()->name]);
         }
 
-        return back()->with('success', 'Dosya sınıfta paylaşıldı.');
+        return back()->with('success', __('Dosya sınıfta paylaşıldı.'));
     }
 
     /**
@@ -1111,6 +1193,25 @@ class LmsController extends Controller
         }
 
         return response()->json(['ok' => true, 'score' => $material->score]);
+    }
+
+    /**
+     * A shared document can be removed by whoever uploaded it or by the
+     * instructor running the session -- the same pair of roles allowed to
+     * upload one in the first place (see shareClassFile).
+     */
+    public function deleteSharedMaterial(Material $material)
+    {
+        $session = $material->session;
+        abort_unless(Auth::id() === $material->uploaded_by_id || Auth::id() === $session->course->instructor_id, 403);
+        Storage::disk('public')->delete($material->path);
+        $material->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return back()->with('success', __('Dosya kaldırıldı.'));
     }
 
     public function classMessage(Request $r, CourseSession $session)
@@ -1244,11 +1345,11 @@ class LmsController extends Controller
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         if (str_starts_with($material->type, 'video/')) {
             $required = $this->completion->requiredWatchSeconds($material->duration_seconds);
-            abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+            abort_unless($progress->watched_seconds >= $required, 422, __('İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.'));
         }
         $this->completion->completeMaterialProgress($progress, $enrollment);
 
-        return back()->with('success', 'Materyal tamamlandı olarak işaretlendi.');
+        return back()->with('success', __('Materyal tamamlandı olarak işaretlendi.'));
     }
 
     public function activityView(Activity $activity)
@@ -1328,7 +1429,7 @@ class LmsController extends Controller
 
         AssignmentSubmission::create($submission);
 
-        return redirect()->route('activities.view', $activity)->with('success', 'Ödeviniz teslim edildi, eğitmeniniz değerlendirecek.');
+        return redirect()->route('activities.view', $activity)->with('success', __('Ödeviniz teslim edildi, eğitmeniniz değerlendirecek.'));
     }
 
     /**
@@ -1386,7 +1487,7 @@ class LmsController extends Controller
             $this->completion->completeActivityProgress($progress, $submission->enrollment);
         }
 
-        return back()->with('success', 'Ödev değerlendirildi.');
+        return back()->with('success', __('Ödev değerlendirildi.'));
     }
 
     public function activityHeartbeat(Activity $activity)
@@ -1421,11 +1522,11 @@ class LmsController extends Controller
         $progress = ActivityProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'activity_id' => $activity->id]);
         if ($activity->type === 'video') {
             $required = $this->completion->requiredWatchSeconds($activity->duration_seconds);
-            abort_unless($progress->watched_seconds >= $required, 422, 'İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.');
+            abort_unless($progress->watched_seconds >= $required, 422, __('İçeriği tamamlamadan tamamlandı olarak işaretleyemezsiniz.'));
         }
         $this->completion->completeActivityProgress($progress, $enrollment);
 
-        return back()->with('success', 'Aktivite tamamlandı olarak işaretlendi.');
+        return back()->with('success', __('Aktivite tamamlandı olarak işaretlendi.'));
     }
 
     /**
@@ -1493,7 +1594,20 @@ class LmsController extends Controller
         $this->authorize('view', $certificate);
         abort_if($certificate->isRevoked(), 410, 'Bu sertifika iptal edilmiştir ve artık indirilemez.');
 
-        return Pdf::loadView('lms.certificate', ['certificate' => $certificate, 'enrollment' => $certificate->enrollment->load('user', 'course')])->setPaper('a4', 'landscape')->download($certificate->certificate_number.'.pdf');
+        $pdf = Pdf::loadView('lms.certificate', ['certificate' => $certificate, 'enrollment' => $certificate->enrollment->load('user', 'course')])
+            ->setPaper('a4', 'landscape')
+            ->setOption('dpi', 96)
+            ->setOption('margin_top', 0)
+            ->setOption('margin_right', 0)
+            ->setOption('margin_bottom', 0)
+            ->setOption('margin_left', 0);
+
+        return $pdf->download($certificate->certificate_number.'.pdf')
+            ->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
     }
 
     /**

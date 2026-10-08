@@ -11,8 +11,8 @@ class ScimTokenForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Token adı')->required()->maxLength(160)
-                    ->helperText('Bu token\'ı hangi kimlik sağlayıcının (Okta, Entra ID, vb.) kullandığını hatırlamanıza yarar.'),
+                TextInput::make('name')->label(__('Token adı'))->required()->maxLength(160)
+                    ->helperText(__('Bu token\'ı hangi kimlik sağlayıcının (Okta, Entra ID, vb.) kullandığını hatırlamanıza yarar.')),
             ]);
     }
 }

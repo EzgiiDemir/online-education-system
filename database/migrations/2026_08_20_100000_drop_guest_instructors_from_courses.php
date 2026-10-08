@@ -16,7 +16,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('courses', function (Blueprint $table) {
-            $table->json('guest_instructors')->nullable();
+            $table->jsonb('guest_instructors')->nullable();
         });
     }
 };

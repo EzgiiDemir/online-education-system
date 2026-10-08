@@ -40,24 +40,26 @@ class QrCodeGenerator
      * primitive for anywhere that DOES support inline SVG (a browser page)
      * and is covered directly by QrCodeGeneratorTest.
      */
-    public static function svg(string $data, int $size = 100): string
+    public static function svg(string $data, int $size = 100, string $unit = ''): string
     {
         $options = new QROptions;
         $options->outputType = QROutputInterface::MARKUP_SVG;
         $options->outputBase64 = false;
         $options->svgAddXmlHeader = false;
+        $options->quietzoneSize = 1;
 
         $svg = (new ChillerlanQrCode($options))->render($data);
+        $dimension = $unit === '' ? (string) $size : $size.$unit;
 
-        return preg_replace('/<svg /', '<svg width="'.$size.'" height="'.$size.'" ', $svg, 1);
+        return preg_replace('/<svg /', '<svg width="'.$dimension.'" height="'.$dimension.'" ', $svg, 1);
     }
 
     /**
      * A data: URI wrapping the same SVG, for embedding via a real <img>
      * tag -- the only QR embedding that actually renders under DomPDF.
      */
-    public static function dataUri(string $data, int $size = 100): string
+    public static function dataUri(string $data, int $size = 100, string $unit = ''): string
     {
-        return 'data:image/svg+xml;base64,'.base64_encode(static::svg($data, $size));
+        return 'data:image/svg+xml;base64,'.base64_encode(static::svg($data, $size, $unit));
     }
 }

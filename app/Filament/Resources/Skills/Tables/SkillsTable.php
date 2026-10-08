@@ -17,8 +17,8 @@ class SkillsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Yetkinlik adı')->searchable()->sortable(),
-                TextColumn::make('courses_count')->label('Eğitim sayısı')->counts('courses')->badge(),
+                TextColumn::make('name')->label(__('Yetkinlik adı'))->searchable()->sortable(),
+                TextColumn::make('courses_count')->label(__('Eğitim sayısı'))->counts('courses')->badge(),
             ])
             ->recordActions([
                 ViewAction::make(),

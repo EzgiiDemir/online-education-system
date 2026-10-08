@@ -14,12 +14,12 @@ class ScimTokensTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Token adı')->searchable(),
-                TextColumn::make('last_used_at')->label('Son kullanım')->dateTime('d.m.Y H:i')->placeholder('Hiç kullanılmadı'),
-                TextColumn::make('created_at')->label('Oluşturulma')->dateTime('d.m.Y H:i')->sortable(),
+                TextColumn::make('name')->label(__('Token adı'))->searchable(),
+                TextColumn::make('last_used_at')->label(__('Son kullanım'))->dateTime('d.m.Y H:i')->placeholder(__('Hiç kullanılmadı')),
+                TextColumn::make('created_at')->label(__('Oluşturulma'))->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->recordActions([
-                DeleteAction::make()->label('İptal et'),
+                DeleteAction::make()->label(__('İptal et')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

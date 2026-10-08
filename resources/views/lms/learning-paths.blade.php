@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Learning paths' : 'Öğrenim yolları').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Learning paths' : 'Öğrenim yolları').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'LEARNING PATHS' : 'ÖĞRENİM YOLLARI' }}</span><h1>{{ $en ? 'Learning paths' : 'Öğrenim yolları' }}</h1><p class="muted">{{ $en ? 'Structured, multi-course programs that build a full skill set.' : 'Tam bir yetkinlik seti kazandıran, birden çok eğitimden oluşan yapılandırılmış programlar.' }}</p></div></div>

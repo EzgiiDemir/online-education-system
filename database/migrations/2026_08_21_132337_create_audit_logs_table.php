@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('entity_type');
             $table->unsignedBigInteger('entity_id')->nullable();
             $table->string('entity_label')->nullable();
-            $table->json('changes')->nullable();
+            $table->jsonb('changes')->nullable();
             $table->string('ip_address')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->index(['entity_type', 'entity_id']);

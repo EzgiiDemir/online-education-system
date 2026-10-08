@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ session('locale','tr') }}">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@yield('page-title', session('locale', 'tr') === 'en' ? 'Manager workspace' : 'Yönetici çalışma alanı') · {{ session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi' }}</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor-forms.css') }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>@yield('page-title', session('locale', 'tr') === 'en' ? 'Manager workspace' : 'Yönetici çalışma alanı') · {{ session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi' }}</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor.css') }}"><link rel="stylesheet" href="{{ asset('css/instructor-forms.css') }}">
 <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="instructor-page">
@@ -15,7 +15,7 @@
 ]]])
 @php($sidebarGroups[] = ['label' => $en ? 'ACCOUNT' : 'HESAP', 'items' => [
     ['url' => route('account.show'), 'label' => $en ? 'Account' : 'Hesap bilgileri', 'icon' => 'circle-user', 'active' => request()->routeIs('account.show')],
-    ['url' => route('certificates.verify.lookup'), 'label' => $en ? 'Verification' : 'Doğrulama', 'icon' => 'trophy', 'active' => request()->routeIs('certificates.verify*')],
+    ['url' => route('certificates.verify.lookup'), 'label' => $en ? 'Certificate Verification' : 'Sertifika Doğrulama', 'icon' => 'trophy', 'active' => request()->routeIs('certificates.verify*')],
 ]])
 @php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== 'manager'))
 @if(!empty($otherWorkspaces))
@@ -60,7 +60,7 @@
 </button>
 <div class="profile-dropdown dropdown-menu">
 <div class="dropdown-head"><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></div>
-<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<x-locale-switcher />
 <div class="dropdown-divider"></div>
 <a href="{{ route('lms.home') }}"><x-lucide name="globe" size="16" /> {{ $en ? 'View portal' : 'Portalı görüntüle' }}</a>
 <button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
@@ -70,6 +70,7 @@
 </div>
 </header>
 <main class="page-shell container instructor-main">
+@unless(request()->routeIs('manager.dashboard'))<x-back-link :fallback="route('manager.dashboard')" />@endunless
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
 @yield('content')
 </main>

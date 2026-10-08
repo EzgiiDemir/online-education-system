@@ -25,7 +25,7 @@ class LiveSessionScheduled extends Notification implements ShouldQueue
         $start = $session->starts_at?->utc()->format('Ymd\\THis\\Z') ?? now()->utc()->format('Ymd\\THis\\Z');
         $end = $session->ends_at?->utc()->format('Ymd\\THis\\Z') ?? now()->addHour()->utc()->format('Ymd\\THis\\Z');
         $url = $session->meeting_url;
-        $ics = "BEGIN:VCALENDAR\\r\\nVERSION:2.0\\r\\nPRODID:-//Arucad Surekli Ogrenme Merkezi//Live Class//EN\\r\\nBEGIN:VEVENT\\r\\nUID:session-{$session->id}@campus-lms\\r\\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\\r\\nDTSTART:{$start}\\r\\nDTEND:{$end}\\r\\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\\r\\nDESCRIPTION:Arucad Sürekli Öğrenme Merkezi canlı sınıfı\\n{$url}\\r\\nURL:{$url}\\r\\nEND:VEVENT\\r\\nEND:VCALENDAR\\r\\n";
+        $ics = "BEGIN:VCALENDAR\\r\\nVERSION:2.0\\r\\nPRODID:-//Arucad Egitim Merkezi//Live Class//EN\\r\\nBEGIN:VEVENT\\r\\nUID:session-{$session->id}@campus-lms\\r\\nDTSTAMP:".now()->utc()->format('Ymd\\THis\\Z')."\\r\\nDTSTART:{$start}\\r\\nDTEND:{$end}\\r\\nSUMMARY:".addslashes($session->course->title.' - '.$session->title)."\\r\\nDESCRIPTION:Arucad Eğitim Merkezi canlı sınıfı\\n{$url}\\r\\nURL:{$url}\\r\\nEND:VEVENT\\r\\nEND:VCALENDAR\\r\\n";
 
         return (new MailMessage)->subject('Canlı ders daveti: '.$session->course->title)->greeting('Merhaba '.$notifiable->name.',')->line('Kayıt olduğunuz eğitim için canlı ders planlandı.')->line('Ders: '.$session->title)->line('Tarih: '.($session->starts_at?->format('d.m.Y H:i') ?? 'Belirlenmedi'))->action('Canlı sınıfa katıl', $url)->line('Dersi takviminize eklemek için bu e-postadaki ICS dosyasını kullanabilirsiniz.')->attachData($ics, 'campus-lms-canli-ders.ics', ['mime' => 'text/calendar']);
     }

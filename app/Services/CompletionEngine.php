@@ -8,9 +8,12 @@ use App\Models\CourseSession;
 use App\Models\Enrollment;
 use App\Models\MaterialProgress;
 use App\Models\SessionAttendance;
+use App\Notifications\CourseCompleted;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Single choke point for every "is this content complete" / "is this
@@ -180,25 +183,52 @@ class CompletionEngine
                 'completed_at' => $enrollment->completed_at->toIso8601String(),
             ]);
 
+            $certificate = null;
+
+            // "Sertifika üret" is a real setting on the course (the creation
+            // wizard asks for it, the Settings tab shows it), so a course with
+            // it switched off -- an information session, a non-accredited
+            // briefing -- completes without minting an official participation
+            // certificate. The column is NOT NULL DEFAULT true, so every
+            // ordinary course is unaffected.
+            if ($enrollment->course->certificate_enabled) {
+                try {
+                    $certificate = Certificate::create([
+                        'enrollment_id' => $enrollment->id,
+                        'certificate_number' => 'CERT-'.strtoupper(Str::random(10)),
+                        'issued_at' => now(),
+                    ]);
+                    $this->webhooks->dispatch('certificate.issued', [
+                        'certificate_id' => $certificate->id,
+                        'certificate_number' => $certificate->certificate_number,
+                        'enrollment_id' => $enrollment->id,
+                        'user_id' => $enrollment->user_id,
+                        'course_id' => $enrollment->course_id,
+                        'issued_at' => $certificate->issued_at->toIso8601String(),
+                    ]);
+                } catch (QueryException) {
+                    // Lost the create race; a certificate for this enrollment
+                    // already exists (that's the only thing this constraint
+                    // guards), so there's nothing left to do -- including no
+                    // second certificate.issued dispatch. Read back the
+                    // winner's row so the notification still links to it.
+                    $certificate = Certificate::where('enrollment_id', $enrollment->id)->first();
+                }
+            }
+
+            // Completion dispatched webhooks above, so every integrated
+            // system already knows -- tell the person it actually happened
+            // to as well, otherwise they only find out by logging in and
+            // noticing. Guarded so a mail/queue problem can never roll back
+            // a completion that genuinely happened.
             try {
-                $certificate = Certificate::create([
+                $enrollment->loadMissing('user', 'course');
+                $enrollment->user?->notify(new CourseCompleted($enrollment, $certificate));
+            } catch (Throwable $e) {
+                Log::warning('Course completion notification failed', [
                     'enrollment_id' => $enrollment->id,
-                    'certificate_number' => 'CERT-'.strtoupper(Str::random(10)),
-                    'issued_at' => now(),
+                    'error' => $e->getMessage(),
                 ]);
-                $this->webhooks->dispatch('certificate.issued', [
-                    'certificate_id' => $certificate->id,
-                    'certificate_number' => $certificate->certificate_number,
-                    'enrollment_id' => $enrollment->id,
-                    'user_id' => $enrollment->user_id,
-                    'course_id' => $enrollment->course_id,
-                    'issued_at' => $certificate->issued_at->toIso8601String(),
-                ]);
-            } catch (QueryException) {
-                // Lost the create race; a certificate for this enrollment
-                // already exists (that's the only thing this constraint
-                // guards), so there's nothing left to do -- including no
-                // second certificate.issued dispatch.
             }
         }
     }

@@ -12,8 +12,8 @@ class OrganizationUnitForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Birim adı')->required()->maxLength(160),
-                Select::make('parent_id')->label('Üst birim')
+                TextInput::make('name')->label(__('Birim adı'))->required()->maxLength(160),
+                Select::make('parent_id')->label(__('Üst birim'))
                     ->relationship('parent', 'name', modifyQueryUsing: function ($query, $record) {
                         if (! $record) {
                             return $query;
@@ -27,7 +27,7 @@ class OrganizationUnitForm
                     })
                     ->searchable()
                     ->preload()
-                    ->helperText('Boş bırakılırsa en üst seviye birim olur.'),
+                    ->helperText(__('Boş bırakılırsa en üst seviye birim olur.')),
             ]);
     }
 }

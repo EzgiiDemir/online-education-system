@@ -13,16 +13,16 @@ class CourseRunForm
     {
         return $schema
             ->components([
-                Select::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload()->required(),
-                TextInput::make('name')->label('Dönem adı')->required()->maxLength(120),
-                TextInput::make('code')->label('Dönem kodu')->required()->maxLength(40)->unique(ignoreRecord: true),
-                Select::make('language')->label('Eğitim dili')->options(['tr' => 'Türkçe', 'en' => 'English'])->required()->default('tr'),
-                DateTimePicker::make('enrollment_opens_at')->label('Kayıt başlangıcı'),
-                DateTimePicker::make('enrollment_closes_at')->label('Kayıt bitişi'),
-                DateTimePicker::make('starts_at')->label('Dönem başlangıcı'),
-                DateTimePicker::make('ends_at')->label('Dönem bitişi'),
-                Select::make('status')->label('Durum')->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'])->required()->default('draft')->helperText('Yalnızca "Kayıt açık" veya "Devam ediyor" durumundaki dönemler, öğrenci kayıt olduğunda otomatik atanır.'),
-                TextInput::make('max_seats')->label('Maksimum kontenjan')->numeric()->minValue(1)->helperText('Boş = sınırsız. Kontenjan dolunca yeni kayıtlar bekleme listesine alınır.'),
+                Select::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload()->required(),
+                TextInput::make('name')->label(__('Dönem adı'))->required()->maxLength(120),
+                TextInput::make('code')->label(__('Dönem kodu'))->required()->maxLength(40)->unique(ignoreRecord: true),
+                Select::make('language')->label(__('Eğitim dili'))->options(['tr' => 'Türkçe', 'en' => 'English'])->required()->default('tr'),
+                DateTimePicker::make('enrollment_opens_at')->label(__('Kayıt başlangıcı')),
+                DateTimePicker::make('enrollment_closes_at')->label(__('Kayıt bitişi')),
+                DateTimePicker::make('starts_at')->label(__('Dönem başlangıcı')),
+                DateTimePicker::make('ends_at')->label(__('Dönem bitişi')),
+                Select::make('status')->label(__('Durum'))->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'])->required()->default('draft')->helperText(__('Yalnızca "Kayıt açık" veya "Devam ediyor" durumundaki dönemler, öğrenci kayıt olduğunda otomatik atanır.')),
+                TextInput::make('max_seats')->label(__('Maksimum kontenjan'))->numeric()->minValue(1)->helperText(__('Boş = sınırsız. Kontenjan dolunca yeni kayıtlar bekleme listesine alınır.')),
             ]);
     }
 }

@@ -8,6 +8,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * A single screen answering "is the stuff nothing else on this dashboard
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\DB;
  */
 class SystemHealth extends Page
 {
+    use TranslatesNavigation;
+
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedHeart;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sistem';
@@ -29,6 +32,11 @@ class SystemHealth extends Page
     protected static ?string $title = 'Sistem sağlığı';
 
     protected string $view = 'filament.pages.system-health';
+
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('Sistem sağlığı');
+    }
 
     public function getMetrics(): array
     {
@@ -87,8 +95,8 @@ class SystemHealth extends Page
     public function getScheduledJobs(): array
     {
         return collect([
-            ['command' => 'app:send-training-reminders', 'label' => 'Eğitim hatırlatmaları', 'frequency' => 'Her gün 07:00', 'overdue_after_hours' => 26],
-            ['command' => 'app:purge-expired-recordings', 'label' => 'Süresi dolan kayıtları temizleme', 'frequency' => 'Her gün 03:00', 'overdue_after_hours' => 26],
+            ['command' => 'app:send-training-reminders', 'label' => __('Eğitim hatırlatmaları'), 'frequency' => __('Her gün 07:00'), 'overdue_after_hours' => 26],
+            ['command' => 'app:purge-expired-recordings', 'label' => __('Süresi dolan kayıtları temizleme'), 'frequency' => __('Her gün 03:00'), 'overdue_after_hours' => 26],
         ])->map(function (array $job) {
             $lastRun = Cache::get('scheduled_job_last_run:'.$job['command']);
             $job['last_run'] = $lastRun;
@@ -106,18 +114,18 @@ class SystemHealth extends Page
     public function retryFailedJob(string $uuid): void
     {
         Artisan::call('queue:retry', ['id' => [$uuid]]);
-        Notification::make()->title('İş yeniden kuyruğa alındı')->success()->send();
+        Notification::make()->title(__('İş yeniden kuyruğa alındı'))->success()->send();
     }
 
     public function deleteFailedJob(string $uuid): void
     {
         DB::table('failed_jobs')->where('uuid', $uuid)->delete();
-        Notification::make()->title('Başarısız iş kaydı silindi')->success()->send();
+        Notification::make()->title(__('Başarısız iş kaydı silindi'))->success()->send();
     }
 
     public function retryAllFailedJobs(): void
     {
         Artisan::call('queue:retry', ['id' => ['all']]);
-        Notification::make()->title('Tüm başarısız işler yeniden kuyruğa alındı')->success()->send();
+        Notification::make()->title(__('Tüm başarısız işler yeniden kuyruğa alındı'))->success()->send();
     }
 }

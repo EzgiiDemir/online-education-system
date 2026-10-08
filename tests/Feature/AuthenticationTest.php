@@ -17,7 +17,7 @@ class AuthenticationTest extends TestCase
 
         PortalSetting::create([
             'id' => 1,
-            'portal_name' => 'Arucad Sürekli Öğrenme Merkezi',
+            'portal_name' => 'Arucad Eğitim Merkezi',
             'accepted_domains' => ['company.com'],
             'local_login_enabled' => true,
         ]);
@@ -80,5 +80,24 @@ class AuthenticationTest extends TestCase
         $response = $this->post('/login', ['email' => 'admin@company.com', 'password' => 'secret123']);
 
         $response->assertRedirect('/admin');
+    }
+
+    public function test_learner_logout_clears_the_session_and_stays_logged_out(): void
+    {
+        $learner = User::factory()->create(['email' => 'user@company.com', 'password' => 'secret123', 'role' => 'learner']);
+
+        $this->actingAs($learner)->post(route('logout'))->assertRedirect('/');
+        $this->assertGuest('web');
+        $this->get(route('lms.home'))->assertOk()->assertSee(route('login'), false);
+    }
+
+    public function test_instructor_logout_does_not_immediately_sign_them_back_in(): void
+    {
+        $instructor = User::factory()->create(['email' => 'trainer@company.com', 'password' => 'secret123', 'role' => 'instructor']);
+
+        $this->actingAs($instructor)->post(route('instructor.logout'))->assertRedirect('/');
+        $this->assertGuest('web');
+        $this->assertGuest('instructor');
+        $this->get(route('instructor.dashboard'))->assertRedirect(route('instructor.login'));
     }
 }

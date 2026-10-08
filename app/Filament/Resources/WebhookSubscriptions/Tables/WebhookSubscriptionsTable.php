@@ -22,25 +22,25 @@ class WebhookSubscriptionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Ad')->searchable(),
-                TextColumn::make('url')->label('URL')->limit(40)->searchable(),
-                TextColumn::make('events')->label('Olaylar')->badge()
+                TextColumn::make('name')->label(__('Ad'))->searchable(),
+                TextColumn::make('url')->label(__('URL'))->limit(40)->searchable(),
+                TextColumn::make('events')->label(__('Olaylar'))->badge()
                     ->formatStateUsing(fn (string $state) => WebhookSubscription::EVENTS[$state] ?? $state),
-                IconColumn::make('is_active')->label('Aktif')->boolean(),
-                TextColumn::make('deliveries_count')->label('Teslimat')->counts('deliveries')->badge(),
-                TextColumn::make('created_at')->label('Oluşturulma')->dateTime('d.m.Y')->sortable()->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_active')->label(__('Aktif'))->boolean(),
+                TextColumn::make('deliveries_count')->label(__('Teslimat'))->counts('deliveries')->badge(),
+                TextColumn::make('created_at')->label(__('Oluşturulma'))->dateTime('d.m.Y')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 EditAction::make(),
                 Action::make('test')
-                    ->label('Test gönder')
+                    ->label(__('Test gönder'))
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->color('gray')
                     ->action(function (WebhookSubscription $record) {
                         DeliverWebhookJob::dispatchSync($record, 'webhook.test', [
-                            'message' => 'Bu, Arucad Sürekli Öğrenme Merkezi\'nden gönderilen bir test bildirimdir.',
+                            'message' => 'Bu, Arucad Eğitim Merkezi\'nden gönderilen bir test bildirimdir.',
                         ], isTest: true);
-                        Notification::make()->title('Test teslimatı gönderildi, sonucu aşağıdaki geçmişte görebilirsiniz.')->success()->send();
+                        Notification::make()->title(__('Test teslimatı gönderildi, sonucu aşağıdaki geçmişte görebilirsiniz.'))->success()->send();
                     }),
                 ViewAuditLogAction::make(),
                 DeleteAction::make(),

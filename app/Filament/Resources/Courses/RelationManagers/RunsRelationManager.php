@@ -25,11 +25,11 @@ class RunsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Dönem adı')->required()->maxLength(120),
-                TextInput::make('code')->label('Dönem kodu')->required()->maxLength(40)->unique(ignoreRecord: true),
-                Select::make('status')->label('Durum')->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'])->default('draft')->required()->native(false),
-                DateTimePicker::make('starts_at')->label('Başlangıç'),
-                DateTimePicker::make('ends_at')->label('Bitiş'),
+                TextInput::make('name')->label(__('Dönem adı'))->required()->maxLength(120),
+                TextInput::make('code')->label(__('Dönem kodu'))->required()->maxLength(40)->unique(ignoreRecord: true),
+                Select::make('status')->label(__('Durum'))->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'])->default('draft')->required()->native(false),
+                DateTimePicker::make('starts_at')->label(__('Başlangıç')),
+                DateTimePicker::make('ends_at')->label(__('Bitiş')),
             ]);
     }
 
@@ -38,12 +38,12 @@ class RunsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('name')->label('Dönem'),
-                TextColumn::make('code')->label('Kod'),
-                TextColumn::make('status')->label('Durum')->badge()
+                TextColumn::make('name')->label(__('Dönem')),
+                TextColumn::make('code')->label(__('Kod')),
+                TextColumn::make('status')->label(__('Durum'))->badge()
                     ->formatStateUsing(fn ($state) => ['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'][$state] ?? $state),
-                TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),
-                TextColumn::make('starts_at')->label('Başlangıç')->dateTime('d.m.Y'),
+                TextColumn::make('enrollments_count')->label(__('Kayıt'))->counts('enrollments')->badge(),
+                TextColumn::make('starts_at')->label(__('Başlangıç'))->dateTime('d.m.Y'),
             ])
             ->filters([
                 //

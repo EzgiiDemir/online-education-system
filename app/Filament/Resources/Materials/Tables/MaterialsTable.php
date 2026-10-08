@@ -19,18 +19,18 @@ class MaterialsTable
     {
         return $table
             ->columns([
-                TextColumn::make('session.course.title')->label('Eğitim')->searchable()->sortable(),
-                TextColumn::make('session.title')->label('Seans')->searchable(),
-                TextColumn::make('title')->label('Materyal')->searchable(),
-                TextColumn::make('type')->label('Tür')->badge(),
-                TextColumn::make('duration_seconds')->label('Süre (sn)')->placeholder('Belirsiz'),
+                TextColumn::make('session.course.title')->label(__('Eğitim'))->searchable()->sortable(),
+                TextColumn::make('session.title')->label(__('Seans'))->searchable(),
+                TextColumn::make('title')->label(__('Materyal'))->searchable(),
+                TextColumn::make('type')->label(__('Tür'))->badge(),
+                TextColumn::make('duration_seconds')->label(__('Süre (sn)'))->placeholder(__('Belirsiz')),
                 TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('course_session_id')->label('Seans')->relationship('session', 'title')->searchable()->preload(),
+                SelectFilter::make('course_session_id')->label(__('Seans'))->relationship('session', 'title')->searchable()->preload(),
             ])
             ->recordActions([
-                Action::make('preview')->label('Önizle')->icon(Heroicon::OutlinedEye)->color('gray')
+                Action::make('preview')->label(__('Önizle'))->icon(Heroicon::OutlinedEye)->color('gray')
                     ->url(fn ($record) => $record->path ? asset('storage/'.$record->path) : null)
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => (bool) $record->path),

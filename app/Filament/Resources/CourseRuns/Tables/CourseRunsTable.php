@@ -19,21 +19,21 @@ class CourseRunsTable
         return $table
             ->columns([
                 TextColumn::make('course.title')
-                    ->label('Eğitim')
+                    ->label(__('Eğitim'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
-                    ->label('Dönem adı')
+                    ->label(__('Dönem adı'))
                     ->searchable(),
                 TextColumn::make('code')
-                    ->label('Kod')
+                    ->label(__('Kod'))
                     ->searchable(),
-                TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),
-                TextColumn::make('max_seats')->label('Kontenjan')->placeholder('Sınırsız'),
-                TextColumn::make('waitlist_entries_count')->label('Bekleme listesi')->counts('waitlistEntries')->badge()
+                TextColumn::make('enrollments_count')->label(__('Kayıt'))->counts('enrollments')->badge(),
+                TextColumn::make('max_seats')->label(__('Kontenjan'))->placeholder(__('Sınırsız')),
+                TextColumn::make('waitlist_entries_count')->label(__('Bekleme listesi'))->counts('waitlistEntries')->badge()
                     ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
                 TextColumn::make('status')
-                    ->label('Durum')
+                    ->label(__('Durum'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => ['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi'][$state] ?? $state)
                     ->color(fn ($state) => match ($state) {
@@ -42,11 +42,11 @@ class CourseRunsTable
                         default => 'warning',
                     }),
                 TextColumn::make('starts_at')
-                    ->label('Başlangıç')
+                    ->label(__('Başlangıç'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('ends_at')
-                    ->label('Bitiş')
+                    ->label(__('Bitiş'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -55,8 +55,8 @@ class CourseRunsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
-                SelectFilter::make('status')->label('Durum')->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi']),
+                SelectFilter::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload(),
+                SelectFilter::make('status')->label(__('Durum'))->options(['draft' => 'Taslak', 'open' => 'Kayıt açık', 'running' => 'Devam ediyor', 'completed' => 'Tamamlandı', 'archived' => 'Arşivlendi']),
             ])
             ->recordActions([
                 ViewAction::make(),

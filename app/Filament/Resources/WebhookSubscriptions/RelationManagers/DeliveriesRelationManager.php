@@ -29,11 +29,11 @@ class DeliveriesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('event')
             ->columns([
-                TextColumn::make('event')->label('Olay'),
-                TextColumn::make('attempt')->label('Deneme'),
-                TextColumn::make('response_status')->label('HTTP durumu')->placeholder('—'),
-                IconColumn::make('successful')->label('Başarılı')->boolean(),
-                TextColumn::make('created_at')->label('Gönderim zamanı')->dateTime('d.m.Y H:i:s')->sortable(),
+                TextColumn::make('event')->label(__('Olay')),
+                TextColumn::make('attempt')->label(__('Deneme')),
+                TextColumn::make('response_status')->label(__('HTTP durumu'))->placeholder(__('—')),
+                IconColumn::make('successful')->label(__('Başarılı'))->boolean(),
+                TextColumn::make('created_at')->label(__('Gönderim zamanı'))->dateTime('d.m.Y H:i:s')->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([])

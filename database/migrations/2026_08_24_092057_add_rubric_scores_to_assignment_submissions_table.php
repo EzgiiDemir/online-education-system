@@ -16,7 +16,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assignment_submissions', function (Blueprint $table) {
-            $table->json('rubric_scores')->nullable()->after('score');
+            $table->jsonb('rubric_scores')->nullable()->after('score');
         });
     }
 

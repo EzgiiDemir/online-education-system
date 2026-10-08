@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Enrollment report' : 'Kayıt raporu').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Enrollment report' : 'Kayıt raporu').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'REPORTS' : 'RAPORLAR' }}</span><h1>{{ $en ? 'Enrollment report' : 'Kayıt raporu' }}</h1><p class="muted">{{ $en ? 'Filter and export learner, course, status, completion and certificate data.' : 'Öğrenci, eğitim, durum, tamamlanma ve sertifika bilgilerini filtreleyip dışa aktarın.' }}</p></div></div>

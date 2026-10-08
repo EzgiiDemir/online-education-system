@@ -13,12 +13,12 @@ class CourseSectionForm
     {
         return $schema
             ->components([
-                Select::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload()->required(),
-                TextInput::make('title')->label('Bölüm başlığı')
+                Select::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload()->required(),
+                TextInput::make('title')->label(__('Bölüm başlığı'))
                     ->required(),
-                Textarea::make('description')->label('Açıklama')
+                Textarea::make('description')->label(__('Açıklama'))
                     ->columnSpanFull(),
-                TextInput::make('sort_order')->label('Sıralama')
+                TextInput::make('sort_order')->label(__('Sıralama'))
                     ->required()
                     ->numeric()
                     ->default(0),

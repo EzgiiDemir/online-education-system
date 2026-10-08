@@ -23,6 +23,13 @@ class QrCodeGeneratorTest extends TestCase
         $this->assertStringStartsWith('<svg width="200" height="200"', $svg);
     }
 
+    public function test_svg_size_can_use_millimeter_units_for_pdf(): void
+    {
+        $svg = QrCodeGenerator::svg('https://example.com/verify/CERT-1', 53, 'mm');
+
+        $this->assertStringStartsWith('<svg width="53mm" height="53mm"', $svg);
+    }
+
     /**
      * dataUri() exists because DomPDF cannot render a bare inline <svg> at
      * all (see the class docblock and CertificateLifecycleTest) -- an <img>

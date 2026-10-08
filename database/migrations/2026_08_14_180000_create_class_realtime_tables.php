@@ -22,7 +22,7 @@ return new class extends Migration
             $t->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
             $t->foreignId('recipient_id')->nullable()->constrained('users')->nullOnDelete();
             $t->string('type');
-            $t->json('payload');
+            $t->jsonb('payload');
             $t->boolean('consumed')->default(false);
             $t->timestamps();
         });

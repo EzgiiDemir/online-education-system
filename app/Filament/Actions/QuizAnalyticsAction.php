@@ -17,13 +17,13 @@ class QuizAnalyticsAction
     public static function make(): Action
     {
         return Action::make('quizAnalytics')
-            ->label('Analitik')
+            ->label(__('Analitik'))
             ->icon(Heroicon::OutlinedChartBar)
             ->color('gray')
             ->visible(fn (Activity $record) => $record->type === 'quiz')
-            ->modalHeading('Sınav analitiği')
+            ->modalHeading(__('Sınav analitiği'))
             ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Kapat')
+            ->modalCancelActionLabel(__('Kapat'))
             ->modalContent(fn (Activity $record) => view('filament.quiz-analytics-modal', [
                 'summary' => app(QuizAnalyticsService::class)->summarize($record),
             ]));

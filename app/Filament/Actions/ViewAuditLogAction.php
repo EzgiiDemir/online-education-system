@@ -19,7 +19,7 @@ class ViewAuditLogAction
     public static function make(): Action
     {
         return Action::make('auditLog')
-            ->label('Kayıt geçmişi')
+            ->label(__('Kayıt geçmişi'))
             ->icon(Heroicon::OutlinedClock)
             ->color('gray')
             ->modalHeading('Kayıt geçmişi')

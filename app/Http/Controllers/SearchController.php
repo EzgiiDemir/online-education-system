@@ -52,8 +52,10 @@ class SearchController extends Controller
     }
 
     /**
-     * A plain LIKE '%query%' is already case-insensitive (SQLite/MySQL's
-     * default collations both fold ASCII case), but it goes empty-handed on
+     * whereLike(caseSensitive: false) keeps the exact pass case-insensitive
+     * on every engine -- it compiles to ILIKE on Postgres, whose LIKE (unlike
+     * SQLite's/MySQL's) does NOT fold case. The exact pass still goes
+     * empty-handed on
      * a typo ("pazrlama" never matches "Pazarlama"). When the exact pass
      * finds nothing, this falls back to scoring every candidate's title by
      * Levenshtein distance against the query (and against each individual
@@ -67,35 +69,35 @@ class SearchController extends Controller
         $like = '%'.$query.'%';
 
         $courses = in_array($type, ['all', 'courses'], true)
-            ? Course::where('status', 'published')->where(fn ($q) => $q->where('title', 'like', $like)->orWhere('description', 'like', $like))->with('instructor')->limit($limit)->get()
+            ? Course::where('status', 'published')->where(fn ($q) => $q->whereLike('title', $like, caseSensitive: false)->orWhereLike('description', $like, caseSensitive: false))->with('instructor')->limit($limit)->get()
             : collect();
         if ($courses->isEmpty() && in_array($type, ['all', 'courses'], true)) {
             $courses = $this->fuzzyMatch(Course::where('status', 'published')->with('instructor')->limit(300)->get(), $query, fn ($c) => $c->title, $limit);
         }
 
         $activities = in_array($type, ['all', 'activities'], true)
-            ? Activity::where('title', 'like', $like)->whereHas('section.course', fn ($q) => $q->where('status', 'published'))->with('section.course')->limit($limit)->get()
+            ? Activity::whereLike('title', $like, caseSensitive: false)->whereHas('section.course', fn ($q) => $q->where('status', 'published'))->with('section.course')->limit($limit)->get()
             : collect();
         if ($activities->isEmpty() && in_array($type, ['all', 'activities'], true)) {
             $activities = $this->fuzzyMatch(Activity::whereHas('section.course', fn ($q) => $q->where('status', 'published'))->with('section.course')->limit(300)->get(), $query, fn ($a) => $a->title, $limit);
         }
 
         $materials = in_array($type, ['all', 'materials'], true)
-            ? Material::where('title', 'like', $like)->whereHas('session.course', fn ($q) => $q->where('status', 'published'))->with('session.course')->limit($limit)->get()
+            ? Material::whereLike('title', $like, caseSensitive: false)->whereHas('session.course', fn ($q) => $q->where('status', 'published'))->with('session.course')->limit($limit)->get()
             : collect();
         if ($materials->isEmpty() && in_array($type, ['all', 'materials'], true)) {
             $materials = $this->fuzzyMatch(Material::whereHas('session.course', fn ($q) => $q->where('status', 'published'))->with('session.course')->limit(300)->get(), $query, fn ($m) => $m->title, $limit);
         }
 
         $sessions = in_array($type, ['all', 'sessions'], true)
-            ? CourseSession::where('title', 'like', $like)->whereHas('course', fn ($q) => $q->where('status', 'published'))->with('course')->limit($limit)->get()
+            ? CourseSession::whereLike('title', $like, caseSensitive: false)->whereHas('course', fn ($q) => $q->where('status', 'published'))->with('course')->limit($limit)->get()
             : collect();
         if ($sessions->isEmpty() && in_array($type, ['all', 'sessions'], true)) {
             $sessions = $this->fuzzyMatch(CourseSession::whereHas('course', fn ($q) => $q->where('status', 'published'))->with('course')->limit(300)->get(), $query, fn ($s) => $s->title, $limit);
         }
 
         $instructors = in_array($type, ['all', 'instructors'], true)
-            ? User::whereIn('role', ['instructor', 'admin'])->where('name', 'like', $like)->limit($limit)->get()
+            ? User::whereIn('role', ['instructor', 'admin'])->whereLike('name', $like, caseSensitive: false)->limit($limit)->get()
             : collect();
         if ($instructors->isEmpty() && in_array($type, ['all', 'instructors'], true)) {
             $instructors = $this->fuzzyMatch(User::whereIn('role', ['instructor', 'admin'])->limit(300)->get(), $query, fn ($u) => $u->name, $limit);

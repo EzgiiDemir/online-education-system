@@ -2,14 +2,14 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "arucad/campus-lms",
     "type": "project",
-    "description": "Arucad Sürekli Öğrenme Merkezi - kurumsal eğitim portalı (kurs kataloğu, canlı sınıf, sertifikasyon).",
+    "description": "Arucad Eğitim Merkezi - kurumsal eğitim portalı (kurs kataloğu, canlı sınıf, sertifikasyon).",
     "keywords": ["laravel", "lms", "filament"],
     "license": "MIT",
     "require": {
         "php": "^8.3",
         "ext-fileinfo": "*",
         "ext-intl": "*",
-        "ext-pdo_sqlite": "*",
+        "ext-pdo_pgsql": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "^4.0",
         "laravel/framework": "^13.17",
@@ -67,7 +67,6 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
         "pre-package-uninstall": [

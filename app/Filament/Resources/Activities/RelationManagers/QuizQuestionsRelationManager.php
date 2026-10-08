@@ -44,10 +44,10 @@ class QuizQuestionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                Textarea::make('question')->label('Soru metni')
+                Textarea::make('question')->label(__('Soru metni'))
                     ->required()
                     ->columnSpanFull(),
-                Select::make('type')->label('Soru tipi')
+                Select::make('type')->label(__('Soru tipi'))
                     ->options([
                         'single_choice' => 'Tek seçim',
                         'multi_choice' => 'Çoklu seçim',
@@ -55,12 +55,12 @@ class QuizQuestionsRelationManager extends RelationManager
                     ])
                     ->default('single_choice')
                     ->required(),
-                TextInput::make('sort_order')->label('Sıra')->numeric()->default(0),
-                Repeater::make('options')->label('Seçenekler')
+                TextInput::make('sort_order')->label(__('Sıra'))->numeric()->default(0),
+                Repeater::make('options')->label(__('Seçenekler'))
                     ->relationship()
                     ->schema([
-                        TextInput::make('label')->label('Seçenek metni')->required(),
-                        Toggle::make('is_correct')->label('Doğru cevap')->inline(false),
+                        TextInput::make('label')->label(__('Seçenek metni'))->required(),
+                        Toggle::make('is_correct')->label(__('Doğru cevap'))->inline(false),
                     ])
                     ->columns(2)
                     ->reorderable('sort_order')
@@ -74,13 +74,13 @@ class QuizQuestionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextEntry::make('question')->label('Soru metni')->columnSpanFull(),
-                TextEntry::make('type')->label('Soru tipi')
+                TextEntry::make('question')->label(__('Soru metni'))->columnSpanFull(),
+                TextEntry::make('type')->label(__('Soru tipi'))
                     ->formatStateUsing(fn (string $state) => ['single_choice' => 'Tek seçim', 'multi_choice' => 'Çoklu seçim', 'true_false' => 'Doğru / Yanlış'][$state] ?? $state),
-                RepeatableEntry::make('options')->label('Seçenekler')
+                RepeatableEntry::make('options')->label(__('Seçenekler'))
                     ->schema([
-                        TextEntry::make('label')->label('Seçenek')->inlineLabel(false),
-                        TextEntry::make('is_correct')->label('Doğru mu?')
+                        TextEntry::make('label')->label(__('Seçenek'))->inlineLabel(false),
+                        TextEntry::make('is_correct')->label(__('Doğru mu?'))
                             ->formatStateUsing(fn (bool $state) => $state ? '✓ Doğru' : '—')
                             ->color(fn (bool $state) => $state ? 'success' : 'gray'),
                     ])
@@ -95,19 +95,19 @@ class QuizQuestionsRelationManager extends RelationManager
             ->recordTitleAttribute('question')
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('question')->label('Soru')->limit(60)->searchable(),
-                TextColumn::make('type')->label('Tip')->badge()
+                TextColumn::make('question')->label(__('Soru'))->limit(60)->searchable(),
+                TextColumn::make('type')->label(__('Tip'))->badge()
                     ->formatStateUsing(fn (string $state) => ['single_choice' => 'Tek seçim', 'multi_choice' => 'Çoklu seçim', 'true_false' => 'Doğru/Yanlış'][$state] ?? $state),
-                TextColumn::make('options_count')->label('Seçenek sayısı')->counts('options')->badge(),
-                TextColumn::make('sort_order')->label('Sıra'),
+                TextColumn::make('options_count')->label(__('Seçenek sayısı'))->counts('options')->badge(),
+                TextColumn::make('sort_order')->label(__('Sıra')),
             ])
             ->headerActions([
                 CreateAction::make(),
             ])
             ->recordActions([
-                ViewAction::make()->label('Önizle'),
-                EditAction::make()->label('Düzenle'),
-                DeleteAction::make()->label('Sil'),
+                ViewAction::make()->label(__('Önizle')),
+                EditAction::make()->label(__('Düzenle')),
+                DeleteAction::make()->label(__('Sil')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

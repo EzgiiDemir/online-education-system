@@ -2,7 +2,7 @@
 <html lang="{{ session('locale', 'tr') }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
+    <title>@yield('title', session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
     <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
@@ -19,9 +19,13 @@
 ])])
 @php($sidebarGroups[] = ['label' => $en ? 'ACCOUNT' : 'HESAP', 'items' => [
     ['url' => route('account.show'), 'label' => $en ? 'Account' : 'Hesap bilgileri', 'icon' => 'circle-user', 'active' => request()->routeIs('account.show')],
-    ['url' => route('certificates.verify.lookup'), 'label' => $en ? 'Verification' : 'Doğrulama', 'icon' => 'trophy', 'active' => request()->routeIs('certificates.verify*')],
+    ['url' => route('certificates.verify.lookup'), 'label' => $en ? 'Certificate Verification' : 'Sertifika Doğrulama', 'icon' => 'trophy', 'active' => request()->routeIs('certificates.verify*')],
 ]])
-@php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== $user->role))
+{{-- Filter on the workspace this layout IS (the learner portal), not on the
+     user's primary role: an instructor or manager visiting a portal page has
+     'instructor'/'manager' as their role, so filtering by role removed the
+     very link they need to get back to their own workspace. --}}
+@php($otherWorkspaces = array_filter($user->workspaces(), fn ($w) => $w !== 'learner'))
 @if(!empty($otherWorkspaces))
 @php($workspaceLabels = ['learner' => $en ? 'Learner' : 'Öğrenci', 'instructor' => $en ? 'Instructor' : 'Eğitmen', 'manager' => $en ? 'Manager' : 'Yönetici', 'admin' => $en ? 'Admin' : 'Yönetim'])
 @php($workspaceUrls = ['learner' => route('lms.home'), 'instructor' => route('instructor.dashboard'), 'manager' => route('manager.dashboard'), 'admin' => url('/admin')])
@@ -84,7 +88,7 @@
 </button>
 <div class="profile-dropdown dropdown-menu">
 <div class="dropdown-head"><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></div>
-<div class="nav-lang"><a href="{{ route('language.switch', 'tr') }}" class="{{ !$en ? 'is-active' : '' }}">TR</a><a href="{{ route('language.switch', 'en') }}" class="{{ $en ? 'is-active' : '' }}">EN</a></div>
+<x-locale-switcher />
 <div class="dropdown-divider"></div>
 <a href="{{ route('account.show') }}"><x-lucide name="circle-user" size="16" /> {{ $en ? 'Account' : 'Hesap bilgileri' }}</a>
 <button type="button" data-theme-toggle><x-lucide name="moon" size="16" class="theme-icon-dark" /><x-lucide name="sun" size="16" class="theme-icon-light" /> {{ $en ? 'Theme' : 'Tema' }}</button>
@@ -93,13 +97,14 @@
 </div>
 </div>
 </header>
-<main class="page-shell container">@unless(request()->routeIs('lms.home'))<button type="button" class="back-link" onclick="history.length > 1 ? history.back() : (window.location = '{{ route('lms.home') }}')"><x-lucide name="arrow-left" size="16" /> {{ $en ? 'Back' : 'Geri' }}</button>@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell container">@unless(request()->routeIs('lms.home'))<x-back-link :fallback="route('lms.home')" />@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
 </div>
 </div>
 @else
 <nav class="navbar navbar-expand-lg site-nav sticky-top">
 <div class="container-fluid">
-<a class="navbar-brand brand" href="{{ route('lms.home') }}"><img src="{{ asset('images/sdg/arucad_home_logo.png') }}" alt="Arucad" class="brand-logo"><span>{{ $en ? 'Continuous Learning Center' : 'Sürekli Öğrenme Merkezi' }}</span></a>
+@php($brand = \App\Models\PortalSetting::current())
+<a class="navbar-brand brand" href="{{ route('lms.home') }}"><img src="{{ $brand->logoUrl() }}" alt="{{ $brand->portal_name }}" class="brand-logo"><span>{{ $en ? 'Training Center' : 'Eğitim Merkezi' }}</span></a>
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>
 <form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
@@ -107,12 +112,12 @@
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
-<a class="nav-button nav-button-ghost" href="{{ route('certificates.verify.lookup') }}">{{ $en ? 'Verification' : 'Doğrulama' }}</a>
+<a class="nav-button nav-button-ghost" href="{{ route('certificates.verify.lookup') }}">{{ $en ? 'Certificate Verification' : 'Sertifika Doğrulama' }}</a>
 <a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
 </div>
 </div>
 </nav>
-<main class="page-shell container">@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
+<main class="page-shell container">@unless(request()->routeIs('lms.home'))<x-back-link :fallback="route('lms.home')" />@endunless @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif @yield('content')</main>
 @endauth
 <script>
 document.addEventListener('click', function (e) {

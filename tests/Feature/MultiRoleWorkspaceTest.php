@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\AddUser;
 use App\Filament\Resources\Users\Pages\EditUser;
+use App\Models\OrganizationUnit;
 use App\Models\PortalSetting;
 use App\Models\Role;
 use App\Models\User;
@@ -113,7 +114,7 @@ class MultiRoleWorkspaceTest extends TestCase
     public function test_the_add_user_page_pre_scopes_a_new_person_to_the_selected_department_and_lists_its_members(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        $unit = \App\Models\OrganizationUnit::create(['name' => 'Ar-Ge']);
+        $unit = OrganizationUnit::create(['name' => 'Ar-Ge']);
         $existingMember = User::factory()->create(['organization_unit_id' => $unit->id, 'role' => 'learner']);
 
         $component = Livewire::actingAs($admin)->test(AddUser::class)

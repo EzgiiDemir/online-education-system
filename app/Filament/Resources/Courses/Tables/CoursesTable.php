@@ -22,16 +22,16 @@ class CoursesTable
     {
         return $table
             ->columns([
-                TextColumn::make('instructor.name')->label('Eğitmen')->searchable()->sortable(),
+                TextColumn::make('instructor.name')->label(__('Eğitmen'))->searchable()->sortable(),
                 TextColumn::make('title')
-                    ->label('Eğitim')
+                    ->label(__('Eğitim'))
                     ->searchable()
                     ->description(fn ($record) => 'v'.$record->version.($record->version_group_id ? ' · v1\'den türetildi' : '')),
-                TextColumn::make('delivery_type')->label('Tür')->badge()->formatStateUsing(fn ($state) => $state === 'online' ? 'Online' : 'Offline')
+                TextColumn::make('delivery_type')->label(__('Tür'))->badge()->formatStateUsing(fn ($state) => $state === 'online' ? 'Online' : 'Offline')
                     ->searchable(),
-                TextColumn::make('enrollments_count')->label('Kayıt')->counts('enrollments')->badge(),
-                TextColumn::make('language')->label('Dil')->badge()->formatStateUsing(fn ($state) => $state === 'en' ? 'English' : 'Türkçe'),
-                TextColumn::make('status')->label('Durum')
+                TextColumn::make('enrollments_count')->label(__('Kayıt'))->counts('enrollments')->badge(),
+                TextColumn::make('language')->label(__('Dil'))->badge()->formatStateUsing(fn ($state) => $state === 'en' ? 'English' : 'Türkçe'),
+                TextColumn::make('status')->label(__('Durum'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => ['draft' => 'Taslak', 'published' => 'Yayında', 'completed' => 'Tamamlandı'][$state] ?? $state)
                     ->color(fn ($state) => match ($state) {
@@ -40,7 +40,7 @@ class CoursesTable
                         default => 'warning',
                     })
                     ->searchable(),
-                TextColumn::make('category')->label('Kategori')->badge()
+                TextColumn::make('category')->label(__('Kategori'))->badge()
                     ->formatStateUsing(fn ($state) => ['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim'][$state] ?? $state)
                     ->color(fn ($state) => match ($state) {
                         'compliance' => 'danger',
@@ -48,8 +48,8 @@ class CoursesTable
                         'onboarding' => 'info',
                         default => 'gray',
                     }),
-                TextColumn::make('guest_instructor_name')->label('Misafir eğitimci')->placeholder('Yok')->toggleable(),
-                TextColumn::make('certificate_enabled')->label('Sertifika')->formatStateUsing(fn ($state) => $state ? 'Aktif' : 'Pasif')->badge(),
+                TextColumn::make('guest_instructor_name')->label(__('Misafir eğitimci'))->placeholder(__('Yok'))->toggleable(),
+                TextColumn::make('certificate_enabled')->label(__('Sertifika'))->formatStateUsing(fn ($state) => $state ? 'Aktif' : 'Pasif')->badge(),
                 TextColumn::make('starts_at')
                     ->dateTime()
                     ->sortable(),
@@ -66,13 +66,13 @@ class CoursesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('status')->label('Durum')->options(['draft' => 'Taslak', 'published' => 'Yayında', 'completed' => 'Tamamlandı']),
-                SelectFilter::make('delivery_type')->label('Tür')->options(['online' => 'Online', 'offline' => 'Offline']),
-                SelectFilter::make('category')->label('Kategori')->options(['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim']),
-                SelectFilter::make('instructor_id')->label('Eğitmen')->relationship('instructor', 'name')->searchable()->preload(),
+                SelectFilter::make('status')->label(__('Durum'))->options(['draft' => 'Taslak', 'published' => 'Yayında', 'completed' => 'Tamamlandı']),
+                SelectFilter::make('delivery_type')->label(__('Tür'))->options(['online' => 'Online', 'offline' => 'Offline']),
+                SelectFilter::make('category')->label(__('Kategori'))->options(['required' => 'Zorunlu', 'optional' => 'İsteğe bağlı', 'compliance' => 'Uyumluluk', 'onboarding' => 'Oryantasyon', 'professional_development' => 'Mesleki gelişim']),
+                SelectFilter::make('instructor_id')->label(__('Eğitmen'))->relationship('instructor', 'name')->searchable()->preload(),
             ])
             ->recordActions([
-                Action::make('preview')->label('Önizle')->icon(Heroicon::OutlinedEye)->color('gray')
+                Action::make('preview')->label(__('Önizle'))->icon(Heroicon::OutlinedEye)->color('gray')
                     ->url(fn ($record) => route('courses.show', $record))->openUrlInNewTab(),
                 EditAction::make(),
                 ViewAuditLogAction::make(),

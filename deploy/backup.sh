@@ -23,7 +23,7 @@ TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP_DIR="storage/app/backups"
 mkdir -p "$BACKUP_DIR"
 
-case "${DB_CONNECTION:-sqlite}" in
+case "${DB_CONNECTION:-pgsql}" in
   sqlite)
     DB_PATH="${DB_DATABASE:-database/database.sqlite}"
     cp "$DB_PATH" "$BACKUP_DIR/db-$TIMESTAMP.sqlite"

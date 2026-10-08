@@ -19,15 +19,15 @@ class CourseSectionsTable
         return $table
             ->columns([
                 TextColumn::make('course.title')
-                    ->label('Eğitim')
+                    ->label(__('Eğitim'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('title')
-                    ->label('Bölüm')
+                    ->label(__('Bölüm'))
                     ->searchable(),
-                TextColumn::make('activities_count')->label('Etkinlik sayısı')->counts('activities')->badge(),
+                TextColumn::make('activities_count')->label(__('Etkinlik sayısı'))->counts('activities')->badge(),
                 TextColumn::make('sort_order')
-                    ->label('Sıra')
+                    ->label(__('Sıra'))
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -40,7 +40,7 @@ class CourseSectionsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
+                SelectFilter::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),

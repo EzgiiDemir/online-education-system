@@ -24,11 +24,11 @@ class SectionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('title')->label('Bölüm başlığı')
+                TextInput::make('title')->label(__('Bölüm başlığı'))
                     ->required()
                     ->maxLength(255),
-                Textarea::make('description')->label('Açıklama')->columnSpanFull(),
-                TextInput::make('sort_order')->label('Sıralama')->numeric()->default(0),
+                Textarea::make('description')->label(__('Açıklama'))->columnSpanFull(),
+                TextInput::make('sort_order')->label(__('Sıralama'))->numeric()->default(0),
             ]);
     }
 
@@ -38,10 +38,10 @@ class SectionsRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('title')->label('Bölüm')
+                TextColumn::make('title')->label(__('Bölüm'))
                     ->searchable(),
-                TextColumn::make('activities_count')->label('Etkinlik sayısı')->counts('activities')->badge(),
-                TextColumn::make('sort_order')->label('Sıra'),
+                TextColumn::make('activities_count')->label(__('Etkinlik sayısı'))->counts('activities')->badge(),
+                TextColumn::make('sort_order')->label(__('Sıra')),
             ])
             ->filters([
                 //

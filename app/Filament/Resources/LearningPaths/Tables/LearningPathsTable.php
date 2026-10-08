@@ -18,15 +18,15 @@ class LearningPathsTable
     {
         return $table
             ->columns([
-                TextColumn::make('title')->label('Yol adı')->searchable()->sortable(),
-                TextColumn::make('courses_count')->label('Eğitim sayısı')->counts('courses')->badge(),
-                TextColumn::make('status')->label('Durum')->badge()
+                TextColumn::make('title')->label(__('Yol adı'))->searchable()->sortable(),
+                TextColumn::make('courses_count')->label(__('Eğitim sayısı'))->counts('courses')->badge(),
+                TextColumn::make('status')->label(__('Durum'))->badge()
                     ->formatStateUsing(fn ($state) => ['draft' => 'Taslak', 'published' => 'Yayında'][$state] ?? $state)
                     ->color(fn ($state) => $state === 'published' ? 'success' : 'warning'),
-                TextColumn::make('is_sequential')->label('Sıralı')->formatStateUsing(fn ($state) => $state ? 'Evet' : 'Hayır')->badge(),
+                TextColumn::make('is_sequential')->label(__('Sıralı'))->formatStateUsing(fn ($state) => $state ? 'Evet' : 'Hayır')->badge(),
             ])
             ->filters([
-                SelectFilter::make('status')->label('Durum')->options(['draft' => 'Taslak', 'published' => 'Yayında']),
+                SelectFilter::make('status')->label(__('Durum'))->options(['draft' => 'Taslak', 'published' => 'Yayında']),
             ])
             ->recordActions([
                 ViewAction::make(),

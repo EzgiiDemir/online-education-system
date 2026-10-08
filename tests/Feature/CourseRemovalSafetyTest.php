@@ -27,7 +27,7 @@ class CourseRemovalSafetyTest extends TestCase
         $course = Course::factory()->create();
         $enrollment = Enrollment::create(['user_id' => User::factory()->create()->id, 'course_id' => $course->id]);
 
-        Livewire::actingAs($admin)->test(ListCourses::class)
+        Livewire::actingAs($admin, 'admin')->test(ListCourses::class)
             ->callTableAction('delete', $course);
 
         $this->assertModelExists($course);
@@ -39,7 +39,7 @@ class CourseRemovalSafetyTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $course = Course::factory()->create();
 
-        Livewire::actingAs($admin)->test(ListCourses::class)
+        Livewire::actingAs($admin, 'admin')->test(ListCourses::class)
             ->callTableAction('delete', $course);
 
         $this->assertModelMissing($course);

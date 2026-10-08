@@ -22,16 +22,16 @@ class UsersTable
     {
         return $table
             ->columns([
-                ImageColumn::make('avatar_path')->label('')->circular()->disk('public')->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?background=4D6787&color=fff&name='.urlencode($record->name)),
+                ImageColumn::make('avatar_path')->label(__(''))->circular()->disk('public')->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?background=4D6787&color=fff&name='.urlencode($record->name)),
                 TextColumn::make('name')
-                    ->label('Ad soyad')
+                    ->label(__('Ad soyad'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')
-                    ->label('E-posta')
+                    ->label(__('E-posta'))
                     ->searchable(),
                 TextColumn::make('role')
-                    ->label('Rol')
+                    ->label(__('Rol'))
                     ->badge()
                     ->formatStateUsing(fn (string $state) => ['admin' => 'Sistem Yöneticisi', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'learner' => 'Öğrenci'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
@@ -41,18 +41,18 @@ class UsersTable
                         default => 'success',
                     })
                     ->searchable(),
-                TextColumn::make('manager.name')->label('Yöneticisi')->placeholder('—')->toggleable(),
-                TextColumn::make('organizationUnit.name')->label('Organizasyon birimi')->placeholder('—')->toggleable(),
-                TextColumn::make('enrollments_count')->label('Kayıtlar')->counts('enrollments')->badge(),
-                TextColumn::make('courses_count')->label('Verdiği kurslar')->counts('courses')->badge()->toggleable(),
+                TextColumn::make('manager.name')->label(__('Yöneticisi'))->placeholder(__('—'))->toggleable(),
+                TextColumn::make('organizationUnit.name')->label(__('Organizasyon birimi'))->placeholder(__('—'))->toggleable(),
+                TextColumn::make('enrollments_count')->label(__('Kayıtlar'))->counts('enrollments')->badge(),
+                TextColumn::make('courses_count')->label(__('Verdiği kurslar'))->counts('courses')->badge()->toggleable(),
                 TextColumn::make('created_at')
-                    ->label('Katılım')
+                    ->label(__('Katılım'))
                     ->dateTime('d.m.Y')
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('role')->label('Rol')->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi']),
-                SelectFilter::make('organization_unit_id')->label('Organizasyon birimi')->relationship('organizationUnit', 'name')->searchable()->preload(),
+                SelectFilter::make('role')->label(__('Rol'))->options(['learner' => 'Öğrenci', 'instructor' => 'Eğitmen', 'manager' => 'Yönetici (Manager)', 'admin' => 'Sistem Yöneticisi']),
+                SelectFilter::make('organization_unit_id')->label(__('Organizasyon birimi'))->relationship('organizationUnit', 'name')->searchable()->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),

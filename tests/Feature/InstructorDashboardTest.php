@@ -39,7 +39,7 @@ class InstructorDashboardTest extends TestCase
         $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
 
         $response->assertOk();
-        $response->assertSee('YOKLAMA KONTROLÜ');
+        $response->assertSee('KATILIMCI LİSTESİ KONTROLÜ');
         $response->assertSee('Dünkü Seans');
     }
 
@@ -55,7 +55,7 @@ class InstructorDashboardTest extends TestCase
         $response = $this->actingAs($instructor)->get(route('instructor.dashboard'));
 
         $response->assertOk();
-        $response->assertDontSee('YOKLAMA KONTROLÜ');
+        $response->assertDontSee('KATILIMCI LİSTESİ KONTROLÜ');
     }
 
     /**

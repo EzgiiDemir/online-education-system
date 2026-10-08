@@ -23,23 +23,23 @@ class LmsStatsOverview extends StatsOverviewWidget
         $upcomingSessions = CourseSession::where('starts_at', '>=', now())->count();
 
         return [
-            Stat::make('Yayındaki eğitimler', Course::where('status', 'published')->count())
-                ->description(Course::count().' eğitimin toplamı')
+            Stat::make(__('Yayındaki eğitimler'), Course::where('status', 'published')->count())
+                ->description(Course::count().' '.__('eğitimin toplamı'))
                 ->color('primary'),
-            Stat::make('Aktif kayıtlar', $totalEnrollments)
-                ->description(User::where('role', 'learner')->count().' öğrenci')
+            Stat::make(__('Aktif kayıtlar'), $totalEnrollments)
+                ->description(User::where('role', 'learner')->count().' '.__('öğrenci'))
                 ->color('info'),
-            Stat::make('Tamamlanma oranı', $completionRate.'%')
-                ->description($completedEnrollments.' kayıt tamamlandı')
+            Stat::make(__('Tamamlanma oranı'), $completionRate.'%')
+                ->description($completedEnrollments.' '.__('kayıt tamamlandı'))
                 ->color($completionRate >= 50 ? 'success' : 'warning'),
-            Stat::make('Verilen sertifikalar', Certificate::count())
-                ->description('Toplam üretilen sertifika sayısı')
+            Stat::make(__('Verilen sertifikalar'), Certificate::count())
+                ->description(__('Toplam üretilen sertifika sayısı'))
                 ->color('success'),
-            Stat::make('Yaklaşan canlı seanslar', $upcomingSessions)
-                ->description('Bugünden itibaren planlanan')
+            Stat::make(__('Yaklaşan canlı seanslar'), $upcomingSessions)
+                ->description(__('Bugünden itibaren planlanan'))
                 ->color('warning'),
-            Stat::make('Eğitmenler', User::where('role', 'instructor')->count())
-                ->description(Course::whereNotNull('instructor_id')->distinct('instructor_id')->count('instructor_id').' aktif eğitmen kurs veriyor')
+            Stat::make(__('Eğitmenler'), User::where('role', 'instructor')->count())
+                ->description(Course::whereNotNull('instructor_id')->distinct('instructor_id')->count('instructor_id').' '.__('aktif eğitmen kurs veriyor'))
                 ->color('gray'),
         ];
     }

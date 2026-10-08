@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('enrollment_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('score');
             $table->boolean('passed')->default(false);
-            $table->json('answers')->nullable();
+            $table->jsonb('answers')->nullable();
             $table->timestamp('submitted_at');
             $table->timestamps();
         });

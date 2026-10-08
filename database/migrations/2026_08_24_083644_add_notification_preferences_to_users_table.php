@@ -15,7 +15,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->json('notification_preferences')->nullable()->after('bio');
+            $table->jsonb('notification_preferences')->nullable()->after('bio');
         });
     }
 

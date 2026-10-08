@@ -18,13 +18,21 @@
         </include>
     </source>
     <php>
+        <!-- Certificate export renders real PDFs through DomPDF, which needs
+             more than PHP's stock 128M. Without this the whole run dies mid
+             suite with "Premature end of PHP process" rather than a failure. -->
+        <ini name="memory_limit" value="1G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- Tests run on PostgreSQL too, against their own database. Running
+             them on a different engine than production is how the LIKE
+             case-sensitivity difference (SQLite folds ASCII case, Postgres
+             does not) could have reached production unnoticed. -->
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_DATABASE" value="sem_testing"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

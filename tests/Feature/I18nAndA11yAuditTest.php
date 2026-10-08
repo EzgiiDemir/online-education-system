@@ -106,16 +106,16 @@ class I18nAndA11yAuditTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
 
         $notifications = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('notifications.index'));
-        $notifications->assertSee('<title>Notifications · Arucad Continuous Learning Center</title>', false);
+        $notifications->assertSee('<title>Notifications · Arucad Training Center</title>', false);
 
         $calendar = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('calendar.index'));
-        $calendar->assertSee('<title>Calendar · Arucad Continuous Learning Center</title>', false);
+        $calendar->assertSee('<title>Calendar · Arucad Training Center</title>', false);
 
         $skills = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('skills.index'));
-        $skills->assertSee('<title>My Skills · Arucad Continuous Learning Center</title>', false);
+        $skills->assertSee('<title>My Skills · Arucad Training Center</title>', false);
 
         $home = $this->withSession(['locale' => 'en'])->get('/');
-        $home->assertSee('<title>Arucad Continuous Learning Center · Course catalog</title>', false);
+        $home->assertSee('<title>Arucad Training Center · Course catalog</title>', false);
     }
 
     public function test_course_builder_edit_section_input_has_an_accessible_label(): void
@@ -207,8 +207,12 @@ class I18nAndA11yAuditTest extends TestCase
         session(['locale' => 'en']);
         $html = view('lms.certificate', ['certificate' => $certificate, 'enrollment' => $enrollment->load('user', 'course')])->render();
 
-        $this->assertStringContainsString('Certificate of Achievement', $html);
-        $this->assertStringContainsString('Issued on:', $html);
+        // Wording follows the official ARUCAD artwork, which is a
+        // "Katılım Belgesi" -- a certificate of participation, not achievement.
+        $this->assertStringContainsString('CERTIFICATE OF PARTICIPATION', $html);
+        $this->assertStringContainsString('Has participated in', $html);
+        $this->assertStringContainsString('Scan to verify this certificate', $html);
+        $this->assertStringNotContainsString('katılmıştır', $html);
     }
 
     /**
@@ -250,5 +254,55 @@ class I18nAndA11yAuditTest extends TestCase
         $response->assertSee('There is no separate file for this activity.');
         $response->assertSee('I have read / reviewed it');
         $response->assertDontSee('Öğrenim alanıma dön');
+    }
+
+    public function test_tr_en_switcher_is_in_profile_menus_after_login_not_on_login_pages(): void
+    {
+        $login = $this->get('/login');
+        $login->assertOk();
+        $login->assertDontSee(route('language.switch', 'tr'), false);
+        $login->assertDontSee(route('language.switch', 'en'), false);
+        $login->assertSee('Eğitim Merkezi');
+
+        $instructorLogin = $this->get(route('instructor.login'));
+        $instructorLogin->assertOk();
+        $instructorLogin->assertDontSee(route('language.switch', 'en'), false);
+
+        $adminLogin = $this->get('/admin/login');
+        $adminLogin->assertOk();
+        $adminLogin->assertDontSee(route('language.switch', 'en'), false);
+
+        $learner = User::factory()->create(['role' => 'learner']);
+        $home = $this->actingAs($learner)->get(route('lms.home'));
+        $home->assertOk();
+        $home->assertSee(route('language.switch', 'en'), false);
+
+        $instructor = User::factory()->create(['role' => 'instructor']);
+        $trainer = $this->actingAs($instructor)->get(route('instructor.dashboard'));
+        $trainer->assertOk();
+        $trainer->assertSee(route('language.switch', 'en'), false);
+        $trainer->assertSee('Eğitim Merkezi');
+        $trainer->assertDontSee('DİĞER ÇALIŞMA ALANLARIM');
+
+        $manager = User::factory()->create(['role' => 'manager']);
+        $managerPage = $this->actingAs($manager)->get(route('manager.dashboard'));
+        $managerPage->assertOk();
+        $managerPage->assertSee(route('language.switch', 'en'), false);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $adminHome = $this->actingAs($admin)->get('/admin');
+        $adminHome->assertOk();
+        $adminHome->assertSee(route('language.switch', 'en'), false);
+    }
+
+    public function test_admin_navigation_labels_switch_to_english(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $english = $this->actingAs($admin)->withSession(['locale' => 'en'])->get('/admin');
+        $english->assertOk();
+        $english->assertSee('Catalog');
+        $english->assertSee('Arucad Training Center Admin');
+        $english->assertSee('Courses');
     }
 }

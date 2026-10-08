@@ -129,7 +129,21 @@
 @if($course->runs->isNotEmpty())<div class="card" style="margin-top:20px"><h2>{{ $en ? 'Runs' : 'Dönemler' }}</h2><ul>@foreach($course->runs as $run)<li><b>{{$run->name}}</b> ({{$run->code}}) · {{$run->status}} · {{$run->starts_at?->format('d.m.Y') ?: '-'}} - {{$run->ends_at?->format('d.m.Y') ?: '-'}} · {{$course->currentEnrollments->where('course_run_id',$run->id)->count()}} {{ $en ? 'participants' : 'katılımcı' }}</li>@endforeach</ul></div>@endif<div class="card" style="margin-top:20px"><h2>{{ $en ? 'Sessions' : 'Seanslar' }}</h2>@foreach($course->sessions as $session)<div style="border-top:1px solid #eaecf0;padding:16px 0"><h3>{{$session->title}}</h3><p class="muted">{{$session->starts_at?->format('d.m.Y H:i')}} - {{$session->ends_at?->format('H:i')}}</p>@if($session->meeting_url)<a class="btn btn-primary" href="{{$session->meeting_url}}">{{ $en ? 'Join class' : 'Derse katıl' }}</a>@endif @if($session->recording_path)<a class="btn btn-outline-secondary" href="{{asset('storage/'.$session->recording_path)}}">{{ $en ? 'Open recording' : 'Kaydı aç' }}</a> <small class="muted">{{ $en ? 'Available until' : 'Şu tarihe kadar erişilebilir:' }} {{ $session->recording_expires_at?->format('d.m.Y') }}</small>@endif<ul>@foreach($session->materials as $material)<li><span>{{$material->title}}</span> <a class="text-link" href="{{asset('storage/'.$material->path)}}" target="_blank" rel="noopener">{{ $en ? 'Preview' : 'Önizle' }}</a> <button type="button" class="text-link" onclick="document.getElementById('edit-material-{{$material->id}}').style.display='block'">{{ $en ? 'Edit' : 'Düzenle' }}</button> @if($material->versions->isNotEmpty())<button type="button" class="text-link" onclick="document.getElementById('history-material-{{$material->id}}').style.display='block'">{{ $en ? 'History' : 'Geçmiş' }} ({{$material->versions->count()}})</button>@endif <form method="post" action="{{route('builder.materials.destroy',$material)}}" onsubmit="return confirm('{{ $en ? 'Delete this material?' : 'Bu materyal silinsin mi?' }}')" class="inline-form">@csrf<input type="hidden" name="_method" value="DELETE"><button type="submit" class="text-link" style="color:#b3402e">{{ $en ? 'Delete' : 'Sil' }}</button></form>
 <form method="post" action="{{route('builder.materials.update',$material)}}" id="edit-material-{{$material->id}}" style="display:none;margin:8px 0" enctype="multipart/form-data">@csrf<input name="title" value="{{$material->title}}" aria-label="{{ $en ? 'Material title' : 'Materyal başlığı' }}" required><label class="muted" style="display:block;margin:6px 0 2px;font-size:12px">{{ $en ? 'Replace file (optional)' : 'Dosyayı değiştir (opsiyonel)' }}</label><input type="file" name="file"><button type="submit" class="btn btn-primary" style="margin-top:6px">{{ $en ? 'Save' : 'Kaydet' }}</button></form>
 @if($material->versions->isNotEmpty())<div id="history-material-{{$material->id}}" style="display:none;margin:8px 0"><ul class="muted" style="margin:0;padding-left:18px">@foreach($material->versions as $version)<li>{{$version->title}} — <a class="text-link" href="{{asset('storage/'.$version->path)}}" target="_blank" rel="noopener">{{ $en ? 'Open' : 'Aç' }}</a> <small>({{$version->created_at->format('d.m.Y H:i')}}@if($version->replacedBy) · {{$version->replacedBy->name}}@endif)</small></li>@endforeach</ul></div>@endif
-</li>@endforeach</ul><div style="margin-top:12px"><b>{{ $en ? 'Attendance' : 'Yoklama' }}</b>@if($session->meeting_status==='not_applicable')<p class="muted" style="margin:4px 0">{{ $en ? 'In-person session — attendance only counts if you mark it.' : 'Yüz yüze seans — katılım yalnızca sizin işaretlemenizle sayılır.' }}</p>@else<p class="muted" style="margin:4px 0">{{ $en ? 'Attendance for an online session is counted automatically once a participant stays in the room long enough; you can also mark it here if there is a connection issue.' : 'Online seansta katılım, katılımcı odada yeterli süre kalınca otomatik sayılır; bağlantı sorunu olursa buradan da işaretleyebilirsiniz.' }}</p>@endif<ul>@forelse($course->currentEnrollments as $enrollment)@php($attendance = $enrollment->sessionProgress->firstWhere('course_session_id', $session->id))<li>{{$enrollment->user->name}} — @if($attendance?->completed_at)<span class="muted"><x-lucide name="check" size="14" /> {{ $en ? 'Attended' : 'Katıldı' }} ({{ $attendance->completed_at->format('d.m.Y H:i') }})</span>@else<form method="post" action="{{route('instructor.sessions.attendance',$session)}}" class="inline-form">@csrf<input type="hidden" name="user_id" value="{{$enrollment->user_id}}"><button class="btn btn-outline-secondary" type="submit">{{ $en ? 'Mark as attended' : 'Katıldı olarak işaretle' }}</button></form>@endif</li>@empty<li class="muted">{{ $en ? 'No participants.' : 'Katılımcı yok.' }}</li>@endforelse</ul></div></div>@endforeach<h2>{{ $en ? 'Plan a new session' : 'Yeni seans planla' }}</h2><p class="muted">{{ $en ? 'For online courses, the meeting room and join URL are created automatically.' : 'Online eğitimlerde toplantı odası ve katılım URL’si otomatik oluşturulur.' }}</p><form method="post" action="{{route('instructor.sessions.store',$course)}}" enctype="multipart/form-data">@csrf<input name="title" placeholder="{{ $en ? 'Session name' : 'Seans adı' }}" required><input name="starts_at" type="datetime-local"><input name="ends_at" type="datetime-local"><input name="material" type="file"><button>{{ $en ? 'Add session & material' : 'Seans ve materyal ekle' }}</button></form></div>
+</li>@endforeach</ul><div style="margin-top:12px"><b>{{ $en ? 'Participant list' : 'Katılımcı listesi' }}</b>@if($session->meeting_status==='not_applicable')<p class="muted" style="margin:4px 0">{{ $en ? 'In-person session — attendance only counts if you mark it.' : 'Yüz yüze seans — katılım yalnızca sizin işaretlemenizle sayılır.' }}</p>@else<p class="muted" style="margin:4px 0">{{ $en ? 'Attendance for an online session is counted automatically once a participant stays in the room long enough; you can also mark it here if there is a connection issue.' : 'Online seansta katılım, katılımcı odada yeterli süre kalınca otomatik sayılır; bağlantı sorunu olursa buradan da işaretleyebilirsiniz.' }}</p>@endif<ul>@forelse($course->currentEnrollments as $enrollment)@php($attendance = $enrollment->sessionProgress->firstWhere('course_session_id', $session->id))<li>{{$enrollment->user->name}} — @if($attendance?->completed_at)<span class="muted"><x-lucide name="check" size="14" /> {{ $en ? 'Attended' : 'Katıldı' }} ({{ $attendance->completed_at->format('d.m.Y H:i') }})</span>@else<form method="post" action="{{route('instructor.sessions.attendance',$session)}}" class="inline-form">@csrf<input type="hidden" name="user_id" value="{{$enrollment->user_id}}"><button class="btn btn-outline-secondary" type="submit">{{ $en ? 'Mark as attended' : 'Katıldı olarak işaretle' }}</button></form>@endif</li>@empty<li class="muted">{{ $en ? 'No participants.' : 'Katılımcı yok.' }}</li>@endforelse</ul></div></div>@endforeach<h2>{{ $en ? 'Plan a new session' : 'Yeni seans planla' }}</h2><p class="muted">{{ $en ? 'For online courses, the meeting room and join URL are created automatically.' : 'Online eğitimlerde toplantı odası ve katılım URL’si otomatik oluşturulur.' }}</p><form method="post" action="{{route('instructor.sessions.store',$course)}}" enctype="multipart/form-data" class="session-form">@csrf
+<div class="session-form-row">
+<label class="field"><span>{{ $en ? 'Session name' : 'Seans adı' }} <i>*</i></span><input name="title" placeholder="{{ $en ? 'e.g. Week 1 - Field practice' : 'Örn. 1. Hafta - Saha uygulaması' }}" value="{{ old('title') }}" required></label>
+<label class="field"><span>{{ $en ? 'Starts at' : 'Başlangıç' }}</span><input name="starts_at" type="datetime-local" value="{{ old('starts_at') }}"></label>
+<label class="field"><span>{{ $en ? 'Ends at' : 'Bitiş' }}</span><input name="ends_at" type="datetime-local" value="{{ old('ends_at') }}"></label>
+</div>
+<label class="field full"><span>{{ $en ? 'Lesson materials' : 'Ders materyalleri' }}</span>
+<input name="materials[]" type="file" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip,.jpg,.jpeg,.png,.gif,.mp4,.webm,.mov,.mp3,.wav" data-multi-upload>
+<small class="muted">{{ $en ? 'Select one or more files - PDF, Word, PowerPoint, Excel, images, audio or video. Up to 20 files, 50 MB each.' : 'Bir veya birden fazla dosya seçebilirsiniz - PDF, Word, PowerPoint, Excel, görsel, ses veya video. En fazla 20 dosya, her biri 50 MB.' }}</small>
+<span class="upload-summary muted" data-upload-summary hidden></span>
+</label>
+@error('materials.*')<div class="alert alert-danger">{{ $message }}</div>@enderror
+@error('material')<div class="alert alert-danger">{{ $message }}</div>@enderror
+<button class="btn btn-primary">{{ $en ? 'Add session & materials' : 'Seans ve materyalleri ekle' }}</button>
+</form></div>
 </div>
 
 {{-- ============ ASSESSMENTS ============ --}}
@@ -291,6 +305,32 @@
     if (sectionsList) setupSortable(sectionsList, function(){ return '{{ route('builder.sections.reorder', $course) }}'; }, 'sectionId');
     document.querySelectorAll('[data-activities]').forEach(function(list){
         setupSortable(list, function(){ return '/instructor/sections/' + list.dataset.sectionId + '/activities/reorder'; }, 'activityId');
+    });
+})();
+(function(){
+    // Multi-file picker feedback: a bare <input multiple> shows "3 files"
+    // with no names, so the trainer cannot tell what they actually attached.
+    var input = document.querySelector('[data-multi-upload]');
+    var out = document.querySelector('[data-upload-summary]');
+    if (!input || !out) return;
+    var MAX_MB = 50, MAX_FILES = 20;
+    input.addEventListener('change', function(){
+        var files = Array.prototype.slice.call(input.files || []);
+        if (!files.length) { out.hidden = true; out.textContent = ''; return; }
+        var tooBig = files.filter(function(f){ return f.size > MAX_MB * 1024 * 1024; });
+        var names = files.map(function(f){ return f.name; }).join(', ');
+        var total = files.reduce(function(sum, f){ return sum + f.size; }, 0);
+        var text = files.length + ' ' + {{ \Illuminate\Support\Js::from($en ? 'file(s) selected' : 'dosya seçildi') }} +
+            ' (' + (total / 1048576).toFixed(1) + ' MB): ' + names;
+        if (files.length > MAX_FILES) {
+            text = {{ \Illuminate\Support\Js::from($en ? 'Too many files — 20 maximum.' : 'Çok fazla dosya — en fazla 20.') }};
+        } else if (tooBig.length) {
+            text = {{ \Illuminate\Support\Js::from($en ? 'These exceed 50 MB: ' : '50 MB sınırını aşıyor: ') }} +
+                tooBig.map(function(f){ return f.name; }).join(', ');
+        }
+        out.textContent = text;
+        out.style.color = (tooBig.length || files.length > MAX_FILES) ? '#b3402e' : '';
+        out.hidden = false;
     });
 })();
 </script>

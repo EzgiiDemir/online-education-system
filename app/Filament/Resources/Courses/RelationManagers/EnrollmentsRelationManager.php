@@ -31,10 +31,10 @@ class EnrollmentsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                Select::make('user_id')->label('Katılımcı')->relationship('user', 'name')->searchable()->preload()->required(),
-                Select::make('course_run_id')->label('Dönem (opsiyonel)')->relationship('run', 'name')->searchable()->preload(),
-                Select::make('status')->label('Durum')->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'])->default('enrolled')->required()->native(false),
-                DateTimePicker::make('completed_at')->label('Tamamlanma tarihi'),
+                Select::make('user_id')->label(__('Katılımcı'))->relationship('user', 'name')->searchable()->preload()->required(),
+                Select::make('course_run_id')->label(__('Dönem (opsiyonel)'))->relationship('run', 'name')->searchable()->preload(),
+                Select::make('status')->label(__('Durum'))->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'])->default('enrolled')->required()->native(false),
+                DateTimePicker::make('completed_at')->label(__('Tamamlanma tarihi')),
             ]);
     }
 
@@ -43,16 +43,16 @@ class EnrollmentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('user.name')->label('Katılımcı')->searchable(),
-                TextColumn::make('run.name')->label('Dönem')->placeholder('—'),
-                TextColumn::make('status')->label('Durum')->badge()
+                TextColumn::make('user.name')->label(__('Katılımcı'))->searchable(),
+                TextColumn::make('run.name')->label(__('Dönem'))->placeholder(__('—')),
+                TextColumn::make('status')->label(__('Durum'))->badge()
                     ->formatStateUsing(fn (string $state) => ['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
                         'completed' => 'success',
                         'in_progress' => 'warning',
                         default => 'gray',
                     }),
-                TextColumn::make('completed_at')->label('Tamamlanma')->dateTime('d.m.Y H:i')->placeholder('—'),
+                TextColumn::make('completed_at')->label(__('Tamamlanma'))->dateTime('d.m.Y H:i')->placeholder(__('—')),
             ])
             ->filters([
                 //
@@ -60,7 +60,7 @@ class EnrollmentsRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make(),
                 Action::make('bulkAssign')
-                    ->label('Toplu ata')
+                    ->label(__('Toplu ata'))
                     ->icon(Heroicon::OutlinedUserPlus)
                     ->color('gray')
                     ->schema([
@@ -68,7 +68,7 @@ class EnrollmentsRelationManager extends RelationManager
                         // active (not stale) -- someone whose certificate
                         // has expired is exactly who this action should be
                         // able to re-assign, not someone the picker hides.
-                        Select::make('user_ids')->label('Katılımcılar')
+                        Select::make('user_ids')->label(__('Katılımcılar'))
                             ->options(function () {
                                 $course = $this->getOwnerRecord();
                                 $activeUserIds = $course->currentEnrollments()->get()->reject->isStale()->pluck('user_id');

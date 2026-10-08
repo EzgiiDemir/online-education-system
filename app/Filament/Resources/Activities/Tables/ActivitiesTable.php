@@ -21,19 +21,19 @@ class ActivitiesTable
     {
         return $table
             ->columns([
-                TextColumn::make('section.course.title')->label('Eğitim')->searchable()->sortable(),
-                TextColumn::make('section.title')->label('Bölüm')->searchable(),
-                TextColumn::make('title')->label('Etkinlik')
+                TextColumn::make('section.course.title')->label(__('Eğitim'))->searchable()->sortable(),
+                TextColumn::make('section.title')->label(__('Bölüm'))->searchable(),
+                TextColumn::make('title')->label(__('Etkinlik'))
                     ->searchable(),
-                TextColumn::make('type')->label('Tür')->badge()
+                TextColumn::make('type')->label(__('Tür'))->badge()
                     ->searchable(),
-                TextColumn::make('duration_seconds')->label('Süre (sn)')->placeholder('Belirsiz')
+                TextColumn::make('duration_seconds')->label(__('Süre (sn)'))->placeholder(__('Belirsiz'))
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('sort_order')->label('Sıra')
+                TextColumn::make('sort_order')->label(__('Sıra'))
                     ->numeric()
                     ->sortable(),
-                IconColumn::make('is_required')->label('Zorunlu')
+                IconColumn::make('is_required')->label(__('Zorunlu'))
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -45,10 +45,10 @@ class ActivitiesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('type')->label('Tür')->options(['video' => 'Video', 'document' => 'Doküman', 'presentation' => 'Sunum', 'live_session' => 'Canlı oturum', 'resource' => 'Kaynak', 'quiz' => 'Sınav']),
+                SelectFilter::make('type')->label(__('Tür'))->options(['video' => 'Video', 'document' => 'Doküman', 'presentation' => 'Sunum', 'live_session' => 'Canlı oturum', 'resource' => 'Kaynak', 'quiz' => 'Sınav']),
             ])
             ->recordActions([
-                Action::make('preview')->label('Önizle')->icon(Heroicon::OutlinedEye)->color('gray')
+                Action::make('preview')->label(__('Önizle'))->icon(Heroicon::OutlinedEye)->color('gray')
                     ->url(fn ($record) => $record->path ? asset('storage/'.$record->path) : null)
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => (bool) $record->path),

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('webhook_subscription_id')->constrained()->cascadeOnDelete();
             $table->string('event');
-            $table->json('payload');
+            $table->jsonb('payload');
             $table->unsignedInteger('attempt');
             $table->unsignedInteger('response_status')->nullable();
             $table->text('response_body')->nullable();

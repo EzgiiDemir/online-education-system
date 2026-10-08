@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * No create/edit forms on purpose: a certificate is only ever meant to be
@@ -20,6 +21,8 @@ use Filament\Tables\Table;
  */
 class CertificateResource extends Resource
 {
+    use TranslatesNavigation;
+
     protected static ?string $model = Certificate::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;

@@ -6,7 +6,7 @@ table{width:100%;border-collapse:collapse}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #e4e7ec}
 th{background:#f2f4f7;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
 </style></head><body>
-<h1>Arucad Sürekli Öğrenme Merkezi — Sertifikalar</h1>
+<h1>Arucad Eğitim Merkezi — Sertifikalar</h1>
 <p class="meta">Oluşturulma tarihi: {{ now()->format('d.m.Y H:i') }} · Toplam {{ $rows->count() }} sertifika</p>
 <table>
 <thead><tr><th>Sertifika No</th><th>Sahibi</th><th>Eğitim</th><th>Veriliş Tarihi</th><th>Durum</th></tr></thead>

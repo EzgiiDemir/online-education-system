@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\EnumConstraint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,9 +16,7 @@ return new class extends Migration
             $table->foreignId('manager_id')->nullable()->after('role')->constrained('users')->nullOnDelete();
         });
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['learner', 'instructor', 'manager', 'admin'])->default('learner')->change();
-        });
+        EnumConstraint::redefine('users', 'role', ['learner', 'instructor', 'manager', 'admin'], 'learner');
     }
 
     /**
@@ -25,9 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['learner', 'instructor', 'admin'])->default('learner')->change();
-        });
+        EnumConstraint::redefine('users', 'role', ['learner', 'instructor', 'admin'], 'learner');
 
         Schema::table('users', function (Blueprint $table) {
             $table->dropConstrainedForeignId('manager_id');

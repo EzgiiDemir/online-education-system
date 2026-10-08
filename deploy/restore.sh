@@ -23,7 +23,7 @@ set -a
 [ -f .env ] && source .env
 set +a
 
-case "${DB_CONNECTION:-sqlite}" in
+case "${DB_CONNECTION:-pgsql}" in
   sqlite)
     cp "$DB_BACKUP" "${DB_DATABASE:-database/database.sqlite}"
     ;;

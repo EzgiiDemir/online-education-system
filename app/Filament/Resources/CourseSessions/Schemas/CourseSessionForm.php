@@ -13,14 +13,14 @@ class CourseSessionForm
     {
         return $schema
             ->components([
-                Select::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload()->required(),
-                TextInput::make('title')->label('Seans başlığı')
+                Select::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload()->required(),
+                TextInput::make('title')->label(__('Seans başlığı'))
                     ->required(),
-                DateTimePicker::make('starts_at')->label('Başlangıç'),
-                DateTimePicker::make('ends_at')->label('Bitiş'),
-                TextInput::make('room_key')->label('Otomatik toplantı oda anahtarı')->disabled()->dehydrated(false)->helperText('Online seans oluşturulunca sistem tarafından üretilir.'),
-                TextInput::make('meeting_status')->label('Toplantı durumu')->disabled()->dehydrated(false),
-                TextInput::make('recording_path')->label('Kayıt dosyası')->disabled()->dehydrated(false)->helperText('Eğitmenin canlı sınıf kaydı yüklemesiyle otomatik doldurulur.'),
+                DateTimePicker::make('starts_at')->label(__('Başlangıç')),
+                DateTimePicker::make('ends_at')->label(__('Bitiş')),
+                TextInput::make('room_key')->label(__('Otomatik toplantı oda anahtarı'))->disabled()->dehydrated(false)->helperText(__('Online seans oluşturulunca sistem tarafından üretilir.')),
+                TextInput::make('meeting_status')->label(__('Toplantı durumu'))->disabled()->dehydrated(false),
+                TextInput::make('recording_path')->label(__('Kayıt dosyası'))->disabled()->dehydrated(false)->helperText(__('Eğitmenin canlı sınıf kaydı yüklemesiyle otomatik doldurulur.')),
             ]);
     }
 }

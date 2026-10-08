@@ -35,7 +35,7 @@ class AccountController extends Controller
 
         Auth::user()->update(['notification_preferences' => $preferences]);
 
-        return back()->with('success', 'Bildirim tercihleri güncellendi.');
+        return back()->with('success', __('Bildirim tercihleri güncellendi.'));
     }
 
     /**
@@ -75,6 +75,6 @@ class AccountController extends Controller
         $r->session()->invalidate();
         $r->session()->regenerateToken();
 
-        return redirect()->route('lms.home')->with('success', 'Hesabınız silindi.');
+        return redirect()->route('lms.home')->with('success', __('Hesabınız silindi.'));
     }
 }

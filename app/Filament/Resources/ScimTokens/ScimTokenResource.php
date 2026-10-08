@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * No edit page: a token's only meaningful attributes are its name (create)
@@ -20,6 +21,8 @@ use Filament\Tables\Table;
  */
 class ScimTokenResource extends Resource
 {
+    use TranslatesNavigation;
+
     protected static ?string $model = ScimToken::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;

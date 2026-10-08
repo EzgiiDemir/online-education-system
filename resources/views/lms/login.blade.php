@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Corporate sign in' : 'Kurumsal giriş').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Continuous Learning Center' : 'Arucad Sürekli Öğrenme Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Corporate sign in' : 'Kurumsal giriş').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="container">
@@ -16,7 +16,7 @@
 <div class="col-lg-5">
 <div class="card surface auth-card p-4">
 <h2>{{ $en ? 'Sign in' : 'Giriş yapın' }}</h2>
-<form method="post" action="{{ route('login') }}">
+<form method="post" action="{{ $formAction ?? route('login') }}">
 @csrf
 <div class="mb-3"><label for="email" class="form-label">{{ $en ? 'Email' : 'E-posta' }}</label><input id="email" name="email" type="email" class="form-control" placeholder="ad.soyad@company.com" autocomplete="email" required></div>
 <div class="mb-3"><label for="password" class="form-label">{{ $en ? 'Password' : 'Şifre' }}</label><input id="password" name="password" type="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required></div>

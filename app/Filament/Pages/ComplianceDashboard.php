@@ -8,6 +8,7 @@ use App\Models\Enrollment;
 use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
+use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * Org-wide compliance posture for "required"/"compliance" category
@@ -20,6 +21,8 @@ use Illuminate\Support\Collection;
  */
 class ComplianceDashboard extends Page
 {
+    use TranslatesNavigation;
+
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedShieldExclamation;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Katılımcılar';
@@ -29,6 +32,11 @@ class ComplianceDashboard extends Page
     protected static ?string $title = 'Uyumluluk paneli';
 
     protected string $view = 'filament.pages.compliance-dashboard';
+
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('Uyumluluk paneli');
+    }
 
     private function mandatoryEnrollments(): Collection
     {

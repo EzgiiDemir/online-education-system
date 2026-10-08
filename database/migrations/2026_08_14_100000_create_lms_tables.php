@@ -69,7 +69,14 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('type');
             $table->morphs('notifiable');
-            $table->text('data');
+            // jsonb, not text: the column holds JSON and is queried with
+            // Laravel's data->key idiom. That compiles to json_extract() on
+            // SQLite (which happily reads text) but to ->>'key' on Postgres,
+            // whose operator only exists for json/jsonb -- a text column
+            // makes those queries fail outright. jsonb over json because
+            // only jsonb has equality operators, which SELECT DISTINCT over
+            // a table containing the column needs.
+            $table->jsonb('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });

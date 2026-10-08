@@ -27,7 +27,7 @@ class CourseBuilderController extends Controller
         $nextOrder = ((int) $course->sections()->max('sort_order')) + 1;
         $course->sections()->create([...$data, 'sort_order' => $nextOrder]);
 
-        return back()->with('success', 'Bölüm eklendi.');
+        return back()->with('success', __('Bölüm eklendi.'));
     }
 
     public function updateSection(Request $r, CourseSection $section)
@@ -36,7 +36,7 @@ class CourseBuilderController extends Controller
         $data = $r->validate(['title' => 'required|string|max:255', 'description' => 'nullable|string']);
         $section->update($data);
 
-        return back()->with('success', 'Bölüm güncellendi.');
+        return back()->with('success', __('Bölüm güncellendi.'));
     }
 
     public function destroySection(CourseSection $section)
@@ -44,7 +44,7 @@ class CourseBuilderController extends Controller
         $this->authorize('update', $section->course);
         $section->delete();
 
-        return back()->with('success', 'Bölüm silindi.');
+        return back()->with('success', __('Bölüm silindi.'));
     }
 
     public function reorderSections(Request $r, Course $course)
@@ -79,7 +79,7 @@ class CourseBuilderController extends Controller
             'sort_order' => $nextOrder,
         ]);
 
-        return back()->with('success', 'Etkinlik eklendi.');
+        return back()->with('success', __('Etkinlik eklendi.'));
     }
 
     public function updateActivity(Request $r, Activity $activity)
@@ -88,7 +88,7 @@ class CourseBuilderController extends Controller
         $data = $r->validate(['title' => 'required|string|max:160', 'description' => 'nullable|string', 'is_required' => 'nullable|boolean']);
         $activity->update(['title' => $data['title'], 'description' => $data['description'] ?? null, 'is_required' => $r->boolean('is_required')]);
 
-        return back()->with('success', 'Etkinlik güncellendi.');
+        return back()->with('success', __('Etkinlik güncellendi.'));
     }
 
     public function destroyActivity(Activity $activity)
@@ -96,7 +96,7 @@ class CourseBuilderController extends Controller
         $this->authorize('update', $activity->section->course);
         $activity->delete();
 
-        return back()->with('success', 'Etkinlik silindi.');
+        return back()->with('success', __('Etkinlik silindi.'));
     }
 
     public function reorderActivities(Request $r, CourseSection $section)
@@ -142,7 +142,7 @@ class CourseBuilderController extends Controller
         $material->title = $data['title'];
         $material->save();
 
-        return back()->with('success', 'Materyal güncellendi.');
+        return back()->with('success', __('Materyal güncellendi.'));
     }
 
     public function destroyMaterial(Material $material)
@@ -150,6 +150,6 @@ class CourseBuilderController extends Controller
         $this->authorize('update', $material->session->course);
         $material->delete();
 
-        return back()->with('success', 'Materyal silindi.');
+        return back()->with('success', __('Materyal silindi.'));
     }
 }

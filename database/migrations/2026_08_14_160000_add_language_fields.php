@@ -13,7 +13,7 @@ return new class extends Migration
         });
         Schema::table('portal_settings', function (Blueprint $t) {
             $t->string('default_locale', 5)->default('tr');
-            $t->json('available_locales')->nullable();
+            $t->jsonb('available_locales')->nullable();
         });
     }
 

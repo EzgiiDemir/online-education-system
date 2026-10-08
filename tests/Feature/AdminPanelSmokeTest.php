@@ -136,7 +136,7 @@ class AdminPanelSmokeTest extends TestCase
         $course = Course::factory()->create();
         $section = $course->sections()->create(['title' => 'Bölüm 1']);
         $quiz = $section->activities()->create(['title' => 'Değerlendirme Sınavı', 'type' => 'quiz', 'is_required' => true]);
-        $question = $quiz->quizQuestions()->create(['question' => 'Arucad Sürekli Öğrenme Merkezi nedir?', 'type' => 'single_choice', 'sort_order' => 1]);
+        $question = $quiz->quizQuestions()->create(['question' => 'Arucad Eğitim Merkezi nedir?', 'type' => 'single_choice', 'sort_order' => 1]);
         $question->options()->createMany([
             ['label' => 'Bir öğrenme yönetim sistemi', 'is_correct' => true, 'sort_order' => 1],
             ['label' => 'Bir muhasebe programı', 'is_correct' => false, 'sort_order' => 2],
@@ -208,6 +208,9 @@ class AdminPanelSmokeTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
         $instructor = User::factory()->create(['role' => 'instructor']);
 
+        // Signed in, but the admin panel is not theirs: 403, not a bounce to
+        // a login page they are already past. Matches ManagerRoleTest's
+        // test_manager_still_cannot_access_the_admin_panel.
         $this->actingAs($learner)->get('/admin')->assertForbidden();
         $this->actingAs($instructor)->get('/admin')->assertForbidden();
     }

@@ -14,10 +14,10 @@ class AuditLogsTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('created_at')->label('Zaman')->dateTime('d.m.Y H:i:s')->sortable(),
-                TextColumn::make('actor.name')->label('Kim')->placeholder('Sistem')->searchable(),
+                TextColumn::make('created_at')->label(__('Zaman'))->dateTime('d.m.Y H:i:s')->sortable(),
+                TextColumn::make('actor.name')->label(__('Kim'))->placeholder(__('Sistem'))->searchable(),
                 TextColumn::make('action')
-                    ->label('İşlem')
+                    ->label(__('İşlem'))
                     ->badge()
                     ->formatStateUsing(fn (string $state) => ['created' => 'Oluşturuldu', 'updated' => 'Güncellendi', 'deleted' => 'Silindi'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
@@ -25,22 +25,22 @@ class AuditLogsTable
                         'deleted' => 'danger',
                         default => 'warning',
                     }),
-                TextColumn::make('entity_type')->label('Kayıt türü'),
-                TextColumn::make('entity_label')->label('Kayıt')->placeholder('—')->searchable(),
+                TextColumn::make('entity_type')->label(__('Kayıt türü')),
+                TextColumn::make('entity_label')->label(__('Kayıt'))->placeholder(__('—'))->searchable(),
                 TextColumn::make('changes')
-                    ->label('Değişiklik')
+                    ->label(__('Değişiklik'))
                     ->formatStateUsing(fn ($state) => is_array($state) && $state !== [] ? json_encode($state, JSON_UNESCAPED_UNICODE) : '—')
                     ->limit(80)
                     ->wrap()
                     ->toggleable(),
-                TextColumn::make('ip_address')->label('IP')->placeholder('—')->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('ip_address')->label(__('IP'))->placeholder(__('—'))->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('action')->label('İşlem')->options(['created' => 'Oluşturuldu', 'updated' => 'Güncellendi', 'deleted' => 'Silindi']),
-                SelectFilter::make('entity_type')->label('Kayıt türü')->options(fn () => \App\Models\AuditLog::query()->distinct()->pluck('entity_type', 'entity_type')->toArray()),
+                SelectFilter::make('action')->label(__('İşlem'))->options(['created' => 'Oluşturuldu', 'updated' => 'Güncellendi', 'deleted' => 'Silindi']),
+                SelectFilter::make('entity_type')->label(__('Kayıt türü'))->options(fn () => \App\Models\AuditLog::query()->distinct()->pluck('entity_type', 'entity_type')->toArray()),
             ])
             ->recordActions([
-                ViewAction::make()->label('Ayrıntı'),
+                ViewAction::make()->label(__('Ayrıntı')),
             ])
             ->toolbarActions([]);
     }

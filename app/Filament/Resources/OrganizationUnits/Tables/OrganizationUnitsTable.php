@@ -16,11 +16,11 @@ class OrganizationUnitsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Birim adı')->searchable()->sortable(),
-                TextColumn::make('parent.name')->label('Üst birim')->placeholder('— (en üst seviye)'),
-                TextColumn::make('users_count')->label('Doğrudan üye')->counts('users')->badge(),
-                TextColumn::make('children_count')->label('Alt birim')->counts('children')->badge()->toggleable(),
-                TextColumn::make('created_at')->label('Oluşturulma')->dateTime('d.m.Y')->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('name')->label(__('Birim adı'))->searchable()->sortable(),
+                TextColumn::make('parent.name')->label(__('Üst birim'))->placeholder(__('— (en üst seviye)')),
+                TextColumn::make('users_count')->label(__('Doğrudan üye'))->counts('users')->badge(),
+                TextColumn::make('children_count')->label(__('Alt birim'))->counts('children')->badge()->toggleable(),
+                TextColumn::make('created_at')->label(__('Oluşturulma'))->dateTime('d.m.Y')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
                 EditAction::make(),

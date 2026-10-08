@@ -23,16 +23,16 @@ class CoursesRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('pivot.sort_order')->label('Sıra')->sortable(),
-                TextColumn::make('title')->label('Eğitim'),
-                IconColumn::make('pivot.is_required')->label('Zorunlu')->boolean(),
+                TextColumn::make('pivot.sort_order')->label(__('Sıra'))->sortable(),
+                TextColumn::make('title')->label(__('Eğitim')),
+                IconColumn::make('pivot.is_required')->label(__('Zorunlu'))->boolean(),
             ])
             ->headerActions([
                 AttachAction::make()
                     ->schema(fn (AttachAction $action): array => [
                         $action->getRecordSelect(),
-                        TextInput::make('sort_order')->label('Sıra')->numeric()->default(0),
-                        Toggle::make('is_required')->label('Zorunlu')->default(true),
+                        TextInput::make('sort_order')->label(__('Sıra'))->numeric()->default(0),
+                        Toggle::make('is_required')->label(__('Zorunlu'))->default(true),
                     ]),
             ])
             ->recordActions([

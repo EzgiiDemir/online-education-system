@@ -2,11 +2,15 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    // The guest navbar reads the portal's name and logo from portal_settings,
+    // so even this smoke test needs a migrated database now.
+    use RefreshDatabase;
+
     /**
      * A basic test example.
      */

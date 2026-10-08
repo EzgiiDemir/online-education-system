@@ -27,16 +27,16 @@ class EnrollmentsTable
         return $table
             ->columns([
                 TextColumn::make('user.name')
-                    ->label('Katılımcı')
+                    ->label(__('Katılımcı'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('course.title')
-                    ->label('Eğitim')
+                    ->label(__('Eğitim'))
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('run.name')->label('Dönem')->placeholder('—')->toggleable(),
+                TextColumn::make('run.name')->label(__('Dönem'))->placeholder(__('—'))->toggleable(),
                 TextColumn::make('status')
-                    ->label('Durum')
+                    ->label(__('Durum'))
                     ->badge()
                     ->formatStateUsing(fn (string $state) => ['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı'][$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
@@ -46,43 +46,43 @@ class EnrollmentsTable
                     })
                     ->searchable(),
                 TextColumn::make('completed_at')
-                    ->label('Tamamlanma')
+                    ->label(__('Tamamlanma'))
                     ->dateTime()
                     ->sortable(),
                 IconColumn::make('exempted_at')
-                    ->label('Muaf')
+                    ->label(__('Muaf'))
                     ->boolean()
                     ->getStateUsing(fn (Enrollment $record) => $record->isExempt()),
                 TextColumn::make('created_at')
-                    ->label('Kayıt tarihi')
+                    ->label(__('Kayıt tarihi'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('course_id')->label('Eğitim')->relationship('course', 'title')->searchable()->preload(),
-                SelectFilter::make('status')->label('Durum')->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı']),
-                TernaryFilter::make('exempted_at')->label('Muaf')->nullable(),
+                SelectFilter::make('course_id')->label(__('Eğitim'))->relationship('course', 'title')->searchable()->preload(),
+                SelectFilter::make('status')->label(__('Durum'))->options(['enrolled' => 'Kayıtlı', 'in_progress' => 'Devam ediyor', 'completed' => 'Tamamlandı']),
+                TernaryFilter::make('exempted_at')->label(__('Muaf'))->nullable(),
             ])
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                Action::make('exempt')->label('Muaf tut')->icon(Heroicon::OutlinedShieldCheck)->color('warning')
+                Action::make('exempt')->label(__('Muaf tut'))->icon(Heroicon::OutlinedShieldCheck)->color('warning')
                     ->visible(fn (Enrollment $record) => ! $record->isExempt() && $record->status !== 'completed')
                     ->requiresConfirmation()
                     ->schema([
-                        Textarea::make('reason')->label('Muafiyet gerekçesi')->required()->maxLength(255),
+                        Textarea::make('reason')->label(__('Muafiyet gerekçesi'))->required()->maxLength(255),
                     ])
                     ->action(function (Enrollment $record, array $data) {
                         $record->exempt(Auth::user(), $data['reason']);
-                        Notification::make()->title('Kayıt muaf tutuldu')->success()->send();
+                        Notification::make()->title(__('Kayıt muaf tutuldu'))->success()->send();
                     }),
-                Action::make('unexempt')->label('Muafiyeti kaldır')->icon(Heroicon::OutlinedXCircle)->color('gray')
+                Action::make('unexempt')->label(__('Muafiyeti kaldır'))->icon(Heroicon::OutlinedXCircle)->color('gray')
                     ->visible(fn (Enrollment $record) => $record->isExempt())
                     ->requiresConfirmation()
                     ->action(function (Enrollment $record) {
                         $record->unexempt();
-                        Notification::make()->title('Muafiyet kaldırıldı')->success()->send();
+                        Notification::make()->title(__('Muafiyet kaldırıldı'))->success()->send();
                     }),
                 ViewAuditLogAction::make(),
                 DeleteAction::make(),

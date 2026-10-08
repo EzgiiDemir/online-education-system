@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Filament\AdminLogoutController;
+use Filament\Auth\Http\Controllers\LogoutController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Filament's default logout invalidates the WHOLE session, which
+        // would also log out the 'web'/'instructor' guards sharing it --
+        // see App\Http\Controllers\Filament\AdminLogoutController.
+        $this->app->bind(LogoutController::class, AdminLogoutController::class);
     }
 
     /**
@@ -30,6 +36,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // In production every generated URL must be https, including the ones
+        // baked into notification email and the certificate QR code, which are
+        // rendered by the queue worker and the PDF engine where there is no
+        // incoming request to infer the scheme from.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         RateLimiter::for('login', fn ($request) => Limit::perMinute(5)->by($request->ip().'|'.strtolower((string) $request->input('email'))));
 
         RateLimiter::for('register', fn ($request) => Limit::perMinute(5)->by($request->ip()));
