@@ -27,3 +27,4 @@ Homestead.yaml
 Thumbs.db
 /storage/*cookie*
 /storage/framework/lsp-*.php
+/dist

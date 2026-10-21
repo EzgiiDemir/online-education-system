@@ -1,16 +1,19 @@
-; Example Supervisor program definition for the queue worker on a
-; traditional VPS (no Procfile support). Copy to
-; /etc/supervisor/conf.d/arucad-worker.conf, adjust the paths/user, then:
-;   supervisorctl reread && supervisorctl update && supervisorctl start arucad-worker:*
+; Supervisor program definition for the queue worker on a traditional VPS.
+; deploy/server-setup.sh installs it as /etc/supervisor/conf.d/ecenter-worker.conf;
+; deploy/deploy.sh restarts it after every release. By hand:
+;   supervisorctl reread && supervisorctl update && supervisorctl restart ecenter-worker:*
 ;
 ; numprocs=2 runs two worker processes in parallel -- raise this if the
 ; queue backs up under load (e.g. many courses publishing to thousands of
 ; learners at once), lower it to 1 for a small single-instructor deployment.
+;
+; /var/www/ecenter/current is a symlink to the active release; the worker
+; resolves it at start, which is why deploy.sh restarts it.
 
-[program:arucad-worker]
+[program:ecenter-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/arucad-campus-lms/artisan queue:work --tries=3 --backoff=30 --max-time=3600 --sleep=3
-directory=/var/www/arucad-campus-lms
+command=php /var/www/ecenter/current/artisan queue:work --tries=3 --backoff=30 --max-time=3600 --sleep=3
+directory=/var/www/ecenter/current
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -18,5 +21,7 @@ killasgroup=true
 user=www-data
 numprocs=2
 redirect_stderr=true
-stdout_logfile=/var/www/arucad-campus-lms/storage/logs/worker.log
+stdout_logfile=/var/www/ecenter/shared/storage/logs/worker.log
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=5
 stopwaitsecs=3600

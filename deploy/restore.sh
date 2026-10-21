@@ -19,9 +19,12 @@ if [ ! -f "$DB_BACKUP" ]; then
   exit 1
 fi
 
-set -a
-[ -f .env ] && source .env
-set +a
+# Same DB_*-only parsing as backup.sh (sourcing .env breaks on secrets).
+env_get() { [ -f .env ] && grep -E "^$1=" .env | tail -n 1 | cut -d= -f2- | sed -E "s/^([\"'])(.*)\1\$/\2/"; }
+for key in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD; do
+  value="$(env_get "$key" || true)"
+  [ -n "$value" ] && export "$key=$value"
+done
 
 case "${DB_CONNECTION:-pgsql}" in
   sqlite)
@@ -31,7 +34,9 @@ case "${DB_CONNECTION:-pgsql}" in
     mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" "${DB_DATABASE}" < "$DB_BACKUP"
     ;;
   pgsql)
-    PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME}" "${DB_DATABASE}" < "$DB_BACKUP"
+    # All or nothing: stop at the first error and roll the whole load back,
+    # instead of reporting success over a half-restored database.
+    PGPASSWORD="${DB_PASSWORD}" psql -q -v ON_ERROR_STOP=1 --single-transaction -h "${DB_HOST}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME}" "${DB_DATABASE}" < "$DB_BACKUP" > /dev/null
     ;;
   *)
     echo "Unsupported DB_CONNECTION: ${DB_CONNECTION:-}" >&2

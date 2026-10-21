@@ -15,9 +15,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-set -a
-[ -f .env ] && source .env
-set +a
+# Read only the DB_* keys instead of `source .env`: a real SMTP/SSO secret
+# containing $, &, ; or spaces is valid dotenv but breaks bash, and the
+# backup would then silently never run.
+env_get() { [ -f .env ] && grep -E "^$1=" .env | tail -n 1 | cut -d= -f2- | sed -E "s/^([\"'])(.*)\1\$/\2/"; }
+for key in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD; do
+  value="$(env_get "$key" || true)"
+  [ -n "$value" ] && export "$key=$value"
+done
 
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP_DIR="storage/app/backups"
@@ -34,7 +39,9 @@ case "${DB_CONNECTION:-pgsql}" in
     DB_BACKUP_FILE="db-$TIMESTAMP.sql"
     ;;
   pgsql)
-    PGPASSWORD="${DB_PASSWORD}" pg_dump -h "${DB_HOST}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME}" "${DB_DATABASE}" > "$BACKUP_DIR/db-$TIMESTAMP.sql"
+    # --clean --if-exists: the dump drops each object before recreating it,
+    # so restore.sh can load it over a live database, not only an empty one.
+    PGPASSWORD="${DB_PASSWORD}" pg_dump --clean --if-exists --no-owner -h "${DB_HOST}" -p "${DB_PORT:-5432}" -U "${DB_USERNAME}" "${DB_DATABASE}" > "$BACKUP_DIR/db-$TIMESTAMP.sql"
     DB_BACKUP_FILE="db-$TIMESTAMP.sql"
     ;;
   *)

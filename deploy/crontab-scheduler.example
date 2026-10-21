@@ -1,11 +1,20 @@
+# /etc/cron.d/ecenter -- installed by deploy/server-setup.sh.
+#
 # Laravel's official recommended way to run the scheduler on a traditional
 # VPS: one cron entry that fires every minute and lets the framework decide
-# what actually needs to run (here: the daily app:send-training-reminders
-# job registered in bootstrap/app.php). Install with `crontab -e` as the
-# deploy user (e.g. www-data), or drop into /etc/cron.d/ as its own file.
+# what actually needs to run (app:send-training-reminders, recording purge,
+# the System Health heartbeat -- see bootstrap/app.php).
+#
+# The nightly backup writes to shared/storage/app/backups on THIS disk and
+# keeps 14 days there. That is not disaster recovery: those files must also
+# be copied off the server (encrypted) by the infrastructure team -- see
+# SUNUCU_TEKNIK_GEREKSINIMLERI.md section 8.
 #
 # On a Procfile-based platform (Heroku/Railway/Render), use the "scheduler"
-# process from ./Procfile (`php artisan schedule:work`) instead -- those
-# platforms don't give you cron access.
+# process from ./Procfile (`php artisan schedule:work`) instead.
 
-* * * * * cd /var/www/arucad-campus-lms && php artisan schedule:run >> /dev/null 2>&1
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+* * * * *  www-data  cd /var/www/ecenter/current && php artisan schedule:run >> /dev/null 2>&1
+30 2 * * * www-data  /var/www/ecenter/current/deploy/backup.sh >> /var/www/ecenter/shared/storage/logs/backup.log 2>&1 && find /var/www/ecenter/shared/storage/app/backups -type f -mtime +14 -delete
