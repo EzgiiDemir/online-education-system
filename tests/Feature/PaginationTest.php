@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\PortalSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -38,13 +40,13 @@ class PaginationTest extends TestCase
     public function test_course_catalog_query_count_does_not_scale_with_course_count(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
-        \App\Models\PortalSetting::current(); // one-time row creation, done up front so it doesn't skew the query counts below
-        \Illuminate\Support\Facades\DB::enableQueryLog();
+        PortalSetting::current(); // one-time row creation, done up front so it doesn't skew the query counts below
+        DB::enableQueryLog();
 
         Course::factory()->count(3)->create(['status' => 'published']);
-        \Illuminate\Support\Facades\DB::flushQueryLog();
+        DB::flushQueryLog();
         $this->actingAs($learner)->get('/')->assertOk();
-        $queriesFor3 = count(\Illuminate\Support\Facades\DB::getQueryLog());
+        $queriesFor3 = count(DB::getQueryLog());
 
         Course::factory()->count(6)->create(['status' => 'published']);
         // Re-fetch a fresh model instead of reusing $learner: a real second HTTP
@@ -53,9 +55,9 @@ class PaginationTest extends TestCase
         // actingAs() calls in-process would, which would hide a real query. Do
         // this before flushing the log so the lookup itself isn't measured.
         $freshLearner = User::find($learner->id);
-        \Illuminate\Support\Facades\DB::flushQueryLog();
+        DB::flushQueryLog();
         $this->actingAs($freshLearner)->get('/')->assertOk();
-        $queriesFor9 = count(\Illuminate\Support\Facades\DB::getQueryLog());
+        $queriesFor9 = count(DB::getQueryLog());
 
         $this->assertSame($queriesFor3, $queriesFor9, 'Query count scaled with course count: N+1 regressed.');
     }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Pages\SystemHealth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -79,7 +80,7 @@ class SystemHealthTest extends TestCase
     public function test_a_recently_run_scheduled_job_is_not_flagged_overdue(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        \Illuminate\Support\Facades\Cache::forever('scheduled_job_last_run:app:send-training-reminders', now());
+        Cache::forever('scheduled_job_last_run:app:send-training-reminders', now());
 
         $jobs = Livewire::actingAs($admin)->test(SystemHealth::class)->instance()->getScheduledJobs();
 

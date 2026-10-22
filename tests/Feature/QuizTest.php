@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
+use App\Models\QuizAttempt;
 use App\Models\QuizOption;
 use App\Models\QuizQuestion;
 use App\Models\User;
@@ -189,7 +190,7 @@ class QuizTest extends TestCase
         $second = $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), $payload);
 
         $second->assertStatus(422);
-        $this->assertSame(1, \App\Models\QuizAttempt::where('activity_id', $activity->id)->count());
+        $this->assertSame(1, QuizAttempt::where('activity_id', $activity->id)->count());
     }
 
     public function test_cannot_reattempt_after_already_passing(): void
@@ -206,7 +207,7 @@ class QuizTest extends TestCase
         $second = $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), $payload);
 
         $second->assertStatus(422);
-        $this->assertSame(1, \App\Models\QuizAttempt::where('activity_id', $activity->id)->count());
+        $this->assertSame(1, QuizAttempt::where('activity_id', $activity->id)->count());
     }
 
     /**
@@ -230,7 +231,7 @@ class QuizTest extends TestCase
         $second = $this->actingAs($learner)->post(route('activities.quiz-attempts.store', $activity), $payload);
 
         $second->assertStatus(429);
-        $this->assertSame(1, \App\Models\QuizAttempt::where('activity_id', $activity->id)->count());
+        $this->assertSame(1, QuizAttempt::where('activity_id', $activity->id)->count());
     }
 
     public function test_a_learner_not_enrolled_in_the_course_cannot_submit_an_attempt(): void

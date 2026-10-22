@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CourseSessions;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\CourseSessions\Pages\CreateCourseSession;
 use App\Filament\Resources\CourseSessions\Pages\EditCourseSession;
 use App\Filament\Resources\CourseSessions\Pages\ListCourseSessions;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class CourseSessionResource extends Resource
 {

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Activities\Tables;
 
 use App\Filament\Actions\QuizAnalyticsAction;
 use App\Filament\Actions\ViewAuditLogAction;
+use App\Support\ProtectedFiles;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -49,7 +50,7 @@ class ActivitiesTable
             ])
             ->recordActions([
                 Action::make('preview')->label(__('Önizle'))->icon(Heroicon::OutlinedEye)->color('gray')
-                    ->url(fn ($record) => \App\Support\ProtectedFiles::url($record->path))
+                    ->url(fn ($record) => ProtectedFiles::url($record->path))
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => (bool) $record->path),
                 EditAction::make(),

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\PortalSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -120,7 +121,7 @@ class UserRemovalSafetyTest extends TestCase
     public function test_a_deactivated_user_cannot_log_in(): void
     {
         $learner = User::factory()->create(['role' => 'learner', 'email' => 'deactivated@example.com', 'password' => 'password', 'deactivated_at' => now()]);
-        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['example.com'], 'local_login_enabled' => true]);
+        PortalSetting::create(['id' => 1, 'accepted_domains' => ['example.com'], 'local_login_enabled' => true]);
 
         $response = $this->post('/login', ['email' => $learner->email, 'password' => 'password']);
 
@@ -131,7 +132,7 @@ class UserRemovalSafetyTest extends TestCase
     public function test_an_active_user_with_correct_credentials_can_still_log_in(): void
     {
         $learner = User::factory()->create(['role' => 'learner', 'email' => 'active@example.com', 'password' => 'password']);
-        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['example.com'], 'local_login_enabled' => true]);
+        PortalSetting::create(['id' => 1, 'accepted_domains' => ['example.com'], 'local_login_enabled' => true]);
 
         $this->post('/login', ['email' => $learner->email, 'password' => 'password']);
 

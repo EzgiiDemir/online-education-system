@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Material;
 use App\Models\User;
+use App\Notifications\SharedDocumentGraded;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
@@ -171,21 +173,21 @@ class ClassroomHostControlsTest extends TestCase
         [$instructor, $course, $session] = $this->instructorCourseSession();
         $learner = User::factory()->create(['role' => 'learner']);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
-        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'uploaded_by_id' => $learner->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
+        $material = Material::create(['course_session_id' => $session->id, 'uploaded_by_id' => $learner->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
 
         $response = $this->actingAs($instructor)->postJson(route('materials.grade', $material), ['score' => 88]);
 
         $response->assertOk();
         $response->assertJson(['ok' => true, 'score' => 88]);
         $this->assertDatabaseHas('materials', ['id' => $material->id, 'score' => 88, 'graded_by_id' => $instructor->id]);
-        $this->assertDatabaseHas('notifications', ['notifiable_id' => $learner->id, 'type' => \App\Notifications\SharedDocumentGraded::class]);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $learner->id, 'type' => SharedDocumentGraded::class]);
     }
 
     public function test_a_non_owning_instructor_cannot_grade_a_shared_document(): void
     {
         [, $course, $session] = $this->instructorCourseSession();
         $otherInstructor = User::factory()->create(['role' => 'instructor']);
-        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
 
         $this->actingAs($otherInstructor)->postJson(route('materials.grade', $material), ['score' => 50])->assertForbidden();
     }
@@ -195,7 +197,7 @@ class ClassroomHostControlsTest extends TestCase
         [, $course, $session] = $this->instructorCourseSession();
         $learner = User::factory()->create(['role' => 'learner']);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
-        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
 
         $this->actingAs($learner)->postJson(route('materials.grade', $material), ['score' => 100])->assertForbidden();
     }
@@ -203,7 +205,7 @@ class ClassroomHostControlsTest extends TestCase
     public function test_score_must_be_within_zero_to_a_hundred(): void
     {
         [$instructor, , $session] = $this->instructorCourseSession();
-        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'odev.pdf', 'type' => 'application/pdf', 'path' => 'materials/odev.pdf']);
 
         $this->actingAs($instructor)->postJson(route('materials.grade', $material), ['score' => 101])->assertStatus(422);
     }

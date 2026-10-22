@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\PortalSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -161,7 +162,7 @@ class ManagerRoleTest extends TestCase
 
     public function test_manager_login_redirects_to_manager_dashboard(): void
     {
-        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true]);
+        PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true]);
         User::factory()->create(['role' => 'manager', 'email' => 'manager@company.com', 'password' => 'secret123']);
 
         $response = $this->post('/login', ['email' => 'manager@company.com', 'password' => 'secret123']);

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Skills;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\Skills\Pages\CreateSkill;
 use App\Filament\Resources\Skills\Pages\EditSkill;
 use App\Filament\Resources\Skills\Pages\ListSkills;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class SkillResource extends Resource
 {

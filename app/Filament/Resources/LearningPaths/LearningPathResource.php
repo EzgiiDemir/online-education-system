@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LearningPaths;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\LearningPaths\Pages\CreateLearningPath;
 use App\Filament\Resources\LearningPaths\Pages\EditLearningPath;
 use App\Filament\Resources\LearningPaths\Pages\ListLearningPaths;
@@ -14,7 +15,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class LearningPathResource extends Resource
 {

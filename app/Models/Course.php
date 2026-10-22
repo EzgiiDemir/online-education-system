@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class Course extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $guarded = [];
 
@@ -107,14 +109,14 @@ class Course extends Model
      * reading of "prerequisite" anyway (B's own prerequisite check already
      * enforces the chain when the learner tries to enroll in B).
      */
-    public function unmetPrerequisitesFor(User $user): \Illuminate\Support\Collection
+    public function unmetPrerequisitesFor(User $user): Collection
     {
         $completedCourseIds = $user->enrollments()->where('status', 'completed')->pluck('course_id');
 
         return $this->prerequisites()->get()->reject(fn (Course $course) => $completedCourseIds->contains($course->id));
     }
 
-    public function dueDateFor(Enrollment $enrollment): ?\Illuminate\Support\Carbon
+    public function dueDateFor(Enrollment $enrollment): ?Carbon
     {
         return $this->due_days ? $enrollment->created_at->copy()->addDays($this->due_days) : null;
     }

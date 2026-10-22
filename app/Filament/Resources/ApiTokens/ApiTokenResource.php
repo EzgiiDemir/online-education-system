@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ApiTokens;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\ApiTokens\Pages\CreateApiToken;
 use App\Filament\Resources\ApiTokens\Pages\ListApiTokens;
 use App\Filament\Resources\ApiTokens\Schemas\ApiTokenForm;
@@ -12,7 +13,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class ApiTokenResource extends Resource
 {

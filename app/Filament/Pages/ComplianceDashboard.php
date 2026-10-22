@@ -2,13 +2,15 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use BackedEnum;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
-use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * Org-wide compliance posture for "required"/"compliance" category
@@ -23,7 +25,7 @@ class ComplianceDashboard extends Page
 {
     use TranslatesNavigation;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedShieldExclamation;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldExclamation;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Katılımcılar';
 
@@ -33,7 +35,7 @@ class ComplianceDashboard extends Page
 
     protected string $view = 'filament.pages.compliance-dashboard';
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string|Htmlable
     {
         return __('Uyumluluk paneli');
     }

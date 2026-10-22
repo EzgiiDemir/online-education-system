@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Enrollments;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\Enrollments\Pages\CreateEnrollment;
 use App\Filament\Resources\Enrollments\Pages\EditEnrollment;
 use App\Filament\Resources\Enrollments\Pages\ListEnrollments;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class EnrollmentResource extends Resource
 {

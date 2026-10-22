@@ -12,13 +12,14 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 #[Fillable(['name', 'email', 'external_id', 'password', 'department', 'job_title', 'avatar_path', 'bio', 'role', 'manager_id', 'organization_unit_id', 'deactivated_at', 'notification_preferences'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, Auditable;
+    use Auditable, HasFactory, Notifiable;
 
     /**
      * Shared by every admin-facing delete/deactivate control (Filament's
@@ -166,7 +167,7 @@ class User extends Authenticatable implements FilamentUser
      * a manual DB edit, can't hang this in an infinite loop) since a normal
      * "who reports up to whom" org chart is always a tree in practice.
      */
-    public function allReports(): \Illuminate\Support\Collection
+    public function allReports(): Collection
     {
         $collected = collect();
         $seenIds = collect([$this->id]);

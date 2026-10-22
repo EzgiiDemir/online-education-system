@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuditLogs;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\AuditLogs\Pages\ListAuditLogs;
 use App\Filament\Resources\AuditLogs\Tables\AuditLogsTable;
 use App\Models\AuditLog;
@@ -11,7 +12,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class AuditLogResource extends Resource
 {

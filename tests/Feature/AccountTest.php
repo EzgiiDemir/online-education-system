@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\PortalSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -63,7 +65,7 @@ class AccountTest extends TestCase
     public function test_the_deactivated_account_can_no_longer_log_in(): void
     {
         $learner = User::factory()->create(['role' => 'learner', 'password' => 'correct-password', 'email' => 'ayrilan@company.com']);
-        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true]);
+        PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true]);
         $this->actingAs($learner)->post(route('account.destroy'), ['password' => 'correct-password']);
 
         $response = $this->post('/login', ['email' => 'ayrilan@company.com', 'password' => 'correct-password']);
@@ -87,7 +89,7 @@ class AccountTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner', 'password' => 'correct-password']);
         $course = Course::factory()->create(['status' => 'published']);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed']);
-        $certificate = \App\Models\Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-KEEPME1', 'issued_at' => now()]);
+        $certificate = Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-KEEPME1', 'issued_at' => now()]);
 
         $this->actingAs($learner)->post(route('account.destroy'), ['password' => 'correct-password']);
 

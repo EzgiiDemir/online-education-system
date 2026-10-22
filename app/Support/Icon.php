@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 class Icon
 {
     public static function svg(string $name, int $size = 20, string $extraClass = ''): string
@@ -17,7 +19,7 @@ class Icon
             return preg_replace('/\s(width|height|class)="[^"]*"/', '', $m[0]);
         }, $svg, 1);
 
-        return \Illuminate\Support\Str::replaceFirst(
+        return Str::replaceFirst(
             '<svg',
             '<svg class="icon '.$extraClass.'" width="'.$size.'" height="'.$size.'" aria-hidden="true" focusable="false"',
             $svg

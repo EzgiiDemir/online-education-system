@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
 use App\Models\QuizAttempt;
+use App\Models\SessionAttendance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,7 +34,7 @@ class CourseWorkspaceTest extends TestCase
         $instructor = User::factory()->create(['role' => 'instructor']);
         $course = Course::factory()->create(['instructor_id' => $instructor->id, 'delivery_type' => 'online']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
-        \App\Models\SessionAttendance::create(['course_session_id' => $session->id, 'user_id' => User::factory()->create()->id, 'joined_at' => now(), 'duration_seconds' => 325]);
+        SessionAttendance::create(['course_session_id' => $session->id, 'user_id' => User::factory()->create()->id, 'joined_at' => now(), 'duration_seconds' => 325]);
 
         $response = $this->actingAs($instructor)->get(route('instructor.courses.show', $course));
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CourseRuns;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\CourseRuns\Pages\CreateCourseRun;
 use App\Filament\Resources\CourseRuns\Pages\EditCourseRun;
 use App\Filament\Resources\CourseRuns\Pages\ListCourseRuns;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class CourseRunResource extends Resource
 {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Courses;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\Courses\Pages\CreateCourse;
 use App\Filament\Resources\Courses\Pages\EditCourse;
 use App\Filament\Resources\Courses\Pages\ListCourses;
@@ -17,7 +18,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class CourseResource extends Resource
 {

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Certificates\Tables;
 
 use App\Filament\Actions\ViewAuditLogAction;
 use App\Models\Certificate;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -103,7 +104,7 @@ class CertificatesTable
     private static function exportPdf(): StreamedResponse
     {
         $rows = static::rows();
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificates-list', ['rows' => $rows]);
+        $pdf = Pdf::loadView('pdf.certificates-list', ['rows' => $rows]);
 
         return response()->streamDownload(
             fn () => print ($pdf->output()),

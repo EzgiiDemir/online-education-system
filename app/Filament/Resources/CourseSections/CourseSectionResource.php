@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CourseSections;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\CourseSections\Pages\CreateCourseSection;
 use App\Filament\Resources\CourseSections\Pages\EditCourseSection;
 use App\Filament\Resources\CourseSections\Pages\ListCourseSections;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class CourseSectionResource extends Resource
 {

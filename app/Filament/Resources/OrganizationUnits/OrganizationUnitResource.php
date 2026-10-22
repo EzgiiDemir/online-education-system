@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OrganizationUnits;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\OrganizationUnits\Pages\CreateOrganizationUnit;
 use App\Filament\Resources\OrganizationUnits\Pages\EditOrganizationUnit;
 use App\Filament\Resources\OrganizationUnits\Pages\ListOrganizationUnits;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class OrganizationUnitResource extends Resource
 {

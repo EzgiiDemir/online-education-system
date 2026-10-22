@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuditLogs\Tables;
 
+use App\Models\AuditLog;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -37,7 +38,7 @@ class AuditLogsTable
             ])
             ->filters([
                 SelectFilter::make('action')->label(__('İşlem'))->options(['created' => 'Oluşturuldu', 'updated' => 'Güncellendi', 'deleted' => 'Silindi']),
-                SelectFilter::make('entity_type')->label(__('Kayıt türü'))->options(fn () => \App\Models\AuditLog::query()->distinct()->pluck('entity_type', 'entity_type')->toArray()),
+                SelectFilter::make('entity_type')->label(__('Kayıt türü'))->options(fn () => AuditLog::query()->distinct()->pluck('entity_type', 'entity_type')->toArray()),
             ])
             ->recordActions([
                 ViewAction::make()->label(__('Ayrıntı')),

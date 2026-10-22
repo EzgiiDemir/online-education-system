@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ScimTokens;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\ScimTokens\Pages\CreateScimToken;
 use App\Filament\Resources\ScimTokens\Pages\ListScimTokens;
 use App\Filament\Resources\ScimTokens\Schemas\ScimTokenForm;
@@ -12,7 +13,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * No edit page: a token's only meaningful attributes are its name (create)

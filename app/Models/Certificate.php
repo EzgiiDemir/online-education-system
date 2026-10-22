@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Services\WebhookDispatcher;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Certificate extends Model
 {
@@ -23,7 +25,7 @@ class Certificate extends Model
         return $this->belongsTo(User::class, 'revoked_by');
     }
 
-    public function expiresAt(): ?\Illuminate\Support\Carbon
+    public function expiresAt(): ?Carbon
     {
         $days = $this->enrollment?->course?->recertification_period_days;
 
@@ -59,7 +61,7 @@ class Certificate extends Model
     {
         $this->update(['revoked_at' => now(), 'revoked_reason' => $reason, 'revoked_by' => $revoker->id]);
 
-        app(\App\Services\WebhookDispatcher::class)->dispatch('certificate.revoked', [
+        app(WebhookDispatcher::class)->dispatch('certificate.revoked', [
             'certificate_id' => $this->id,
             'certificate_number' => $this->certificate_number,
             'enrollment_id' => $this->enrollment_id,

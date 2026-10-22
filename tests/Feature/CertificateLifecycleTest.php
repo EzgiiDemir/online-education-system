@@ -6,6 +6,8 @@ use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
+use App\Support\QrCodeGenerator;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -91,7 +93,7 @@ class CertificateLifecycleTest extends TestCase
 
         // Asserts the QR *content* and the <img> delivery mechanism, not the
         // pixel size -- the official ARUCAD artwork sizes it in mm via CSS.
-        $expectedDataUri = \App\Support\QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 80);
+        $expectedDataUri = QrCodeGenerator::dataUri(route('certificates.verify', $certificate->certificate_number), 80);
         $this->assertStringContainsString('<img src="'.$expectedDataUri.'"', $html);
         $this->assertStringNotContainsString('<svg', $html, 'inline <svg> silently fails to render under this DomPDF setup -- see QrCodeGenerator docblock');
         $this->assertStringContainsString($certificate->certificate_number, $html);
@@ -102,7 +104,7 @@ class CertificateLifecycleTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('lms.certificate', [
+        $pdf = Pdf::loadView('lms.certificate', [
             'certificate' => $certificate,
             'enrollment' => $certificate->enrollment->load('user', 'course'),
         ])->setPaper('a4', 'landscape')

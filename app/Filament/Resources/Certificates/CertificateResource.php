@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Certificates;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\Certificates\Pages\ListCertificates;
 use App\Filament\Resources\Certificates\Tables\CertificatesTable;
 use App\Models\Certificate;
@@ -9,7 +10,6 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * No create/edit forms on purpose: a certificate is only ever meant to be

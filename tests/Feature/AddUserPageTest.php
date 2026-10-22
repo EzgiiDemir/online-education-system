@@ -6,7 +6,6 @@ use App\Filament\Pages\AddUser;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
 

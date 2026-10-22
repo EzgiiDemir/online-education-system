@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificate;
-use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;

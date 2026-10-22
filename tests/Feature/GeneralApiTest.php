@@ -7,6 +7,7 @@ use App\Models\ApiToken;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\OrganizationUnit;
+use App\Models\ScimToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -34,7 +35,7 @@ class GeneralApiTest extends TestCase
 
     public function test_a_scim_token_does_not_authenticate_the_general_api(): void
     {
-        [, $scimPlaintext] = \App\Models\ScimToken::generate('SCIM token');
+        [, $scimPlaintext] = ScimToken::generate('SCIM token');
 
         $this->getJson('/api/v1/courses', ['Authorization' => 'Bearer '.$scimPlaintext])->assertStatus(401);
     }

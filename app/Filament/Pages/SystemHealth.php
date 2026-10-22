@@ -2,13 +2,15 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * A single screen answering "is the stuff nothing else on this dashboard
@@ -23,7 +25,7 @@ class SystemHealth extends Page
 {
     use TranslatesNavigation;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedHeart;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHeart;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sistem';
 
@@ -33,7 +35,7 @@ class SystemHealth extends Page
 
     protected string $view = 'filament.pages.system-health';
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string|Htmlable
     {
         return __('Sistem sağlığı');
     }

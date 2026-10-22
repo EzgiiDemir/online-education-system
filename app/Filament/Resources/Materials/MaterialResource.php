@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Materials;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\Materials\Pages\CreateMaterial;
 use App\Filament\Resources\Materials\Pages\EditMaterial;
 use App\Filament\Resources\Materials\Pages\ListMaterials;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class MaterialResource extends Resource
 {

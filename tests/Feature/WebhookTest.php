@@ -14,6 +14,7 @@ use App\Models\MaterialProgress;
 use App\Models\SessionProgress;
 use App\Models\User;
 use App\Models\WebhookSubscription;
+use App\Services\CompletionEngine;
 use App\Services\EnrollmentService;
 use App\Services\WebhookDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -169,7 +170,7 @@ class WebhookTest extends TestCase
         $enrollment = Enrollment::create(['user_id' => User::factory()->create()->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
         Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-WH1', 'issued_at' => now()]);
 
-        app(\App\Services\CompletionEngine::class)->evaluateEnrollment($enrollment);
+        app(CompletionEngine::class)->evaluateEnrollment($enrollment);
 
         Http::assertNothingSent();
     }

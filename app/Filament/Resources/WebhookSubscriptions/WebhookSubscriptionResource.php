@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\WebhookSubscriptions;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Filament\Resources\WebhookSubscriptions\Pages\CreateWebhookSubscription;
 use App\Filament\Resources\WebhookSubscriptions\Pages\EditWebhookSubscription;
 use App\Filament\Resources\WebhookSubscriptions\Pages\ListWebhookSubscriptions;
@@ -14,7 +15,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Filament\Concerns\TranslatesNavigation;
 
 class WebhookSubscriptionResource extends Resource
 {

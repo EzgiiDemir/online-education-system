@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\TranslatesNavigation;
 use App\Models\OrganizationUnit;
 use App\Models\Role;
 use App\Models\User;
@@ -13,10 +14,10 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
-use App\Filament\Concerns\TranslatesNavigation;
 
 /**
  * Departments + onboarding in one screen instead of two: pick a department
@@ -44,7 +45,7 @@ class AddUser extends Page
 
     protected string $view = 'filament.pages.add-user';
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string|Htmlable
     {
         return __('Departmanlar');
     }
@@ -163,7 +164,7 @@ class AddUser extends Page
 
         Notification::make()
             ->title(__('Kullanıcı oluşturuldu'))
-            ->body("Kaydettiğiniz şifre (bir kereliğine gösteriliyor, ".$data['email']." için):\n\n{$password}")
+            ->body('Kaydettiğiniz şifre (bir kereliğine gösteriliyor, '.$data['email']." için):\n\n{$password}")
             ->success()
             ->persistent()
             ->send();

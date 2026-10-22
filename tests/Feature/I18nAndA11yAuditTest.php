@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\Activity;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Enrollment;
+use App\Models\Material;
+use App\Models\PortalSetting;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -83,7 +87,7 @@ class I18nAndA11yAuditTest extends TestCase
     {
         $learner = User::factory()->create(['role' => 'learner']);
         $course = Course::factory()->create();
-        $skill = \App\Models\Skill::create(['name' => 'Test Yetkinliği']);
+        $skill = Skill::create(['name' => 'Test Yetkinliği']);
         $course->skills()->attach($skill);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
 
@@ -138,7 +142,7 @@ class I18nAndA11yAuditTest extends TestCase
      */
     public function test_previously_turkish_only_pages_now_render_in_english(): void
     {
-        \App\Models\PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true, 'self_registration_enabled' => true]);
+        PortalSetting::create(['id' => 1, 'accepted_domains' => ['company.com'], 'local_login_enabled' => true, 'self_registration_enabled' => true]);
 
         $loginResponse = $this->withSession(['locale' => 'en'])->get('/login');
         $loginResponse->assertOk();
@@ -202,7 +206,7 @@ class I18nAndA11yAuditTest extends TestCase
         $learner = User::factory()->create();
         $course = Course::factory()->create(['title' => 'Test Course']);
         $enrollment = Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id, 'status' => 'completed', 'completed_at' => now()]);
-        $certificate = \App\Models\Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-EN01', 'issued_at' => now()]);
+        $certificate = Certificate::create(['enrollment_id' => $enrollment->id, 'certificate_number' => 'CERT-EN01', 'issued_at' => now()]);
 
         session(['locale' => 'en']);
         $html = view('lms.certificate', ['certificate' => $certificate, 'enrollment' => $enrollment->load('user', 'course')])->render();
@@ -227,7 +231,7 @@ class I18nAndA11yAuditTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
         $course = Course::factory()->create(['status' => 'published']);
         $session = $course->sessions()->create(['title' => 'Session 1']);
-        $material = \App\Models\Material::create(['course_session_id' => $session->id, 'title' => 'Slides', 'type' => 'application/msword', 'path' => 'demo/slides.docx']);
+        $material = Material::create(['course_session_id' => $session->id, 'title' => 'Slides', 'type' => 'application/msword', 'path' => 'demo/slides.docx']);
         Enrollment::create(['user_id' => $learner->id, 'course_id' => $course->id]);
 
         $response = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('materials.view', $material));
