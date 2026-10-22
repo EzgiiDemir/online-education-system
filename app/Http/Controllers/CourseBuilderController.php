@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Material;
+use App\Support\ProtectedFiles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -136,7 +137,7 @@ class CourseBuilderController extends Controller
                 'replaced_by' => Auth::id(),
             ]);
             $file = $data['file'];
-            $material->fill(['type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+            $material->fill(['type' => $file->getMimeType(), 'path' => $file->store('materials', ProtectedFiles::DISK)]);
         }
 
         $material->title = $data['title'];

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\CourseSession;
+use App\Support\ProtectedFiles;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -26,7 +27,7 @@ class PurgeExpiredRecordings extends Command
             ->get();
 
         foreach ($sessions as $session) {
-            Storage::disk('public')->delete($session->recording_path);
+            Storage::disk(ProtectedFiles::DISK)->delete($session->recording_path);
             $session->update(['recording_path' => null, 'recording_expires_at' => null]);
         }
 

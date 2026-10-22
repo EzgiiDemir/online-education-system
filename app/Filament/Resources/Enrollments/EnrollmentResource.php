@@ -27,6 +27,8 @@ class EnrollmentResource extends Resource
 
     protected static ?string $navigationLabel = 'Kayıtlar';
 
+    protected static ?string $modelLabel = 'kayıt';
+
     public static function form(Schema $schema): Schema
     {
         return EnrollmentForm::configure($schema);

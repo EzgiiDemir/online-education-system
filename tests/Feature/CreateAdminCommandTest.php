@@ -46,6 +46,21 @@ class CreateAdminCommandTest extends TestCase
         $this->assertSame('Ayşe', $user->name);
     }
 
+    public function test_demo_seeders_refuse_to_run_in_production_even_with_force(): void
+    {
+        $this->app['env'] = 'production';
+
+        foreach (['db:seed' => ['--force' => true], 'demo:seed' => []] as $command => $arguments) {
+            try {
+                $this->artisan($command, $arguments)->run();
+            } catch (\RuntimeException $e) {
+                $this->assertStringContainsString('not allowed in production', $e->getMessage());
+            }
+        }
+
+        $this->assertSame(0, User::count());
+    }
+
     public function test_it_rejects_short_or_mismatched_passwords(): void
     {
         $this->artisan('ecenter:create-admin', ['email' => 'it@arucad.edu.tr'])

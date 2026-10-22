@@ -27,6 +27,8 @@ class SkillResource extends Resource
 
     protected static ?string $navigationLabel = 'Yetkinlikler';
 
+    protected static ?string $modelLabel = 'yetkinlik';
+
     public static function form(Schema $schema): Schema
     {
         return SkillForm::configure($schema);

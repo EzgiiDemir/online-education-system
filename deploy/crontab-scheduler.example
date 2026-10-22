@@ -2,12 +2,15 @@
 #
 # Laravel's official recommended way to run the scheduler on a traditional
 # VPS: one cron entry that fires every minute and lets the framework decide
-# what actually needs to run (app:send-training-reminders, recording purge,
-# the System Health heartbeat -- see bootstrap/app.php).
+# what actually needs to run. Everything recurring lives in bootstrap/app.php
+# (->withSchedule) and shows on the admin System Health page:
+#   02:30 nightly backup (deploy/backup.sh, keeps 14 days on this disk)
+#   03:00 purge expired recordings
+#   04:00 prune old failed jobs, 04:10 clear expired password reset links
+#   07:00 training reminders
 #
-# The nightly backup writes to shared/storage/app/backups on THIS disk and
-# keeps 14 days there. That is not disaster recovery: those files must also
-# be copied off the server (encrypted) by the infrastructure team -- see
+# The local backups are not disaster recovery: the infrastructure team must
+# also copy storage/app/backups off the server (encrypted) -- see
 # SUNUCU_TEKNIK_GEREKSINIMLERI.md section 8.
 #
 # On a Procfile-based platform (Heroku/Railway/Render), use the "scheduler"
@@ -17,4 +20,3 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 * * * * *  www-data  cd /var/www/ecenter/current && php artisan schedule:run >> /dev/null 2>&1
-30 2 * * * www-data  /var/www/ecenter/current/deploy/backup.sh >> /var/www/ecenter/shared/storage/logs/backup.log 2>&1 && find /var/www/ecenter/shared/storage/app/backups -type f -mtime +14 -delete

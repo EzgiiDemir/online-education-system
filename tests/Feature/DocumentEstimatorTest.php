@@ -69,8 +69,7 @@ class DocumentEstimatorTest extends TestCase
 
     public function test_the_material_view_page_still_renders_with_a_pdf_attached(): void
     {
-        Storage::fake('public');
-        Storage::disk('public')->put('materials/slides.pdf', "%PDF-1.4\n1 0 obj<</Type/Page>>endobj\n%%EOF");
+        Storage::disk('local')->put('materials/slides.pdf', "%PDF-1.4\n1 0 obj<</Type/Page>>endobj\n%%EOF");
         $course = Course::factory()->create(['status' => 'published']);
         $section = CourseSection::create(['course_id' => $course->id, 'title' => 'Bölüm 1']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Activities\Schemas;
 
+use App\Support\ProtectedFiles;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,7 +22,10 @@ class ActivityForm
                 Select::make('type')->label(__('Aktivite türü'))->options(['video' => __('Video'), 'document' => __('Doküman / PDF'), 'presentation' => __('Sunum'), 'live_session' => __('Canlı oturum'), 'resource' => __('Kaynak'), 'quiz' => __('Sınav (Quiz)'), 'assignment' => __('Ödev')])->required()->live(),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                TextInput::make('path')->label(__('Dosya veya kaynak yolu'))->placeholder(__('storage/materials/...'))->visible(fn (Get $get) => ! in_array($get('type'), ['quiz', 'assignment'], true)),
+                // Was a free-text "path" box the admin had to fill with a storage path by hand.
+                FileUpload::make('path')->label(__('Dosya'))->disk(ProtectedFiles::DISK)->visibility('private')->directory('materials')
+                    ->maxSize(512000)->acceptedFileTypes(ProtectedFiles::ACCEPTED_MIME_TYPES)
+                    ->visible(fn (Get $get) => ! in_array($get('type'), ['quiz', 'assignment', 'live_session'], true)),
                 TextInput::make('duration_seconds')->label(__('Süre (saniye)'))->numeric()->minValue(0)->visible(fn (Get $get) => ! in_array($get('type'), ['quiz', 'assignment'], true)),
                 TextInput::make('pass_score')->label(__('Geçme notu (%)'))->numeric()->minValue(0)->maxValue(100)->visible(fn (Get $get) => in_array($get('type'), ['quiz', 'assignment'], true)),
                 TextInput::make('max_attempts')->label(__('Maksimum deneme hakkı'))->numeric()->minValue(1)->helperText(__('Boş = sınırsız'))->visible(fn (Get $get) => $get('type') === 'quiz'),

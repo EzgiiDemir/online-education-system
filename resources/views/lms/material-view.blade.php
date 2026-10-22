@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', $material->title.' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', $material->title.' · '.__('Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-wrap">
@@ -8,11 +8,11 @@
 <span class="eyebrow">{{ $material->session->course->title }}</span>
 <h1>{{ $material->title }}</h1>
 @if(str_starts_with($material->type, 'video/'))
-<div class="viewer-media"><video id="content-player" controls src="{{ asset('storage/'.$material->path) }}"></video></div>
+<div class="viewer-media"><video id="content-player" controls src="{{ \App\Support\ProtectedFiles::url($material->path) }}"></video></div>
 @elseif($material->type === 'application/pdf')
-<div class="viewer-media"><iframe src="{{ asset('storage/'.$material->path) }}"></iframe></div>
+<div class="viewer-media"><iframe src="{{ \App\Support\ProtectedFiles::url($material->path) }}"></iframe></div>
 @else
-<div class="viewer-empty"><p class="muted">{{ $en ? 'This content type cannot be previewed in the browser.' : 'Bu içerik türü tarayıcıda önizlenemiyor.' }}</p><a class="btn btn-outline-secondary" href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">{{ $en ? 'Download / open file' : 'Dosyayı indir / aç' }}</a></div>
+<div class="viewer-empty"><p class="muted">{{ $en ? 'This content type cannot be previewed in the browser.' : 'Bu içerik türü tarayıcıda önizlenemiyor.' }}</p><a class="btn btn-outline-secondary" href="{{ \App\Support\ProtectedFiles::url($material->path) }}" target="_blank" rel="noopener">{{ $en ? 'Download / open file' : 'Dosyayı indir / aç' }}</a></div>
 @endif
 @if($isVideo)
 @include('lms.partials.watch-progress', ['progress' => $progress, 'required' => $required, 'heartbeatRoute' => route('materials.heartbeat', $material), 'durationRoute' => route('materials.duration', $material), 'labelWatched' => $en ? 'Watch time' : 'İzlenme süresi'])

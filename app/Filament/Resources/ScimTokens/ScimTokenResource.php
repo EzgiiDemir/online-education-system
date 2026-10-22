@@ -31,6 +31,8 @@ class ScimTokenResource extends Resource
 
     protected static ?string $navigationLabel = 'SCIM token\'ları';
 
+    protected static ?string $modelLabel = 'SCIM token';
+
     public static function form(Schema $schema): Schema
     {
         return ScimTokenForm::configure($schema);

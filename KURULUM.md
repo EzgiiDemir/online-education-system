@@ -149,7 +149,10 @@ alınmaz. Gerekirse aşağıdaki yedekten geri yükleme adımını kullanın.
 ## Yedekler
 
 - Her gece 02:30'da alınır: `/var/www/ecenter/shared/storage/app/backups/`
-  (veritabanı `.sql` + yüklenen dosyalar `.tar.gz`). Sunucuda 14 gün saklanır.
+  (veritabanı `.sql` + tüm yüklenen dosyalar `.tar.gz`). Sunucuda 14 gün saklanır.
+- Son başarılı yedeğin zamanı yönetim panelinde **Sistem Sağlığı** sayfasında
+  görünür. Yedek alınamazsa o satır "gecikmiş" olarak işaretlenir; nedeni
+  `/var/www/ecenter/shared/storage/logs/backup.log` dosyasındadır.
 - **Bu yedekler aynı diskte durur.** Sistem yöneticisi bunları her gece şifreli
   olarak başka bir depoya kopyalamalıdır (30 gün + aylık arşiv; gereksinimler §8).
 - Geri yükleme (mevcut veritabanının üzerine yazar):
@@ -165,17 +168,19 @@ sudo -u www-data bash deploy/restore.sh storage/app/backups/db-TARIH.sql storage
 |---|---|
 | Yayındaki sürüm | `/var/www/ecenter/current` (bir sürüm dizinini gösteren kısayol) |
 | Ayarlar | `/var/www/ecenter/shared/.env` |
-| Yüklenen dosyalar | `/var/www/ecenter/shared/storage/app/public/` |
+| Ders içerikleri, ödevler, kayıtlar (yalnızca yetkili kullanıcıya, uygulama üzerinden sunulur) | `/var/www/ecenter/shared/storage/app/private/` |
+| Herkese açık görseller (logo, kapak, avatar) | `/var/www/ecenter/shared/storage/app/public/` |
 | Uygulama logları | `/var/www/ecenter/shared/storage/logs/laravel-*.log` |
 | Kuyruk işçisi logu | `/var/www/ecenter/shared/storage/logs/worker.log` |
 | Nginx | `/etc/nginx/sites-available/ecenter`, `/var/log/nginx/` |
 | Kuyruk işçileri | `/etc/supervisor/conf.d/ecenter-worker.conf` |
-| Zamanlayıcı + gece yedeği | `/etc/cron.d/ecenter` |
+| Zamanlayıcı (yedek, temizlik, hatırlatmalar `bootstrap/app.php` içinde) | `/etc/cron.d/ecenter` |
 
 ## Canlı sunucuda asla çalıştırmayın
 
-- `php artisan db:seed`, `php artisan demo:seed`, `php artisan migrate:fresh`:
-  Bunlar şifresi `password` olan demo hesaplar oluşturur ya da tüm veriyi siler.
+- `php artisan migrate:fresh`: Tüm veriyi siler.
+- `php artisan db:seed` ve `php artisan demo:seed` üretimde zaten çalışmaz
+  (uygulama reddeder), çünkü şifresi `password` olan demo hesaplar oluştururlar.
 - `php artisan key:generate`: Mevcut `APP_KEY` değerini değiştirir.
 
 ## Sistem yöneticisine kalan işler

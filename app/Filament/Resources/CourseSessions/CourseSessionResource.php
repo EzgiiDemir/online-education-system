@@ -27,6 +27,8 @@ class CourseSessionResource extends Resource
 
     protected static ?string $navigationLabel = 'Canlı oturumlar';
 
+    protected static ?string $modelLabel = 'canlı oturum';
+
     public static function form(Schema $schema): Schema
     {
         return CourseSessionForm::configure($schema);

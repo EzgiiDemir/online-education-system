@@ -26,6 +26,8 @@ class PortalSettingResource extends Resource
 
     protected static ?string $navigationLabel = 'Portal ayarları';
 
+    protected static ?string $modelLabel = 'portal ayarı';
+
     public static function form(Schema $schema): Schema
     {
         return PortalSettingForm::configure($schema);

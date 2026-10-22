@@ -1,6 +1,6 @@
 @php($accountLayout = match(auth()->user()->role) { 'instructor' => 'lms.instructor-layout', 'manager' => 'lms.manager-layout', default => 'lms.layout' })
 @extends($accountLayout)
-@section('title', (session('locale', 'tr') === 'en' ? 'Account' : 'Hesap bilgileri').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Account' : 'Hesap bilgileri').' · '.__('Arucad Eğitim Merkezi'))
 @section('page-title', session('locale', 'tr') === 'en' ? 'Account' : 'Hesap bilgileri')
 @section('content')
 @php($en = session('locale', 'tr') === 'en')

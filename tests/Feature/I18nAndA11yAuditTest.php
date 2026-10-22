@@ -106,16 +106,16 @@ class I18nAndA11yAuditTest extends TestCase
         $learner = User::factory()->create(['role' => 'learner']);
 
         $notifications = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('notifications.index'));
-        $notifications->assertSee('<title>Notifications · Arucad Training Center</title>', false);
+        $notifications->assertSee('<title>Notifications · Arucad Education Center</title>', false);
 
         $calendar = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('calendar.index'));
-        $calendar->assertSee('<title>Calendar · Arucad Training Center</title>', false);
+        $calendar->assertSee('<title>Calendar · Arucad Education Center</title>', false);
 
         $skills = $this->actingAs($learner)->withSession(['locale' => 'en'])->get(route('skills.index'));
-        $skills->assertSee('<title>My Skills · Arucad Training Center</title>', false);
+        $skills->assertSee('<title>My Skills · Arucad Education Center</title>', false);
 
         $home = $this->withSession(['locale' => 'en'])->get('/');
-        $home->assertSee('<title>Arucad Training Center · Course catalog</title>', false);
+        $home->assertSee('<title>Arucad Education Center · Course catalog</title>', false);
     }
 
     public function test_course_builder_edit_section_input_has_an_accessible_label(): void
@@ -239,6 +239,25 @@ class I18nAndA11yAuditTest extends TestCase
         $response->assertDontSee('Öğrenim alanıma dön');
     }
 
+    public function test_guest_can_switch_language_from_the_navbar_before_signing_in(): void
+    {
+        $this->get('/')->assertSee('<span>Eğitim Merkezi</span>', false);
+
+        $this->from('/login')->get(route('language.switch', 'en'))
+            ->assertRedirect('/login')
+            ->assertCookie('locale', 'en');
+
+        $english = $this->get('/login');
+        $english->assertSee('<html lang="en">', false);
+        $english->assertSee('<span>Education Center</span>', false);
+        $english->assertSee('Arucad Education Center</title>', false);
+        $english->assertSee('class="is-active" hreflang="en"', false);
+        $english->assertDontSee('Training Center');
+
+        $this->from('/')->get(route('language.switch', 'tr'))->assertRedirect('/');
+        $this->get('/')->assertSee('<span>Eğitim Merkezi</span>', false);
+    }
+
     public function test_activity_view_renders_in_english(): void
     {
         $learner = User::factory()->create(['role' => 'learner']);
@@ -256,17 +275,17 @@ class I18nAndA11yAuditTest extends TestCase
         $response->assertDontSee('Öğrenim alanıma dön');
     }
 
-    public function test_tr_en_switcher_is_in_profile_menus_after_login_not_on_login_pages(): void
+    public function test_tr_en_switcher_is_in_guest_navbar_and_profile_menus(): void
     {
-        $login = $this->get('/login');
-        $login->assertOk();
-        $login->assertDontSee(route('language.switch', 'tr'), false);
-        $login->assertDontSee(route('language.switch', 'en'), false);
-        $login->assertSee('Eğitim Merkezi');
+        foreach (['/', '/login', route('instructor.login'), route('certificates.verify.lookup')] as $guestPage) {
+            $page = $this->get($guestPage);
+            $page->assertOk();
+            $page->assertSee(route('language.switch', 'tr'), false);
+            $page->assertSee(route('language.switch', 'en'), false);
+            $page->assertSee('Eğitim Merkezi');
+        }
 
-        $instructorLogin = $this->get(route('instructor.login'));
-        $instructorLogin->assertOk();
-        $instructorLogin->assertDontSee(route('language.switch', 'en'), false);
+        // Filament's own login screen has no navbar; it is unchanged.
 
         $adminLogin = $this->get('/admin/login');
         $adminLogin->assertOk();
@@ -302,7 +321,7 @@ class I18nAndA11yAuditTest extends TestCase
         $english = $this->actingAs($admin)->withSession(['locale' => 'en'])->get('/admin');
         $english->assertOk();
         $english->assertSee('Catalog');
-        $english->assertSee('Arucad Training Center Admin');
+        $english->assertSee('Arucad Education Center Admin');
         $english->assertSee('Courses');
     }
 }

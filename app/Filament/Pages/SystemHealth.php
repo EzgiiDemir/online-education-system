@@ -97,6 +97,9 @@ class SystemHealth extends Page
         return collect([
             ['command' => 'app:send-training-reminders', 'label' => __('Eğitim hatırlatmaları'), 'frequency' => __('Her gün 07:00'), 'overdue_after_hours' => 26],
             ['command' => 'app:purge-expired-recordings', 'label' => __('Süresi dolan kayıtları temizleme'), 'frequency' => __('Her gün 03:00'), 'overdue_after_hours' => 26],
+            ['command' => 'backup', 'label' => __('Veritabanı ve dosya yedeği'), 'frequency' => __('Her gün 02:30'), 'overdue_after_hours' => 26],
+            ['command' => 'queue:prune-failed', 'label' => __('Eski başarısız işleri temizleme'), 'frequency' => __('Her gün 04:00'), 'overdue_after_hours' => 26],
+            ['command' => 'auth:clear-resets', 'label' => __('Süresi dolan şifre sıfırlama bağlantılarını temizleme'), 'frequency' => __('Her gün 04:10'), 'overdue_after_hours' => 26],
         ])->map(function (array $job) {
             $lastRun = Cache::get('scheduled_job_last_run:'.$job['command']);
             $job['last_run'] = $lastRun;

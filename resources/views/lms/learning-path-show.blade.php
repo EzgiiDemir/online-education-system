@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', $path->title.' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', $path->title.' · '.__('Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="course-show">

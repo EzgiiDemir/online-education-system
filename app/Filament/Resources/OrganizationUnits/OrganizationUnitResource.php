@@ -27,6 +27,8 @@ class OrganizationUnitResource extends Resource
 
     protected static ?string $navigationLabel = 'Organizasyon birimleri';
 
+    protected static ?string $modelLabel = 'organizasyon birimi';
+
     public static function form(Schema $schema): Schema
     {
         return OrganizationUnitForm::configure($schema);

@@ -28,6 +28,8 @@ class WebhookSubscriptionResource extends Resource
 
     protected static ?string $navigationLabel = 'Webhook abonelikleri';
 
+    protected static ?string $modelLabel = 'webhook aboneliği';
+
     public static function form(Schema $schema): Schema
     {
         return WebhookSubscriptionForm::configure($schema);

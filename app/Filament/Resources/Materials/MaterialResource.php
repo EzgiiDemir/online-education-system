@@ -27,6 +27,8 @@ class MaterialResource extends Resource
 
     protected static ?string $navigationLabel = 'Materyaller';
 
+    protected static ?string $modelLabel = 'materyal';
+
     public static function form(Schema $schema): Schema
     {
         return MaterialForm::configure($schema);

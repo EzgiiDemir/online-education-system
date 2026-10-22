@@ -35,7 +35,7 @@ class SessionMaterialsUploadTest extends TestCase
 
     public function test_a_trainer_can_attach_several_documents_to_one_session(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         [$instructor, $course] = $this->trainerAndCourse();
 
         $this->actingAs($instructor)->post(route('instructor.sessions.store', $course), [
@@ -57,7 +57,7 @@ class SessionMaterialsUploadTest extends TestCase
         );
 
         foreach ($materials as $material) {
-            Storage::disk('public')->assertExists($material->path);
+            Storage::disk('local')->assertExists($material->path);
         }
     }
 
@@ -96,7 +96,7 @@ class SessionMaterialsUploadTest extends TestCase
     #[DataProvider('acceptedFormats')]
     public function test_every_advertised_format_is_accepted(string $filename, string $mime): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         [$instructor, $course] = $this->trainerAndCourse();
 
         $this->actingAs($instructor)->post(route('instructor.sessions.store', $course), [
@@ -114,7 +114,7 @@ class SessionMaterialsUploadTest extends TestCase
 
     public function test_one_bad_file_rejects_the_whole_upload_and_creates_no_session(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         [$instructor, $course] = $this->trainerAndCourse();
 
         $response = $this->actingAs($instructor)->post(route('instructor.sessions.store', $course), [
@@ -144,7 +144,7 @@ class SessionMaterialsUploadTest extends TestCase
 
     public function test_the_single_file_field_is_still_accepted(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         [$instructor, $course] = $this->trainerAndCourse();
 
         $this->actingAs($instructor)->post(route('instructor.sessions.store', $course), [

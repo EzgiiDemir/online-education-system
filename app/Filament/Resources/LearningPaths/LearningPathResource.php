@@ -28,6 +28,8 @@ class LearningPathResource extends Resource
 
     protected static ?string $navigationLabel = 'Öğrenim yolları';
 
+    protected static ?string $modelLabel = 'öğrenim yolu';
+
     public static function form(Schema $schema): Schema
     {
         return LearningPathForm::configure($schema);

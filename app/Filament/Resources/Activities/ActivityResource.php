@@ -29,6 +29,8 @@ class ActivityResource extends Resource
 
     protected static ?string $navigationLabel = 'Aktiviteler';
 
+    protected static ?string $modelLabel = 'aktivite';
+
     public static function form(Schema $schema): Schema
     {
         return ActivityForm::configure($schema);

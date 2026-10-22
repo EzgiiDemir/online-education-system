@@ -1,0 +1,84 @@
+# Runs on every push and pull request. A red check here means the change
+# must not be deployed: it is the same PHP (8.3), database (PostgreSQL 16)
+# and build the production server uses (see SUNUCU_TEKNIK_GEREKSINIMLERI.md).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests · PHP 8.3 · PostgreSQL 16
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sem_testing
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pgsql, pdo_pgsql, intl, mbstring, xml, curl, zip, gd, fileinfo, bcmath
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Security advisories (PHP and production JS)
+        run: |
+          composer audit --locked
+          npm audit --omit=dev --audit-level=high
+
+      - name: Code style (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      - name: Build front-end
+        run: npm run build
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Tests
+        run: php -d memory_limit=1G vendor/bin/phpunit
+
+      - name: Release package builds cleanly
+        run: bash deploy/package.sh

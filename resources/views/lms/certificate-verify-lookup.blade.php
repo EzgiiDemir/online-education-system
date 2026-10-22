@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Certificate verification' : 'Sertifika doğrulama').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Certificate verification' : 'Sertifika doğrulama').' · '.__('Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-wrap">

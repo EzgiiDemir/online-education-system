@@ -63,7 +63,7 @@
 <div class="shared-file" id="file-{{ $material->id }}" data-material-id="{{ $material->id }}">
 <x-lucide name="file-text" size="14" />
 <div class="shared-file-body">
-<a href="{{ asset('storage/'.$material->path) }}" target="_blank" rel="noopener">{{ $material->title }}</a>
+<a href="{{ \App\Support\ProtectedFiles::url($material->path) }}" target="_blank" rel="noopener">{{ $material->title }}</a>
 <small>{{ $material->uploadedBy?->name ?? '—' }}</small>
 <div class="shared-file-grade" data-grade-slot>
 @if($material->score !== null)

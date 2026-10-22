@@ -206,7 +206,7 @@ class CourseBuilderTest extends TestCase
      */
     public function test_replacing_a_materials_file_snapshots_the_old_one_as_a_version(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $instructor = User::factory()->create(['role' => 'instructor']);
         $course = Course::factory()->create(['instructor_id' => $instructor->id]);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
@@ -225,7 +225,7 @@ class CourseBuilderTest extends TestCase
 
     public function test_a_learners_progress_survives_a_material_file_replacement(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $instructor = User::factory()->create(['role' => 'instructor']);
         $course = Course::factory()->create(['instructor_id' => $instructor->id, 'status' => 'published']);
         $session = $course->sessions()->create(['title' => 'Seans 1']);

@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\PortalSetting;
 use App\Models\User;
+use App\Support\ProtectedFiles;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +20,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Demo accounts below all use the password "password". `db:seed --force`
+        // skips Laravel's production prompt, so the refusal has to live here.
+        // Production gets its first admin from `php artisan ecenter:create-admin`.
+        throw_if(app()->isProduction(), \RuntimeException::class, 'Demo seed data is not allowed in production. Use: php artisan ecenter:create-admin <email>');
+
         $this->copyDemoAssets();
 
         $user = User::updateOrCreate(['email' => 'user@company.com'], ['name' => 'Demo Kullanıcı', 'password' => 'password', 'role' => 'learner']);
@@ -52,8 +58,11 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
+        // Posters/covers are public images; the session materials are course
+        // content and go to the private disk like any uploaded material.
         foreach (glob($source.'/*') as $file) {
-            Storage::disk('public')->put('demo/'.basename($file), file_get_contents($file));
+            $disk = preg_match('/\.(jpe?g|png|gif|webp)$/i', $file) ? 'public' : ProtectedFiles::DISK;
+            Storage::disk($disk)->put('demo/'.basename($file), file_get_contents($file));
         }
     }
 }

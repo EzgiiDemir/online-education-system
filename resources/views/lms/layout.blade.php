@@ -2,7 +2,7 @@
 <html lang="{{ session('locale', 'tr') }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi')</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}"><link rel="stylesheet" href="{{ asset('css/lms.css') }}"><link rel="stylesheet" href="{{ asset('css/auth.css') }}"><link rel="stylesheet" href="{{ asset('css/learning.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-fullscreen.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-icons.css') }}"><link rel="stylesheet" href="{{ asset('css/classroom-light.css') }}">
+    <title>@yield('title', __('Arucad Eğitim Merkezi'))</title><link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.custom.min.css') }}">@vite(['resources/css/lms.css', 'resources/css/auth.css', 'resources/css/learning.css', 'resources/css/classroom.css', 'resources/css/classroom-fullscreen.css', 'resources/css/classroom-icons.css', 'resources/css/classroom-light.css'])
     <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.dataset.theme='dark';document.documentElement.dataset.bsTheme='dark';}var s=localStorage.getItem('sidebar');if(s==='collapsed'){document.documentElement.dataset.sidebar='collapsed';}}catch(e){}})();</script>
 </head>
 <body class="{{ trim($__env->yieldContent('body-class')) }}">
@@ -104,7 +104,7 @@
 <nav class="navbar navbar-expand-lg site-nav sticky-top">
 <div class="container-fluid">
 @php($brand = \App\Models\PortalSetting::current())
-<a class="navbar-brand brand" href="{{ route('lms.home') }}"><img src="{{ $brand->logoUrl() }}" alt="{{ $brand->portal_name }}" class="brand-logo"><span>{{ $en ? 'Training Center' : 'Eğitim Merkezi' }}</span></a>
+<a class="navbar-brand brand" href="{{ route('lms.home') }}"><img src="{{ $brand->logoUrl() }}" alt="{{ $brand->portal_name }}" class="brand-logo"><span>{{ __('Eğitim Merkezi') }}</span></a>
 <div class="nav-actions">
 <div class="nav-search" data-search-widget>
 <form method="get" action="{{ route('search.index') }}" role="search" autocomplete="off">
@@ -112,8 +112,9 @@
 </form>
 <div class="nav-search-results" data-search-results></div>
 </div>
-<a class="nav-button nav-button-ghost" href="{{ route('certificates.verify.lookup') }}">{{ $en ? 'Certificate Verification' : 'Sertifika Doğrulama' }}</a>
-<a class="nav-button" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
+<x-locale-switcher />
+<a class="nav-button nav-button-ghost nav-cert" href="{{ route('certificates.verify.lookup') }}">{{ $en ? 'Certificate Verification' : 'Sertifika Doğrulama' }}</a>
+<a class="nav-button nav-login" href="{{ route('login') }}">{{ $en ? 'Login' : 'Giriş' }}</a>
 </div>
 </div>
 </nav>

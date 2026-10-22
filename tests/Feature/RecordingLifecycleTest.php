@@ -22,7 +22,7 @@ class RecordingLifecycleTest extends TestCase
 
     public function test_uploading_a_recording_stamps_an_expiry_date(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $instructor = User::factory()->create(['role' => 'instructor']);
         $course = Course::factory()->create(['instructor_id' => $instructor->id]);
         $session = $course->sessions()->create(['title' => 'Seans 1']);
@@ -40,7 +40,7 @@ class RecordingLifecycleTest extends TestCase
 
     public function test_a_non_owning_instructor_cannot_upload_a_recording(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $owner = User::factory()->create(['role' => 'instructor']);
         $other = User::factory()->create(['role' => 'instructor']);
         $course = Course::factory()->create(['instructor_id' => $owner->id]);
@@ -53,9 +53,9 @@ class RecordingLifecycleTest extends TestCase
 
     public function test_purge_command_deletes_an_expired_recording_file_and_clears_the_columns(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $path = 'recordings/old.webm';
-        Storage::disk('public')->put($path, 'fake video bytes');
+        Storage::disk('local')->put($path, 'fake video bytes');
         $course = Course::factory()->create();
         $session = $course->sessions()->create([
             'title' => 'Eski seans',
@@ -65,7 +65,7 @@ class RecordingLifecycleTest extends TestCase
 
         $this->artisan('app:purge-expired-recordings');
 
-        Storage::disk('public')->assertMissing($path);
+        Storage::disk('local')->assertMissing($path);
         $session->refresh();
         $this->assertNull($session->recording_path);
         $this->assertNull($session->recording_expires_at);
@@ -73,9 +73,9 @@ class RecordingLifecycleTest extends TestCase
 
     public function test_purge_command_leaves_a_recording_that_has_not_expired_yet(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $path = 'recordings/fresh.webm';
-        Storage::disk('public')->put($path, 'fake video bytes');
+        Storage::disk('local')->put($path, 'fake video bytes');
         $course = Course::factory()->create();
         $session = $course->sessions()->create([
             'title' => 'Yeni seans',
@@ -85,7 +85,7 @@ class RecordingLifecycleTest extends TestCase
 
         $this->artisan('app:purge-expired-recordings');
 
-        Storage::disk('public')->assertExists($path);
+        Storage::disk('local')->assertExists($path);
         $session->refresh();
         $this->assertSame($path, $session->recording_path);
         $this->assertNotNull($session->recording_expires_at);

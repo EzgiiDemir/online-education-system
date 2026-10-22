@@ -28,6 +28,7 @@ use App\Services\CompletionEngine;
 use App\Services\EnrollmentService;
 use App\Services\QuizService;
 use App\Support\DocumentEstimator;
+use App\Support\ProtectedFiles;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -719,13 +720,13 @@ class LmsController extends Controller
             foreach ($course->sections as $section) {
                 foreach ($section->activities as $activity) {
                     $type = in_array($activity->type, ['video', 'document', 'presentation', 'quiz', 'assignment'], true) ? $activity->type : 'document';
-                    $items->push(['title' => $activity->title, 'type' => $type, 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $activity->created_at, 'updated_at' => $activity->updated_at, 'preview_url' => $activity->path ? asset('storage/'.$activity->path) : null, 'edit_url' => route('instructor.courses.show', $course).'#curriculum']);
+                    $items->push(['title' => $activity->title, 'type' => $type, 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $activity->created_at, 'updated_at' => $activity->updated_at, 'preview_url' => ProtectedFiles::url($activity->path), 'edit_url' => route('instructor.courses.show', $course).'#curriculum']);
                 }
             }
             foreach ($course->sessions as $session) {
                 $items->push(['title' => $session->title, 'type' => 'live_session', 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $session->created_at, 'updated_at' => $session->updated_at, 'preview_url' => null, 'edit_url' => route('instructor.courses.show', $course).'#sessions']);
                 foreach ($session->materials as $material) {
-                    $items->push(['title' => $material->title, 'type' => 'document', 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $material->created_at, 'updated_at' => $material->updated_at, 'preview_url' => asset('storage/'.$material->path), 'edit_url' => route('instructor.courses.show', $course).'#sessions']);
+                    $items->push(['title' => $material->title, 'type' => 'document', 'course' => $course->title, 'course_id' => $course->id, 'language' => $course->language, 'created_at' => $material->created_at, 'updated_at' => $material->updated_at, 'preview_url' => ProtectedFiles::url($material->path), 'edit_url' => route('instructor.courses.show', $course).'#sessions']);
                 }
             }
         }
@@ -1063,7 +1064,7 @@ class LmsController extends Controller
                 'course_session_id' => $session->id,
                 'title' => $file->getClientOriginalName(),
                 'type' => $file->getMimeType(),
-                'path' => $file->store('materials', 'public'),
+                'path' => $file->store('materials', ProtectedFiles::DISK),
             ]);
         }
         if ($course->delivery_type === 'online') {
@@ -1160,10 +1161,10 @@ class LmsController extends Controller
         $this->authorizeClassroomAccess($session);
         $r->validate(['file' => ['required', 'file', 'max:51200', self::SAFE_UPLOAD_MIMES]]);
         $file = $r->file('file');
-        $material = Material::create(['course_session_id' => $session->id, 'uploaded_by_id' => Auth::id(), 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', 'public')]);
+        $material = Material::create(['course_session_id' => $session->id, 'uploaded_by_id' => Auth::id(), 'title' => $file->getClientOriginalName(), 'type' => $file->getMimeType(), 'path' => $file->store('materials', ProtectedFiles::DISK)]);
 
         if ($r->wantsJson()) {
-            return response()->json(['id' => $material->id, 'title' => $material->title, 'type' => $material->type, 'url' => asset('storage/'.$material->path), 'uploaderId' => Auth::id(), 'uploaderName' => Auth::user()->name]);
+            return response()->json(['id' => $material->id, 'title' => $material->title, 'type' => $material->type, 'url' => ProtectedFiles::url($material->path), 'uploaderId' => Auth::id(), 'uploaderName' => Auth::user()->name]);
         }
 
         return back()->with('success', __('Dosya sınıfta paylaşıldı.'));
@@ -1204,7 +1205,7 @@ class LmsController extends Controller
     {
         $session = $material->session;
         abort_unless(Auth::id() === $material->uploaded_by_id || Auth::id() === $session->course->instructor_id, 403);
-        Storage::disk('public')->delete($material->path);
+        Storage::disk(ProtectedFiles::DISK)->delete($material->path);
         $material->delete();
 
         if (request()->wantsJson()) {
@@ -1294,10 +1295,10 @@ class LmsController extends Controller
     {
         $this->authorize('update', $session->course);
         $r->validate(['recording' => 'required|file|mimes:webm,mp4|max:512000']);
-        $path = $r->file('recording')->store('recordings', 'public');
+        $path = $r->file('recording')->store('recordings', ProtectedFiles::DISK);
         $session->update(['recording_path' => $path, 'recording_expires_at' => now()->addDays(CourseSession::RECORDING_RETENTION_DAYS)]);
 
-        return response()->json(['ok' => true, 'path' => asset('storage/'.$path)]);
+        return response()->json(['ok' => true, 'path' => ProtectedFiles::url($path)]);
     }
 
     public function materialView(Material $material)
@@ -1306,7 +1307,7 @@ class LmsController extends Controller
         $progress = MaterialProgress::firstOrCreate(['enrollment_id' => $enrollment->id, 'material_id' => $material->id]);
         $isVideo = str_starts_with($material->type, 'video/');
         $required = $isVideo ? $this->completion->requiredWatchSeconds($material->duration_seconds) : null;
-        $estimatedMinutes = $isVideo ? null : DocumentEstimator::estimateMinutes('public', $material->path, $material->type);
+        $estimatedMinutes = $isVideo ? null : DocumentEstimator::estimateMinutes(ProtectedFiles::DISK, $material->path, $material->type);
 
         return view('lms.material-view', ['material' => $material, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
     }
@@ -1383,7 +1384,7 @@ class LmsController extends Controller
 
         $isVideo = $activity->type === 'video';
         $required = $isVideo ? $this->completion->requiredWatchSeconds($activity->duration_seconds) : null;
-        $estimatedMinutes = (! $isVideo && $activity->path) ? DocumentEstimator::estimateMinutes('public', $activity->path, $this->activityFileMime($activity)) : null;
+        $estimatedMinutes = (! $isVideo && $activity->path) ? DocumentEstimator::estimateMinutes(ProtectedFiles::DISK, $activity->path, $this->activityFileMime($activity)) : null;
 
         return view('lms.activity-view', ['activity' => $activity, 'progress' => $progress, 'required' => $required, 'isVideo' => $isVideo, 'estimatedMinutes' => $estimatedMinutes]);
     }
@@ -1418,7 +1419,7 @@ class LmsController extends Controller
 
         if ($activity->submission_type === 'file') {
             $data = $r->validate(['file' => ['required', 'file', 'max:20480', self::SAFE_UPLOAD_MIMES]]);
-            $submission['file_path'] = $data['file']->store('assignment-submissions', 'public');
+            $submission['file_path'] = $data['file']->store('assignment-submissions', ProtectedFiles::DISK);
         } elseif ($activity->submission_type === 'url') {
             $data = $r->validate(['content' => 'required|url']);
             $submission['content'] = $data['content'];

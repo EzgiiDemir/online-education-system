@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Dumps the database (sqlite/mysql/pgsql, auto-detected from .env) plus the
-# public storage disk (uploaded materials, avatars, recordings -- everything
-# under storage/app/public) into storage/app/backups/<timestamp>-*.
+# Dumps the database (sqlite/mysql/pgsql, auto-detected from .env) plus all
+# uploaded files -- storage/app/public (avatars, covers) and storage/app/private
+# (course materials, submissions, recordings) -- into
+# storage/app/backups/<timestamp>-*. Runs nightly from the Laravel scheduler
+# (bootstrap/app.php); its last success is shown on the admin System Health page.
 #
 # This is local, on-disk-of-the-same-server backup: a genuine first line of
 # defense (accidental DROP TABLE, a bad migration, a corrupted upload), but
@@ -50,7 +52,15 @@ case "${DB_CONNECTION:-pgsql}" in
     ;;
 esac
 
-tar -czf "$BACKUP_DIR/storage-$TIMESTAMP.tar.gz" -C storage/app public
+# Uploaded files: public images and the private course content / learner
+# uploads (see App\Support\ProtectedFiles). Backups and livewire-tmp are
+# left out so one backup never contains the previous ones.
+tar -czf "$BACKUP_DIR/storage-$TIMESTAMP.tar.gz" -C storage/app \
+  --exclude='private/livewire-tmp' --exclude='backups' public private
+
+# Local copies are only the first line of defence (see header); keep a
+# rolling window so they cannot fill the disk.
+find "$BACKUP_DIR" -maxdepth 1 -type f \( -name 'db-*' -o -name 'storage-*' \) -mtime +"${BACKUP_KEEP_DAYS:-14}" -delete
 
 echo "Backup complete:"
 echo "  $BACKUP_DIR/$DB_BACKUP_FILE"

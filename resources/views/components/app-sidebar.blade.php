@@ -2,7 +2,7 @@
 @php($en = session('locale', 'tr') === 'en')
 <aside class="app-sidebar" id="appSidebar">
 <div class="sidebar-brand">
-<a class="sidebar-brand-link" href="{{ $brandRoute }}"><img src="{{ \App\Models\PortalSetting::current()->logoUrl() }}" alt="{{ \App\Models\PortalSetting::current()->portal_name }}" class="brand-logo"><span class="brand-full">{{ $en ? 'Training Center' : 'Eğitim Merkezi' }}</span></a>
+<a class="sidebar-brand-link" href="{{ $brandRoute }}"><img src="{{ \App\Models\PortalSetting::current()->logoUrl() }}" alt="{{ \App\Models\PortalSetting::current()->portal_name }}" class="brand-logo"><span class="brand-full">{{ __('Eğitim Merkezi') }}</span></a>
 <button type="button" class="sidebar-collapse-btn" data-sidebar-collapse aria-label="{{ $en ? 'Collapse/expand menu' : 'Menüyü daralt/genişlet' }}"><x-lucide name="arrow-left" size="18" /></button>
 </div>
 <nav class="sidebar-nav">

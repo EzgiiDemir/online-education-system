@@ -26,6 +26,8 @@ class ApiTokenResource extends Resource
 
     protected static ?string $navigationLabel = 'API token\'ları';
 
+    protected static ?string $modelLabel = 'API token';
+
     public static function form(Schema $schema): Schema
     {
         return ApiTokenForm::configure($schema);

@@ -32,6 +32,9 @@ class DemoFakeDataSeeder extends Seeder
 {
     public function run(): void
     {
+        // demo:seed calls this with --force, which skips Laravel's production prompt.
+        throw_if(app()->isProduction(), \RuntimeException::class, 'Demo seed data is not allowed in production.');
+
         $instructor2 = User::updateOrCreate(
             ['email' => 'zeynep.arslan@company.com'],
             ['name' => 'Zeynep Arslan', 'password' => 'password', 'role' => 'instructor', 'department' => 'Eğitim ve Gelişim', 'job_title' => 'Kıdemli Eğitmen']

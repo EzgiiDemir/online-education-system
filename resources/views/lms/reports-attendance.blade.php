@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', (session('locale', 'tr') === 'en' ? 'Attendance report' : 'Katılım raporu').' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', (session('locale', 'tr') === 'en' ? 'Attendance report' : 'Katılım raporu').' · '.__('Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="section-heading"><div><span class="eyebrow">{{ $en ? 'REPORTS' : 'RAPORLAR' }}</span><h1>{{ $en ? 'Attendance report' : 'Katılım raporu' }}</h1><p class="muted">{{ $en ? 'Average live session attendance per online course.' : 'Online eğitim başına ortalama canlı seans katılımı.' }}</p></div>

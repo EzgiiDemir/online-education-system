@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\CourseBuilderController;
 use App\Http\Controllers\EntraSsoController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\NotificationController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LmsController::class, 'home'])->name('lms.home');
+// Course content and learner uploads on the private disk, access-checked per file (see ProtectedFiles).
+Route::middleware('auth:web,instructor,admin')->get('/files/{path}', [FileController::class, 'show'])->where('path', '.+')->name('files.show');
 Route::get('/language/{locale}', function (string $locale) {
     abort_unless(in_array($locale, ['tr', 'en'], true), 404);
     session(['locale' => $locale]);

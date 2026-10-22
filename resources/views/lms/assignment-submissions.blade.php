@@ -9,7 +9,7 @@
 <div class="course-card-top"><strong>{{ $submission->enrollment->user->name }}</strong><span class="muted">{{ $submission->submitted_at->format('d.m.Y H:i') }}</span></div>
 <div style="margin:10px 0">
 @if($activity->submission_type === 'file' && $submission->file_path)
-<a class="btn btn-outline-secondary" href="{{ asset('storage/'.$submission->file_path) }}" target="_blank" rel="noopener">{{ $en ? 'Download file' : 'Dosyayı indir' }}</a>
+<a class="btn btn-outline-secondary" href="{{ \App\Support\ProtectedFiles::url($submission->file_path) }}" target="_blank" rel="noopener">{{ $en ? 'Download file' : 'Dosyayı indir' }}</a>
 @elseif($activity->submission_type === 'url')
 <a href="{{ $submission->content }}" target="_blank" rel="noopener">{{ $submission->content }}</a>
 @else

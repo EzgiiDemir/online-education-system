@@ -27,6 +27,8 @@ class CourseRunResource extends Resource
 
     protected static ?string $navigationLabel = 'Eğitim dönemleri';
 
+    protected static ?string $modelLabel = 'eğitim dönemi';
+
     public static function form(Schema $schema): Schema
     {
         return CourseRunForm::configure($schema);

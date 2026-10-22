@@ -31,6 +31,8 @@ class CourseResource extends Resource
 
     protected static ?string $navigationLabel = 'Eğitimler';
 
+    protected static ?string $modelLabel = 'eğitim';
+
     public static function form(Schema $schema): Schema
     {
         return CourseForm::configure($schema);

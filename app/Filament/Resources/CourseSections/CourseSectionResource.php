@@ -27,6 +27,8 @@ class CourseSectionResource extends Resource
 
     protected static ?string $navigationLabel = 'Bölümler';
 
+    protected static ?string $modelLabel = 'bölüm';
+
     public static function form(Schema $schema): Schema
     {
         return CourseSectionForm::configure($schema);

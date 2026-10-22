@@ -27,11 +27,30 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 .nav-link{color:var(--text-secondary);font-size:13px;font-weight:600;transition:color .15s var(--ease)}
 .nav-link:hover{color:var(--brand)}
 .nav-link.is-active{color:var(--brand-dark)}
+.nav-actions .nav-button{white-space:nowrap;text-align:center}
+.app-topbar .nav-actions{flex-wrap:nowrap;gap:6px}
+/* Guest navbar below desktop width: a grid instead of one long row.
+   nav-actions becomes display:contents so its items join the grid directly.
+   Tablet  -> [brand ........ TR|EN] / [search ... | certificate | login]
+   Phone   -> [brand ........ TR|EN] / [search ..............] / [certificate ... | login] */
 @media(max-width:991.98px){
-  .site-nav .navbar-collapse{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-  .nav-actions{flex-direction:column;align-items:stretch;gap:12px}
-  .nav-actions .nav-search{width:100%}
-  .nav-actions .nav-search input{width:100%}
+  .site-nav>.container-fluid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand lang lang" "search cert login";align-items:center;gap:10px}
+  .site-nav .nav-actions{display:contents}
+  .site-nav .brand{grid-area:brand;min-width:0;margin-right:0}
+  .site-nav .nav-lang{grid-area:lang;justify-self:end}
+  .site-nav .nav-search{grid-area:search;min-width:0}
+  .site-nav .nav-search input{width:100%}
+  .site-nav .nav-cert{grid-area:cert}
+  .site-nav .nav-login{grid-area:login}
+}
+@media(max-width:575.98px){
+  .site-nav>.container-fluid{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand lang" "search search" "cert login";gap:8px}
+  .site-nav .brand span{white-space:normal;line-height:1.2}
+  .app-topbar .profile-name{display:none}
+  .app-topbar .nav-search{flex:1 1 auto;min-width:0}
+  .app-topbar .nav-search input{width:100%}
+  .app-topbar .topbar-spacer{display:none}
+  .app-topbar .nav-actions{margin-left:auto}
 }
 .workspace-switcher{margin-left:14px;position:relative}
 .workspace-switcher-trigger{display:flex;align-items:center;gap:7px;background:var(--brand-soft);border:0;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:650;color:var(--brand-dark);cursor:pointer;box-shadow:none}
@@ -52,6 +71,11 @@ h1,h2,h3{letter-spacing:-.025em;font-weight:650;margin:0}
 /* Nav search */
 .nav-search{position:relative;flex-shrink:0}
 .nav-search input{width:180px;margin:0;padding:8px 14px;font-size:13px;border-radius:999px;background:rgba(255,255,255,.6)}
+/* The global form-field rule further down (input:not([type=checkbox]):not(...))
+   outranks ".nav-search input" and turned the pill into a tall square box;
+   this selector is one step more specific so the navbar search keeps its shape
+   and matches the 38px nav buttons beside it. */
+.nav-search form input[type=search][data-search-input]{padding:9px 16px;font-size:13px;line-height:20px;border-radius:999px}
 .nav-search-results{position:absolute;left:0;top:calc(100% + 10px);width:320px;max-width:min(320px,calc(100vw - 24px));background:rgba(255,255,255,.92);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 24px 48px #10182828;padding:8px;display:none;max-height:420px;overflow:auto;z-index:50}
 .nav-search-results.is-open{display:block}
 .nav-search-group{padding:6px 8px}

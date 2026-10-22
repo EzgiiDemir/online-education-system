@@ -31,7 +31,7 @@ class MaterialsTable
             ])
             ->recordActions([
                 Action::make('preview')->label(__('Önizle'))->icon(Heroicon::OutlinedEye)->color('gray')
-                    ->url(fn ($record) => $record->path ? asset('storage/'.$record->path) : null)
+                    ->url(fn ($record) => \App\Support\ProtectedFiles::url($record->path))
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => (bool) $record->path),
                 EditAction::make(),

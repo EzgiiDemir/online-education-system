@@ -1,5 +1,5 @@
 @extends('lms.layout')
-@section('title', $activity->title.' · '.(session('locale', 'tr') === 'en' ? 'Arucad Training Center' : 'Arucad Eğitim Merkezi'))
+@section('title', $activity->title.' · '.__('Arucad Eğitim Merkezi'))
 @section('content')
 @php($en = session('locale', 'tr') === 'en')
 <div class="viewer-wrap">
@@ -9,11 +9,11 @@
 <h1>{{ $activity->title }}</h1>
 @if($activity->description)<p class="muted">{{ $activity->description }}</p>@endif
 @if($activity->path && $activity->type === 'video')
-<div class="viewer-media"><video id="content-player" controls src="{{ asset('storage/'.$activity->path) }}"></video></div>
+<div class="viewer-media"><video id="content-player" controls src="{{ \App\Support\ProtectedFiles::url($activity->path) }}"></video></div>
 @elseif($activity->path && in_array($activity->type, ['document', 'presentation']))
-<div class="viewer-media"><iframe src="{{ asset('storage/'.$activity->path) }}"></iframe></div>
+<div class="viewer-media"><iframe src="{{ \App\Support\ProtectedFiles::url($activity->path) }}"></iframe></div>
 @elseif($activity->path)
-<div class="viewer-empty"><a class="btn btn-outline-secondary" href="{{ asset('storage/'.$activity->path) }}" target="_blank" rel="noopener">{{ $en ? 'Open resource' : 'Kaynağı aç' }}</a></div>
+<div class="viewer-empty"><a class="btn btn-outline-secondary" href="{{ \App\Support\ProtectedFiles::url($activity->path) }}" target="_blank" rel="noopener">{{ $en ? 'Open resource' : 'Kaynağı aç' }}</a></div>
 @else
 <div class="viewer-empty"><p class="muted" style="margin:0">{{ $en ? 'There is no separate file for this activity.' : 'Bu etkinlik için ayrı bir dosya bulunmuyor.' }}</p></div>
 @endif
