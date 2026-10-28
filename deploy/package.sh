@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Builds the release package that deploy/deploy.sh installs on the server.
-# Runs on the developer machine (Git Bash on Windows, or Linux/macOS).
+# Runs on the developer machine (Git Bash on Windows, or Linux/macOS), from
+# a git checkout: the file list is what git tracks, so nothing is dropped by
+# an over-broad exclude pattern and the package name carries the commit.
 #
 # Usage: bash deploy/package.sh      ->  dist/ecenter-<date>-<commit>.tar.gz
 #
@@ -35,8 +37,14 @@ if grep -l $'\r' $(grep -E '\.sh$|^artisan$' "$LIST") 2>/dev/null; then
     exit 1
 fi
 
-tar -czf "dist/$NAME.tar.gz" -T "$LIST"
-( cd dist && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256" )
+# COPYFILE_DISABLE stops macOS tar from adding an AppleDouble "._name" twin
+# for every file (harmless elsewhere).
+COPYFILE_DISABLE=1 tar -czf "dist/$NAME.tar.gz" -T "$LIST"
+if command -v sha256sum >/dev/null; then
+    ( cd dist && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256" )
+else
+    ( cd dist && shasum -a 256 "$NAME.tar.gz" > "$NAME.tar.gz.sha256" )   # macOS
+fi
 
 echo
 echo "Package : dist/$NAME.tar.gz ($(du -h "dist/$NAME.tar.gz" | cut -f1), $(wc -l < "$LIST") files)"

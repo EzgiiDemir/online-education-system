@@ -8,6 +8,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -51,12 +52,17 @@ class SystemHealth extends Page
             $dbError = $e->getMessage();
         }
 
-        $schedulerLastRun = Cache::get('scheduler_heartbeat_at');
+        $schedulerLastRun = self::cachedTime('scheduler_heartbeat_at');
         $publicDiskPath = storage_path('app/public');
         $diskFree = is_dir($publicDiskPath) ? @disk_free_space($publicDiskPath) : null;
         $diskTotal = is_dir($publicDiskPath) ? @disk_total_space($publicDiskPath) : null;
 
-        $logPath = storage_path('logs/laravel.log');
+        // Production logs to daily files (LOG_STACK=daily); laravel.log is
+        // only written by the "single" channel, which made this always 0.
+        $logPath = storage_path('logs/laravel-'.now()->format('Y-m-d').'.log');
+        if (! is_file($logPath)) {
+            $logPath = storage_path('logs/laravel.log');
+        }
         $errorCountToday = 0;
         if (is_file($logPath)) {
             $today = now()->format('Y-m-d');
@@ -103,12 +109,31 @@ class SystemHealth extends Page
             ['command' => 'queue:prune-failed', 'label' => __('Eski başarısız işleri temizleme'), 'frequency' => __('Her gün 04:00'), 'overdue_after_hours' => 26],
             ['command' => 'auth:clear-resets', 'label' => __('Süresi dolan şifre sıfırlama bağlantılarını temizleme'), 'frequency' => __('Her gün 04:10'), 'overdue_after_hours' => 26],
         ])->map(function (array $job) {
-            $lastRun = Cache::get('scheduled_job_last_run:'.$job['command']);
+            $lastRun = self::cachedTime('scheduled_job_last_run:'.$job['command']);
             $job['last_run'] = $lastRun;
             $job['overdue'] = ! $lastRun || now()->diffInHours($lastRun) > $job['overdue_after_hours'];
 
             return $job;
         })->all();
+    }
+
+    /**
+     * The scheduler stores these timestamps as ISO-8601 strings. They used
+     * to be Carbon objects, but config/cache.php sets serializable_classes
+     * to false, so on a real (database) cache store every object came back
+     * as __PHP_Incomplete_Class and this page threw a 500 as soon as the
+     * scheduler had run once. Anything that is not a string -- such a stale
+     * object from before the fix -- reads as "never ran" instead of crashing.
+     */
+    private static function cachedTime(string $key): ?Carbon
+    {
+        $value = Cache::get($key);
+
+        try {
+            return is_string($value) ? Carbon::parse($value) : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function getFailedJobs()

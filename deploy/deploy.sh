@@ -32,7 +32,26 @@ RELEASE="$APP_DIR/releases/$(date +%Y%m%d-%H%M%S)"
 
 step "Unpacking $(basename "$PACKAGE") into $RELEASE"
 mkdir -p "$RELEASE"
-tar -xzf "$PACKAGE" -C "$RELEASE"
+tar -xzf "$PACKAGE" -C "$RELEASE" 2>&1 | grep -v "Ignoring unknown extended header" || true
+# A package tarred on macOS carries an AppleDouble "._name" twin for every
+# file (671 of them on the first server), including "._2026_..._table.php"
+# next to real migrations. They are never part of the app.
+find "$RELEASE" \( -name '._*' -o -name '.DS_Store' \) -delete
+
+# Refuse a broken package before anything touches the live site. The first
+# production deploy shipped without public/vendor (a macOS `tar --exclude`
+# of "vendor" also matched public/vendor), so every page lost Bootstrap.
+missing=""
+for required in artisan composer.lock public/index.php public/vendor/bootstrap/bootstrap.custom.min.css \
+                public/vendor/bootstrap/bootstrap.bundle.min.js public/build/manifest.json; do
+    [ -e "$RELEASE/$required" ] || missing="$missing $required"
+done
+if [ -n "$missing" ]; then
+    rm -rf "$RELEASE"
+    echo "ERROR: package is incomplete, nothing was deployed. Missing:$missing" >&2
+    echo "Build packages only with: bash deploy/package.sh" >&2
+    exit 1
+fi
 rm -rf "$RELEASE/storage"
 ln -s "$SHARED/storage" "$RELEASE/storage"
 ln -s "$SHARED/.env" "$RELEASE/.env"
@@ -63,6 +82,13 @@ as_www php artisan filament:optimize 2>/dev/null || true
 step "Switching current -> $(basename "$RELEASE")"
 ln -sfn "$RELEASE" "$APP_DIR/current.tmp"
 mv -T "$APP_DIR/current.tmp" "$APP_DIR/current"
+
+step "Syncing scheduler (cron) and queue worker (Supervisor) config from the release"
+# These used to be installed only by server-setup.sh, so a release that
+# changed them (e.g. moving the nightly backup into the Laravel scheduler)
+# never reached the server.
+install -m 644 "$RELEASE/deploy/crontab-scheduler.example" /etc/cron.d/ecenter
+install -m 644 "$RELEASE/deploy/supervisor-worker.conf.example" /etc/supervisor/conf.d/ecenter-worker.conf
 
 step "Reloading PHP-FPM and restarting queue workers"
 systemctl reload php$PHP-fpm 2>/dev/null || service php$PHP-fpm reload

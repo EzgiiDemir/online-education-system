@@ -71,9 +71,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // table can show real per-job status instead of only the generic
         // process-is-alive heartbeat below.
         $schedule->command('app:send-training-reminders')->dailyAt('07:00')
-            ->after(fn () => Cache::forever('scheduled_job_last_run:app:send-training-reminders', now()));
+            ->after(fn () => Cache::forever('scheduled_job_last_run:app:send-training-reminders', now()->toIso8601String()));
         $schedule->command('app:purge-expired-recordings')->dailyAt('03:00')
-            ->after(fn () => Cache::forever('scheduled_job_last_run:app:purge-expired-recordings', now()));
+            ->after(fn () => Cache::forever('scheduled_job_last_run:app:purge-expired-recordings', now()->toIso8601String()));
         // Nightly database + uploads backup (deploy/backup.sh also drops local
         // copies older than BACKUP_KEEP_DAYS). Recorded only on success, so a
         // failing backup shows up as overdue on the System Health page instead
@@ -81,17 +81,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->exec('bash '.escapeshellarg(base_path('deploy/backup.sh')))->dailyAt('02:30')
             ->environments(['production', 'staging'])->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/backup.log'))
-            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:backup', now()));
+            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:backup', now()->toIso8601String()));
         // Housekeeping so these tables do not grow forever.
         $schedule->command('queue:prune-failed --hours=720')->dailyAt('04:00')
-            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:queue:prune-failed', now()));
+            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:queue:prune-failed', now()->toIso8601String()));
         $schedule->command('auth:clear-resets')->dailyAt('04:10')
-            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:auth:clear-resets', now()));
+            ->onSuccess(fn () => Cache::forever('scheduled_job_last_run:auth:clear-resets', now()->toIso8601String()));
         // A frequent, trivial heartbeat so the admin System Health page can
         // show "is the scheduler process actually running right now" --
         // the daily reminder job alone would show a stale, misleading
         // timestamp for the other 23+ hours of the day.
-        $schedule->call(fn () => Cache::forever('scheduler_heartbeat_at', now()))->everyMinute();
+        $schedule->call(fn () => Cache::forever('scheduler_heartbeat_at', now()->toIso8601String()))->everyMinute();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

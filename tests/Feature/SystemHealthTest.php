@@ -80,12 +80,35 @@ class SystemHealthTest extends TestCase
     public function test_a_recently_run_scheduled_job_is_not_flagged_overdue(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
-        Cache::forever('scheduled_job_last_run:app:send-training-reminders', now());
+        Cache::forever('scheduled_job_last_run:app:send-training-reminders', now()->toIso8601String());
 
         $jobs = Livewire::actingAs($admin)->test(SystemHealth::class)->instance()->getScheduledJobs();
 
         $reminderJob = collect($jobs)->firstWhere('command', 'app:send-training-reminders');
         $this->assertFalse($reminderJob['overdue']);
+    }
+
+    /**
+     * Production regression: on the database cache store with
+     * serializable_classes=false, a Carbon written by the scheduler came back
+     * as __PHP_Incomplete_Class and this page answered 500 as soon as the
+     * scheduler had run once. The array store used by other tests never
+     * serializes, which is why this went unnoticed.
+     */
+    public function test_page_survives_the_real_database_cache_store_after_the_scheduler_ran(): void
+    {
+        config(['cache.default' => 'database']);
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // A value as written by an older release (object) must not crash the page...
+        Cache::forever('scheduler_heartbeat_at', now());
+        $this->actingAs($admin)->get('/admin/system-health')->assertOk();
+
+        // ...and what the scheduler writes now is read back as a real time.
+        $this->artisan('schedule:run')->assertSuccessful();
+        $this->assertIsString(Cache::get('scheduler_heartbeat_at'));
+        $this->actingAs($admin)->get('/admin/system-health')->assertOk();
+        $this->assertTrue(Livewire::actingAs($admin)->test(SystemHealth::class)->instance()->getMetrics()['scheduler_healthy']);
     }
 
     public function test_responses_carry_a_correlation_id_header(): void

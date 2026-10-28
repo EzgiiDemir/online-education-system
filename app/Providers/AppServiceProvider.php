@@ -36,11 +36,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // In production every generated URL must be https, including the ones
-        // baked into notification email and the certificate QR code, which are
-        // rendered by the queue worker and the PDF engine where there is no
-        // incoming request to infer the scheme from.
-        if ($this->app->environment('production')) {
+        // Generated URLs -- including the ones baked into notification email
+        // and the certificate QR code, rendered by the queue worker and the
+        // PDF engine where no request exists to infer the scheme from --
+        // follow APP_URL. Forcing https unconditionally broke every asset and
+        // form on a server that has no certificate yet (the live server had
+        // to be hand-edited); switching to https is now only an .env change.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 
