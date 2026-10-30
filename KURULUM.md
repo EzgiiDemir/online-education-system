@@ -113,6 +113,22 @@ Ardından tarayıcıda şunları kontrol edin:
 
 ---
 
+## Veri diski (tek seferlik)
+
+Yüklenen dosyalar, ders kayıtları, yedekler ve loglar sistem diskinde değil,
+ayrı bir veri diskinde durmalıdır. Sunucuya eklenmiş **boş** bir disk için
+(örneğin `/dev/sdb`):
+
+```bash
+sudo bash /var/www/ecenter/current/deploy/attach-data-disk.sh /dev/sdb
+```
+
+Betik diskte bölüm ya da dosya sistemi varsa hiçbir şey yapmadan durur.
+Mevcut dosyaları kopyalayıp sayısını doğrular, diski kalıcı olarak
+`/var/www/ecenter/shared/storage` yoluna bağlar ve eski klasörü
+`storage.pre-disk-<tarih>` adıyla yerinde bırakır. Birkaç saniyelik bakım
+modu dışında kesinti olmaz.
+
 ## Güncelleme (yeni sürüm)
 
 Geliştirici bilgisayarında (Git Bash):
